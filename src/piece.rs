@@ -1,8 +1,10 @@
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Owner {
     White,
     Black
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PieceType {
     Pawn,
     Rook,
@@ -12,9 +14,7 @@ pub enum PieceType {
     King
 }
 
-// use self::Owner::*;
-// use self::PieceType::*;
-
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Piece {
     pub owner: Owner,
     pub piece_type: PieceType,

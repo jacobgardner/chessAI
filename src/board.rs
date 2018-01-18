@@ -4,6 +4,7 @@ use piece::Owner::*;
 // use std::error::Error;
 use std::fmt;
 
+#[derive(Debug, PartialEq)]
 pub struct Board {
     pieces: Vec<Option<Piece>>,
 }
@@ -136,11 +137,14 @@ impl Board {
             // position += 1;
         }
 
-        let mut output: Vec<Option<Piece>> = vec![];
+        if pieces.len() != 64 {
+            return Err(());
+        }
 
-        for chunk in pieces.chunks(8).rev() {
+        let mut output = vec![];
+
+        for chunk in (&pieces).chunks(8).rev() {
             output.extend(chunk);
-            // output.push(chunk);
         }
 
         // let chunks: Vec<Vec<Option<Piece>>> = pieces.chunks_mut(8).collect();
@@ -150,20 +154,78 @@ impl Board {
 
 #[test]
 fn test_from_ascii() {
+    // Test typical board.
     let board = Board::from_ascii(
         "
     RNBQKBNR
     PPPPPPPP
     xxxxxxxx
-    xxnxQxxx
-    xxKxnxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    pppppppp
+    rnbqkbnr
+    ",
+    ).unwrap();
+
+    assert_eq!(board.pieces[0], Some(Piece {piece_type: Rook, owner: White}));
+    assert_eq!(board.pieces[7], Some(Piece {piece_type: Rook, owner: White}));
+    assert_eq!(board.pieces[1], Some(Piece {piece_type: Knight, owner: White}));
+    assert_eq!(board.pieces[6], Some(Piece {piece_type: Knight, owner: White}));
+    assert_eq!(board.pieces[2], Some(Piece {piece_type: Bishop, owner: White}));
+    assert_eq!(board.pieces[5], Some(Piece {piece_type: Bishop, owner: White}));
+    assert_eq!(board.pieces[3], Some(Piece {piece_type: Queen, owner: White}));
+    assert_eq!(board.pieces[4], Some(Piece {piece_type: King, owner: White}));
+
+    for i in (8..16).chain(48..56) {
+        let owner = if i > 16 { Black } else { White };
+        assert_eq!(board.pieces[i], Some(Piece {piece_type: Pawn, owner: owner}));
+    }
+
+    assert_eq!(board.pieces[56], Some(Piece {piece_type: Rook, owner: Black}));
+    assert_eq!(board.pieces[63], Some(Piece {piece_type: Rook, owner: Black}));
+    assert_eq!(board.pieces[57], Some(Piece {piece_type: Knight, owner: Black}));
+    assert_eq!(board.pieces[62], Some(Piece {piece_type: Knight, owner: Black}));
+    assert_eq!(board.pieces[58], Some(Piece {piece_type: Bishop, owner: Black}));
+    assert_eq!(board.pieces[61], Some(Piece {piece_type: Bishop, owner: Black}));
+    assert_eq!(board.pieces[59], Some(Piece {piece_type: Queen, owner: Black}));
+    assert_eq!(board.pieces[60], Some(Piece {piece_type: King, owner: Black}));
+
+    for i in 16..48 {
+        assert_eq!(board.pieces[i], None);
+    }
+
+    // Too Few spaces
+    let board2 = Board::from_ascii(
+        "
+    RNBQKBNR
+    PPPPPPP
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
     xxxxxxxx
     pppppppp
     rnbqkbnr
     ",
     );
 
-    println!("\n{}", board.unwrap());
+    assert_eq!(board2, Err(()));
+
+    // Too many spaces
+    let board3 = Board::from_ascii(
+        "
+    RNBQKBNR
+    PPPPPPPPP
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    pppppppp
+    rnbqkbnr
+    ",
+    );
+
+    assert_eq!(board3, Err(()));
 }
 
 #[test]
