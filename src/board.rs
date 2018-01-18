@@ -122,7 +122,6 @@ impl Board {
                     None
                 }
                 _ => {
-                    // position -= 1;
                     None
                 }
             };
@@ -133,8 +132,6 @@ impl Board {
                     piece_type: piece,
                 }));
             }
-
-            // position += 1;
         }
 
         if pieces.len() != 64 {
@@ -143,11 +140,10 @@ impl Board {
 
         let mut output = vec![];
 
-        for chunk in (&pieces).chunks(8).rev() {
+        for chunk in pieces.chunks(8).rev() {
             output.extend(chunk);
         }
 
-        // let chunks: Vec<Vec<Option<Piece>>> = pieces.chunks_mut(8).collect();
         Ok(Board { pieces: output })
     }
 }
