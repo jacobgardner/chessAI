@@ -63,13 +63,66 @@ impl Piece {
         moves
     }
 
+    pub fn rook(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+        let mut moves = vec![];
+
+        for direction in &[
+            Position(-1, 0),
+            Position(1, 0),
+            Position(0, -1),
+            Position(0, 1),
+        ] {
+            let mut multiplier = 1;
+            loop {
+                let position = origin + &(direction * &multiplier);
+
+                if position.0 < 0 || position.0 > 7 || position.1 < 0 || position.1 > 7 {
+                    break;
+                } else if let Some(piece) = board.get_piece(&position) {
+                    if piece.owner != self.owner {
+                        moves.push(position);
+                    }
+                    break;
+                } else {
+                    moves.push(position);
+                }
+
+                multiplier += 1;
+            }
+        }
+
+        moves
+    }
+
+    pub fn bishop(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+        // TODO:
+        vec![]
+    }
+
     pub fn find_moves(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
         let mut moves = vec![];
 
 
         match self.piece_type {
-            Pawn => {moves.extend(self.pawn(origin, board));}
-            _ => {}
+            Pawn => {
+                moves.extend(self.pawn(origin, board));
+            }
+            Rook => {
+                moves.extend(self.rook(origin, board));
+            }
+            Bishop => {
+                moves.extend(self.bishop(origin, board));
+            }
+            Queen => {
+                moves.extend(self.rook(origin, board));
+                moves.extend(self.bishop(origin, board));
+            }
+            King => {
+                // TODO
+            }
+            Knight => {
+                // TODO
+            }
         };
 
         moves

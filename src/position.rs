@@ -1,13 +1,31 @@
 use std::ops::Add;
+use std::ops::Mul;
 
 #[derive(Debug, PartialEq)]
 pub struct Position(pub i32, pub i32);
+
+impl Mul<i32> for Position {
+    type Output = Position;
+
+    fn mul(self, other: i32) -> Position {
+        Position(self.0 * other, self.1 * other)
+    }
+
+}
 
 impl Add for Position {
     type Output = Position;
 
     fn add(self, other: Position) -> Position {
         Position(self.0 + other.0, self.1 + other.1)
+    }
+}
+
+impl<'a, 'b> Mul<&'b i32> for &'a Position {
+    type Output = Position;
+
+    fn mul(self, other: &'b i32) -> Position {
+        Position(self.0 * other, self.1 * other)
     }
 }
 

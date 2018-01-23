@@ -17,10 +17,10 @@ pub struct ChessBoard {
 
 impl fmt::Display for ChessBoard {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "   abcdefgh\n");
-        write!(f, "   --------\n");
+        write!(f, "   abcdefgh\n")?;
+        write!(f, "   --------\n")?;
         for (idx, chunk) in self.pieces.chunks(8).enumerate().rev() {
-            write!(f, "{} |", idx + 1);
+            write!(f, "{} |", idx + 1)?;
             for piece in chunk {
                 match piece {
                     &Some(ref piece) => {
@@ -84,8 +84,8 @@ impl fmt::Display for ChessBoard {
         }
 
 
-        write!(f, "   --------\n");
-        write!(f, "   abcdefgh\n");
+        write!(f, "   --------\n")?;
+        write!(f, "   abcdefgh\n")?;
 
         Ok(())
         // write!(f, );
@@ -284,7 +284,7 @@ fn test_generate_boards() {
     xxxpxxxp
     Pxxxxxxx
     xpxxxxxx
-    xxxxxxxx
+    xxxpxxrx
     ",
     ).unwrap();
 
