@@ -17,6 +17,7 @@ pub struct ChessBoard {
 
 impl fmt::Display for ChessBoard {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "   abcdefgh\n");
         write!(f, "   --------\n");
         for (idx, chunk) in self.pieces.chunks(8).enumerate().rev() {
             write!(f, "{} |", idx + 1);
@@ -79,7 +80,7 @@ impl fmt::Display for ChessBoard {
                     }
                 }
             }
-            write!(f, "|\n")?;
+            write!(f, "| {}\n", idx + 1)?;
         }
 
 
