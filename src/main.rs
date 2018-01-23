@@ -1,6 +1,6 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
-// #![feature(custom_attribute)]
+#![feature(custom_attribute)]
 
 pub mod board;
 pub mod piece;

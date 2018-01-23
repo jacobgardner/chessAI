@@ -200,7 +200,7 @@ fn test_from_ascii() {
     ",
     ).unwrap();
 
-    // #[rustfmt_skip]
+    #[rustfmt_skip]
     {
         assert_eq!(board.pieces[0], Some(Piece { piece_type: Rook, owner: White, }));
         assert_eq!(board.pieces[7], Some(Piece { piece_type: Rook, owner: White, }));
@@ -223,7 +223,7 @@ fn test_from_ascii() {
         );
     }
 
-    // #[rustfmt_skip]
+    #[rustfmt_skip]
     {
         assert_eq!(board.pieces[56], Some(Piece { piece_type: Rook, owner: Black, }));
         assert_eq!(board.pieces[63], Some(Piece { piece_type: Rook, owner: Black, }));
