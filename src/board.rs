@@ -282,7 +282,7 @@ fn test_generate_boards() {
     xxxxxxxx
     xpxxxxxP
     xxxpxxxp
-    Pxxxxxxx
+    Pxxxxbxx
     xpxxxxxx
     xxxpxxrx
     ",

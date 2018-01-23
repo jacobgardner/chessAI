@@ -63,15 +63,15 @@ impl Piece {
         moves
     }
 
-    pub fn rook(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+    pub fn slider(
+        &self,
+        origin: &Position,
+        board: &ChessBoard,
+        vectors: &[Position],
+    ) -> Vec<Position> {
         let mut moves = vec![];
 
-        for direction in &[
-            Position(-1, 0),
-            Position(1, 0),
-            Position(0, -1),
-            Position(0, 1),
-        ] {
+        for direction in vectors {
             let mut multiplier = 1;
             loop {
                 let position = origin + &(direction * &multiplier);
@@ -94,9 +94,30 @@ impl Piece {
         moves
     }
 
+    pub fn rook(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+        self.slider(
+            origin,
+            board,
+            &[
+                Position(-1, 0),
+                Position(1, 0),
+                Position(0, -1),
+                Position(0, 1),
+            ],
+        )
+    }
+
     pub fn bishop(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
-        // TODO:
-        vec![]
+        self.slider(
+            origin,
+            board,
+            &[
+                Position(-1, -1),
+                Position(1, 1),
+                Position(1, -1),
+                Position(-1, 1),
+            ],
+        )
     }
 
     pub fn find_moves(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
