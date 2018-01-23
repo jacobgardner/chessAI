@@ -140,9 +140,11 @@ impl Piece {
             }
             King => {
                 // TODO
+                panic!("Not yet implemented!")
             }
             Knight => {
                 // TODO
+                panic!("Not yet implemented!")
             }
         };
 
