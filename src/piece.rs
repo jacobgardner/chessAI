@@ -27,7 +27,56 @@ pub enum PieceType {
     King,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum MoveResult {
+    Empty,
+    Enemy,
+    Invalid,
+}
+
+use self::MoveResult::*;
+
 impl Piece {
+    fn move_result(&self, position: &Position, board: &ChessBoard) -> MoveResult {
+        if position.0 < 0 || position.0 > 7 || position.1 < 0 || position.1 > 7 {
+            Invalid
+        } else if let Some(piece) = board.get_piece(&position) {
+            if piece.owner != self.owner {
+                Enemy
+            } else {
+                Invalid
+            }
+        } else {
+            Empty
+        }
+    }
+
+    fn slider(&self, origin: &Position, board: &ChessBoard, vectors: &[Position]) -> Vec<Position> {
+        let mut moves = vec![];
+
+        for direction in vectors {
+            let mut multiplier = 1;
+            loop {
+                let position = origin + &(direction * &multiplier);
+
+                match self.move_result(&position, board) {
+                    Invalid => break,
+                    Enemy => {
+                        moves.push(position);
+                        break;
+                    }
+                    Empty => {
+                        moves.push(position);
+                    }
+                }
+
+                multiplier += 1;
+            }
+        }
+
+        moves
+    }
+
     fn pawn(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
         let mut moves = vec![];
 
@@ -63,38 +112,7 @@ impl Piece {
         moves
     }
 
-    pub fn slider(
-        &self,
-        origin: &Position,
-        board: &ChessBoard,
-        vectors: &[Position],
-    ) -> Vec<Position> {
-        let mut moves = vec![];
-
-        for direction in vectors {
-            let mut multiplier = 1;
-            loop {
-                let position = origin + &(direction * &multiplier);
-
-                if position.0 < 0 || position.0 > 7 || position.1 < 0 || position.1 > 7 {
-                    break;
-                } else if let Some(piece) = board.get_piece(&position) {
-                    if piece.owner != self.owner {
-                        moves.push(position);
-                    }
-                    break;
-                } else {
-                    moves.push(position);
-                }
-
-                multiplier += 1;
-            }
-        }
-
-        moves
-    }
-
-    pub fn rook(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+    fn rook(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
         self.slider(
             origin,
             board,
@@ -107,7 +125,7 @@ impl Piece {
         )
     }
 
-    pub fn bishop(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+    fn bishop(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
         self.slider(
             origin,
             board,
@@ -118,6 +136,58 @@ impl Piece {
                 Position(-1, 1),
             ],
         )
+    }
+
+    fn knight(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+        let mut moves = vec![];
+
+        for offset in &[
+            Position(-2, -1),
+            Position(-2, 1),
+            Position(-1, 2),
+            Position(1, 2),
+            Position(2, 1),
+            Position(2, -1),
+            Position(1, -2),
+            Position(-1, -2),
+        ] {
+            let position = origin + offset;
+
+            match self.move_result(&position, board) {
+                Enemy | Empty => {
+                    moves.push(position);
+                }
+                _ => {}
+            }
+        }
+
+        moves
+    }
+
+    fn king(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
+        let mut moves = vec![];
+
+        for offset in &[
+            Position(-1, 0),
+            Position(-1, 1),
+            Position(0, 1),
+            Position(1, 1),
+            Position(1, 0),
+            Position(1, -1),
+            Position(0, -1),
+            Position(-1, -1),
+        ] {
+            let position = origin + offset;
+
+            match self.move_result(&position, board) {
+                Enemy | Empty => {
+                    moves.push(position);
+                }
+                _ => {}
+            }
+        }
+
+        moves
     }
 
     pub fn find_moves(&self, origin: &Position, board: &ChessBoard) -> Vec<Position> {
@@ -139,12 +209,10 @@ impl Piece {
                 moves.extend(self.bishop(origin, board));
             }
             King => {
-                // TODO
-                panic!("Not yet implemented!")
+                moves.extend(self.king(origin, board));
             }
             Knight => {
-                // TODO
-                panic!("Not yet implemented!")
+                moves.extend(self.knight(origin, board));
             }
         };
 
