@@ -28,13 +28,9 @@ impl ChessBoard {
             if let &Some(piece) = piece {
                 if piece.owner == *turn {
                     let p = Position::from_index(idx as i32)?;
-                    println!("{:?}", piece);
 
-                    let valid_moves = self.find_moves(&p, &piece);
+                    self.find_moves(&mut children, &p, &piece);
 
-                    for chess_move in valid_moves {
-                        children.push(self.move_piece(&p, &chess_move))
-                    }
                 }
             }
         }
@@ -56,7 +52,7 @@ impl ChessBoard {
         }
     }
 
-    fn slider(&self, origin: &Position, piece: &Piece, vectors: &[Position]) -> Vec<Position> {
+    fn slider(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece, vectors: &[Position]) -> Vec<Position> {
         let mut moves = vec![];
 
         for vector in vectors {
@@ -67,11 +63,13 @@ impl ChessBoard {
                 match self.move_result(&position, piece) {
                     Invalid => break,
                     Enemy => {
-                        moves.push(position);
+                        boards.push(self.move_piece(origin, &position));
+                        // moves.push(position);
                         break;
                     }
                     Empty => {
-                        moves.push(position);
+                        boards.push(self.move_piece(origin, &position));
+                        // moves.push(position);
                     }
                 }
 
@@ -82,9 +80,7 @@ impl ChessBoard {
         moves
     }
 
-    fn pawn(&self, origin: &Position, piece: &Piece) -> Vec<Position> {
-        let mut moves = vec![];
-
+    fn pawn(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         let (double_move_row, direction) = match piece.owner {
             White => (1, 1),
             Black => (6, -1),
@@ -93,13 +89,13 @@ impl ChessBoard {
         if origin.1 == double_move_row {
             let offset = origin + &Position(0, 2 * direction);
             if !self.has_piece(&offset) {
-                moves.push(offset);
+                boards.push(self.move_piece(origin, &offset))
             }
         }
 
         let offset = origin + &Position(0, direction);
         if !self.has_piece(&offset) {
-            moves.push(offset);
+            boards.push(self.move_piece(origin, &offset));
         }
 
         // Check attack vectors
@@ -108,24 +104,22 @@ impl ChessBoard {
             if position.0 >= 0 && position.0 <= 7 {
                 if let Some(piece) = self.get_piece(&position) {
                     if piece.owner != piece.owner {
-                        moves.push(position);
+                        boards.push(self.move_piece(origin, &position));
                     }
                 }
             }
         }
-
-        moves
     }
 
-    fn rook(&self, origin: &Position, piece: &Piece) -> Vec<Position> {
-        self.slider(origin, piece, &ROOK_MOVE)
+    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
+        self.slider(boards, origin, piece, &ROOK_MOVE)
     }
 
-    fn bishop(&self, origin: &Position, piece: &Piece) -> Vec<Position> {
-        self.slider(origin, piece, &BISHOP_MOVE)
+    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
+        self.slider(boards, origin, piece, &BISHOP_MOVE)
     }
 
-    fn knight(&self, origin: &Position, piece: &Piece) -> Vec<Position> {
+    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
         let mut moves = vec![];
 
         for offset in &KNIGHT_MOVE {
@@ -133,7 +127,7 @@ impl ChessBoard {
 
             match self.move_result(&position, piece) {
                 Enemy | Empty => {
-                    moves.push(position);
+                    boards.push(self.move_piece(origin, &position));
                 }
                 _ => {}
             }
@@ -142,46 +136,46 @@ impl ChessBoard {
         moves
     }
 
-    fn king(&self, origin: &Position, piece: &Piece) -> Vec<Position> {
-        let mut moves = vec![];
-
+    fn king(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         for offset in &QUEEN_MOVE {
             let position = origin + offset;
 
             match self.move_result(&position, piece) {
                 Enemy | Empty => {
-                    moves.push(position);
+                    boards.push(self.move_piece(origin, &position));
                 }
                 _ => {}
             }
         }
-
-        moves
     }
 
-    pub fn find_moves(&self, origin: &Position, piece: &Piece) -> Vec<Position> {
+    pub fn find_moves(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
         let mut moves = vec![];
+
+                    // for chess_move in valid_moves {
+                    //     children.push(self.move_piece(&p, &chess_move))
+                    // }
 
 
         match piece.piece_type {
             Pawn => {
-                moves.extend(self.pawn(origin, piece));
+                self.pawn(boards, origin, piece);
             }
             Rook => {
-                moves.extend(self.rook(origin, piece));
+                self.rook(boards, origin, piece);
             }
             Bishop => {
-                moves.extend(self.bishop(origin, piece));
+                self.bishop(boards, origin, piece);
             }
             Queen => {
-                moves.extend(self.rook(origin, piece));
-                moves.extend(self.bishop(origin, piece));
+                self.rook(boards, origin, piece);
+                self.bishop(boards, origin, piece);
             }
             King => {
-                moves.extend(self.king(origin, piece));
+                self.king(boards, origin, piece);
             }
             Knight => {
-                moves.extend(self.knight(origin, piece));
+                self.knight(boards, origin, piece);
             }
         };
 

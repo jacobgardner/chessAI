@@ -39,5 +39,4 @@ impl Piece {
     pub fn new(piece_type: PieceType, owner: Owner) -> Self {
         Piece {owner: owner, piece_type: piece_type, has_moved: false}
     }
-
 }
