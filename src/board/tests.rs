@@ -152,13 +152,13 @@ fn test_generate_boards() {
 
     println!("WHITE!");
 
-    for sub_board in board.generate_moves(&White).unwrap() {
+    for sub_board in board.generate_moves(&White) {
         println!("{}", sub_board);
     }
 
     println!("BLACK!");
 
-    for sub_board in board.generate_moves(&Black).unwrap() {
+    for sub_board in board.generate_moves(&Black) {
         println!("{}", sub_board);
     }
 }

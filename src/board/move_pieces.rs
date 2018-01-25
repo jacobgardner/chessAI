@@ -21,20 +21,53 @@ impl ChessBoard {
         board
     }
 
-    pub fn generate_moves(&self, turn: &Owner) -> Result<Vec<ChessBoard>, ()> {
+    pub fn generate_moves(&self, turn: &Owner) -> Vec<ChessBoard> {
         let mut children = vec![];
 
         for (idx, piece) in self.pieces.iter().enumerate() {
             if let &Some(piece) = piece {
                 if piece.owner == *turn {
-                    let p = Position::from_index(idx as i32)?;
+                    // pieces should never exceed 64...
+                    let p = Position::from_index(idx as i32).unwrap();
 
                     self.find_moves(&mut children, &p, &piece);
                 }
             }
         }
 
-        Ok(children)
+        let mut filtered = vec![];
+
+        let enemy = match *turn {
+            Black => White,
+            White => Black,
+        };
+
+        for child in children {
+            let mut in_check = false;
+            {
+                let king_pos = child.pieces.iter().enumerate().find(|&(idx, p)| {
+                    if let &Some(p) = p {
+                        &p.owner == turn && p.piece_type == King
+                    } else {
+                        false
+                    }
+                });
+
+                if let Some((king_pos, _)) = king_pos {
+                    if let Ok(king_pos) = Position::from_index(king_pos as i32) {
+                        if child.is_capturable(&king_pos, &enemy) {
+                            in_check = true;
+                        }
+                    }
+                }
+            }
+
+            if !in_check {
+                filtered.push(child);
+            }
+        }
+
+        filtered
     }
 
     fn move_result(&self, position: &Position, piece: &Piece) -> MoveResult {

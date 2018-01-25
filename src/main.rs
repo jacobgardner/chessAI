@@ -8,16 +8,18 @@ mod position;
 mod moves;
 mod utils;
 
+use board::DEFAULT_CONFIGURATION;
+use board::ChessBoard;
+
+use piece::Owner::*;
+
 // use board::Board;
 
 fn main() {
-    println!("Hello, world!");
+    // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
+    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
 
-    // let b = board::Board::new();
+    let children = board.generate_moves(&White);
 
-    let x = Some(1u8);
-
-    if let Some(y) = x {
-        println!("{:?}", y);
-    }
+    println!("{:?}", children);
 }

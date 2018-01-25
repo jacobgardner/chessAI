@@ -1,16 +1,8 @@
-use board::ChessBoard;
-use position::Position;
-use moves::*;
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Owner {
     White,
     Black,
 }
-
-use self::PieceType::*;
-use self::Owner::*;
-
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Piece {

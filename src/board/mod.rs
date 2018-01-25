@@ -14,6 +14,16 @@ use position::Position;
 
 // TODO: Use real errors in this module
 
+pub const DEFAULT_CONFIGURATION: &str = "
+    RNBQKBNR
+    PPPPPPPP
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    pppppppp
+    rnbqkbnr";
+
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ChessBoard {
