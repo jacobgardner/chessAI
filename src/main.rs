@@ -2,9 +2,11 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![feature(custom_attribute)]
 
-pub mod board;
-pub mod piece;
-pub mod position;
+mod board;
+mod piece;
+mod position;
+mod moves;
+mod utils;
 
 // use board::Board;
 
