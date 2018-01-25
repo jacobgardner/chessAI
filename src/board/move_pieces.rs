@@ -30,7 +30,6 @@ impl ChessBoard {
                     let p = Position::from_index(idx as i32)?;
 
                     self.find_moves(&mut children, &p, &piece);
-
                 }
             }
         }
@@ -52,9 +51,13 @@ impl ChessBoard {
         }
     }
 
-    fn slider(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece, vectors: &[Position]) -> Vec<Position> {
-        let mut moves = vec![];
-
+    fn slider(
+        &self,
+        boards: &mut Vec<ChessBoard>,
+        origin: &Position,
+        piece: &Piece,
+        vectors: &[Position],
+    ) {
         for vector in vectors {
             let mut multiplier = 1;
             loop {
@@ -76,8 +79,6 @@ impl ChessBoard {
                 multiplier += 1;
             }
         }
-
-        moves
     }
 
     fn pawn(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
@@ -111,17 +112,15 @@ impl ChessBoard {
         }
     }
 
-    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
+    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         self.slider(boards, origin, piece, &ROOK_MOVE)
     }
 
-    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
+    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         self.slider(boards, origin, piece, &BISHOP_MOVE)
     }
 
-    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
-        let mut moves = vec![];
-
+    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         for offset in &KNIGHT_MOVE {
             let position = origin + offset;
 
@@ -132,8 +131,6 @@ impl ChessBoard {
                 _ => {}
             }
         }
-
-        moves
     }
 
     fn king(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
@@ -149,14 +146,7 @@ impl ChessBoard {
         }
     }
 
-    pub fn find_moves(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) -> Vec<Position> {
-        let mut moves = vec![];
-
-                    // for chess_move in valid_moves {
-                    //     children.push(self.move_piece(&p, &chess_move))
-                    // }
-
-
+    pub fn find_moves(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         match piece.piece_type {
             Pawn => {
                 self.pawn(boards, origin, piece);
@@ -177,11 +167,6 @@ impl ChessBoard {
             Knight => {
                 self.knight(boards, origin, piece);
             }
-        };
-
-        moves
+        }
     }
-
-
 }
-
