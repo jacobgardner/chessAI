@@ -8,6 +8,7 @@ enum MoveResult {
 }
 
 use self::MoveResult::*;
+use utils::exclusive_range;
 
 impl ChessBoard {
     pub fn move_piece(&self, from: &Position, to: &Position) -> ChessBoard {
@@ -45,7 +46,7 @@ impl ChessBoard {
         for child in children {
             let mut in_check = false;
             {
-                let king_pos = child.pieces.iter().enumerate().find(|&(idx, p)| {
+                let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
                     if let &Some(p) = p {
                         &p.owner == turn && p.piece_type == King
                     } else {
@@ -70,7 +71,7 @@ impl ChessBoard {
         filtered
     }
 
-    fn move_result(&self, position: &Position, piece: &Piece) -> MoveResult {
+    fn move_result(&self, position: &Position) -> MoveResult {
         if position.0 < 0 || position.0 > 7 || position.1 < 0 || position.1 > 7 {
             Invalid
         } else if let Some(piece) = self.get_piece(&position) {
@@ -88,7 +89,6 @@ impl ChessBoard {
         &self,
         boards: &mut Vec<ChessBoard>,
         origin: &Position,
-        piece: &Piece,
         vectors: &[Position],
     ) {
         for vector in vectors {
@@ -96,7 +96,7 @@ impl ChessBoard {
             loop {
                 let position = origin + &(vector * &multiplier);
 
-                match self.move_result(&position, piece) {
+                match self.move_result(&position) {
                     Invalid => break,
                     Enemy => {
                         boards.push(self.move_piece(origin, &position));
@@ -145,19 +145,19 @@ impl ChessBoard {
         }
     }
 
-    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        self.slider(boards, origin, piece, &ROOK_MOVE)
+    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position) {
+        self.slider(boards, origin, &ROOK_MOVE)
     }
 
-    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        self.slider(boards, origin, piece, &BISHOP_MOVE)
+    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position) {
+        self.slider(boards, origin, &BISHOP_MOVE)
     }
 
-    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
+    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position) {
         for offset in &KNIGHT_MOVE {
             let position = origin + offset;
 
-            match self.move_result(&position, piece) {
+            match self.move_result(&position) {
                 Enemy | Empty => {
                     boards.push(self.move_piece(origin, &position));
                 }
@@ -170,11 +170,49 @@ impl ChessBoard {
         for offset in &QUEEN_MOVE {
             let position = origin + offset;
 
-            match self.move_result(&position, piece) {
+            match self.move_result(&position) {
                 Enemy | Empty => {
                     boards.push(self.move_piece(origin, &position));
                 }
                 _ => {}
+            }
+        }
+
+        if !piece.has_moved {
+            for rook_pos in &[Position(0, origin.1), Position(7, origin.1)] {
+                if let Some(rook) = self.get_piece(rook_pos) {
+                    if !rook.has_moved && rook.piece_type == Rook {
+                        // check if row empty
+
+                        let mut row_open = true;
+
+                        for i in exclusive_range(rook_pos.0, origin.0) {
+                            if let Some(_) = self.get_piece(&Position(i, origin.1)) {
+                                row_open = false;
+                                break;
+                            }
+                        }
+
+                        if !row_open {
+                            break;
+                        }
+
+                        // we can castle if not in check during move
+                        let (rook, king) = if rook_pos.0 == 0 { (3, 2) } else { (5, 6) };
+
+                        if !self.is_capturable(&Position(rook, origin.1), &piece.owner.flip()) {
+                            let mut board = self.clone();
+                            board.pieces[Position(king, origin.1).to_index()] =
+                                board.pieces[origin.to_index()];
+                            board.pieces[origin.to_index()] = None;
+                            board.pieces[Position(rook, origin.1).to_index()] =
+                                board.pieces[rook_pos.to_index()];
+                            board.pieces[rook_pos.to_index()] = None;
+
+                            boards.push(board);
+                        }
+                    }
+                }
             }
         }
     }
@@ -185,20 +223,20 @@ impl ChessBoard {
                 self.pawn(boards, origin, piece);
             }
             Rook => {
-                self.rook(boards, origin, piece);
+                self.rook(boards, origin);
             }
             Bishop => {
-                self.bishop(boards, origin, piece);
+                self.bishop(boards, origin);
             }
             Queen => {
-                self.rook(boards, origin, piece);
-                self.bishop(boards, origin, piece);
+                self.rook(boards, origin);
+                self.bishop(boards, origin);
             }
             King => {
                 self.king(boards, origin, piece);
             }
             Knight => {
-                self.knight(boards, origin, piece);
+                self.knight(boards, origin);
             }
         }
     }

@@ -21,5 +21,8 @@ fn main() {
 
     let children = board.generate_moves(&White);
 
-    println!("{:?}", children);
+    for child in children {
+
+        println!("{}", child);
+    }
 }

@@ -4,6 +4,17 @@ pub enum Owner {
     Black,
 }
 
+use self::Owner::*;
+
+impl Owner {
+    pub fn flip(&self) -> Self {
+        match *self {
+            White => Black,
+            Black => White,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Piece {
     pub owner: Owner,
