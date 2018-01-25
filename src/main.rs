@@ -28,11 +28,11 @@ fn main() {
         RNBQKBNR
         PPPPPPPP
         xxxxxxxx
+        xxxxQxxx
         xxxxxxxx
         xxxxxxxx
         xxxxxxxx
-        pppppppp
-        rnbqkxxr",
+        xxxxkxxr",
     ).unwrap();
     let children = board.generate_moves(&White);
 

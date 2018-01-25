@@ -178,7 +178,7 @@ impl ChessBoard {
             }
         }
 
-        if !piece.has_moved {
+        if !piece.has_moved && !self.is_capturable(origin, &piece.owner.flip()) {
             for rook_pos in &[Position(0, origin.1), Position(7, origin.1)] {
                 if let Some(rook) = self.get_piece(rook_pos) {
                     if !rook.has_moved && rook.piece_type == Rook {
