@@ -17,12 +17,26 @@ use piece::Owner::*;
 
 fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
-    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
+    // let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
+    // let children = board.generate_moves(&White);
 
+    // for child in children {
+    //     println!("{}", child);
+    // }
+
+    let board = ChessBoard::from_ascii("
+        RNBQKBNR
+        PPPPPPPP
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        pppppppp
+        rnbqkxxr",
+    ).unwrap();
     let children = board.generate_moves(&White);
 
     for child in children {
-
         println!("{}", child);
     }
 }

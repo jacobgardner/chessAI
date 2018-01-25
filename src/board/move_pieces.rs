@@ -183,7 +183,6 @@ impl ChessBoard {
                 if let Some(rook) = self.get_piece(rook_pos) {
                     if !rook.has_moved && rook.piece_type == Rook {
                         // check if row empty
-
                         let mut row_open = true;
 
                         for i in exclusive_range(rook_pos.0, origin.0) {
@@ -194,7 +193,7 @@ impl ChessBoard {
                         }
 
                         if !row_open {
-                            break;
+                            continue;
                         }
 
                         // we can castle if not in check during move
