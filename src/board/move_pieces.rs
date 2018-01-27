@@ -44,8 +44,10 @@ impl ChessBoard {
         };
 
 
-        let filtered = children.drain(..).filter(|child| {
-            let mut in_check = false;
+        // Filter out boards where king is capturable...
+        children.drain(..).filter(|child| {
+            // Search the board for the position of the king piece
+            // TODO: track king position to avoid linear search every time.
             let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
                 if let &Some(p) = p {
                     &p.owner == turn && p.piece_type == King
@@ -57,15 +59,18 @@ impl ChessBoard {
             if let Some((king_pos, _)) = king_pos {
                 if let Ok(king_pos) = Position::from_index(king_pos as i32) {
                     if child.is_capturable(&king_pos, &enemy) {
-                        in_check = true;
+                        // King is capturable with this board... invalid move
+                        return false;
                     }
                 }
+            } else {
+                // No King found... board invalid
+                return false;
             }
 
-            return !in_check;
-        }).collect();
-
-        filtered
+            // King was found and wasn't capturable
+            true
+        }).collect()
     }
 
     fn move_result(&self, position: &Position) -> MoveResult {
