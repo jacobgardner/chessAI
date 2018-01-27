@@ -45,7 +45,7 @@ impl ChessBoard {
 
 
         // Filter out boards where king is capturable...
-        children.drain(..).filter(|child| {
+        children.into_iter().filter(|child| {
             // Search the board for the position of the king piece
             // TODO: track king position to avoid linear search every time.
             let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
@@ -102,12 +102,10 @@ impl ChessBoard {
                     Invalid => break,
                     Enemy => {
                         boards.push(self.move_piece(origin, &position));
-                        // moves.push(position);
                         break;
                     }
                     Empty => {
                         boards.push(self.move_piece(origin, &position));
-                        // moves.push(position);
                     }
                 }
 

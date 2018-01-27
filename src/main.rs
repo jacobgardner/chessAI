@@ -7,6 +7,7 @@ mod piece;
 mod position;
 mod moves;
 mod utils;
+mod move_search;
 
 use board::DEFAULT_CONFIGURATION;
 use board::ChessBoard;
@@ -17,12 +18,12 @@ use piece::Owner::*;
 
 fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
-    // let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
-    // let children = board.generate_moves(&White);
+    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
+    let children = board.generate_moves(&White);
 
-    // for child in children {
-    //     println!("{}", child);
-    // }
+    for child in children {
+        println!("{}", child);
+    }
 
     let board = ChessBoard::from_ascii("
         RNBQKBNR
