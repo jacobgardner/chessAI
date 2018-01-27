@@ -36,37 +36,34 @@ impl ChessBoard {
             }
         }
 
-        let mut filtered = vec![];
+        // let mut filtered = vec![];
 
         let enemy = match *turn {
             Black => White,
             White => Black,
         };
 
-        for child in children {
-            let mut in_check = false;
-            {
-                let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
-                    if let &Some(p) = p {
-                        &p.owner == turn && p.piece_type == King
-                    } else {
-                        false
-                    }
-                });
 
-                if let Some((king_pos, _)) = king_pos {
-                    if let Ok(king_pos) = Position::from_index(king_pos as i32) {
-                        if child.is_capturable(&king_pos, &enemy) {
-                            in_check = true;
-                        }
+        let filtered = children.drain(..).filter(|child| {
+            let mut in_check = false;
+            let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
+                if let &Some(p) = p {
+                    &p.owner == turn && p.piece_type == King
+                } else {
+                    false
+                }
+            });
+
+            if let Some((king_pos, _)) = king_pos {
+                if let Ok(king_pos) = Position::from_index(king_pos as i32) {
+                    if child.is_capturable(&king_pos, &enemy) {
+                        in_check = true;
                     }
                 }
             }
 
-            if !in_check {
-                filtered.push(child);
-            }
-        }
+            return !in_check;
+        }).collect();
 
         filtered
     }

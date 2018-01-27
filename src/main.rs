@@ -30,9 +30,9 @@ fn main() {
         xxxxxxxx
         xxxxQxxx
         xxxxxxxx
+        xxxxkxxx
         xxxxxxxx
-        xxxxxxxx
-        xxxxkxxr",
+        xxxxxxxr",
     ).unwrap();
     let children = board.generate_moves(&White);
 
