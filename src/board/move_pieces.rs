@@ -7,8 +7,75 @@ enum MoveResult {
     Invalid,
 }
 
+#[derive(Debug, PartialEq)]
+enum DiscoveredMove {
+    // Move found, but there may be at least one valid move on the same angle
+    Found(ChessBoard),
+    // Move not found, but search not exhausted
+    Terminal,
+    // No more moves valid for this piece
+    Exhausted,
+}
+
 use self::MoveResult::*;
+use self::DiscoveredMove::*;
+use piece::PieceType;
 use utils::exclusive_range;
+
+pub struct MoveIterator<'a> {
+    position: usize,
+    board: &'a ChessBoard,
+    turn: Owner,
+    gen: Option<Box<FnMut() -> DiscoveredMove + 'a>>,
+}
+
+impl<'a> MoveIterator<'a> {
+    fn new(board: &'a ChessBoard, turn: Owner) -> Self {
+        MoveIterator {
+            position: 0,
+            board: board,
+            turn: turn,
+            gen: None,
+        }
+    }
+}
+
+impl<'a> Iterator for MoveIterator<'a> {
+    type Item = ChessBoard;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.position < 64 {
+            if self.gen.is_none() {
+                if let Some(piece) = self.board.pieces[self.position] {
+                    if piece.owner == self.turn {
+                        let pos = Position::from_index(self.position as i32).unwrap();
+                        self.gen = Some(self.board.find_moves(pos, piece.piece_type, piece.owner));
+                    }
+                };
+            }
+
+            if let &mut Some(ref mut gen) = &mut self.gen {
+                loop {
+                    let b = gen();
+                    // println!("{:?}", b);
+
+                    if b == Exhausted {
+                        break;
+                    } else if let Found(b) = b {
+                        if b.is_valid(&self.turn) {
+                            return Some(b);
+                        }
+                    }
+                }
+            }
+
+            self.gen = None;
+            self.position += 1;
+        }
+
+        None
+    }
+}
 
 impl ChessBoard {
     pub fn move_piece(&self, from: &Position, to: &Position) -> ChessBoard {
@@ -22,62 +89,92 @@ impl ChessBoard {
         board
     }
 
-    pub fn generate_moves(&self, turn: &Owner) -> Vec<ChessBoard> {
-        let mut children = vec![];
+    pub fn is_valid(&self, turn: &Owner) -> bool {
+        let king_pos = self.pieces.iter().enumerate().find(|&(_, p)| {
+            if let Some(p) = *p {
+                &p.owner == turn && p.piece_type == King
+            } else {
+                false
+            }
+        });
 
-        for (idx, piece) in self.pieces.iter().enumerate() {
-            if let Some(piece) = *piece {
-                if piece.owner == *turn {
-                    // pieces should never exceed 64...
-                    let p = Position::from_index(idx as i32).unwrap();
-
-                    self.find_moves(&mut children, &p, &piece);
+        if let Some((king_pos, _)) = king_pos {
+            if let Ok(king_pos) = Position::from_index(king_pos as i32) {
+                if self.is_capturable(&king_pos, &turn.flip()) {
+                    // King is capturable with this board... invalid move
+                    return false;
                 }
             }
+        } else {
+            // No King found... board invalid
+            return false;
         }
 
-        // let mut filtered = vec![];
-
-        let enemy = match *turn {
-            Black => White,
-            White => Black,
-        };
-
-
-        // Filter out boards where king is capturable...
-        children.into_iter().filter(|child| {
-            // Search the board for the position of the king piece
-            // TODO: track king position to avoid linear search every time.
-            let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
-                if let Some(p) = *p {
-                    &p.owner == turn && p.piece_type == King
-                } else {
-                    false
-                }
-            });
-
-            if let Some((king_pos, _)) = king_pos {
-                if let Ok(king_pos) = Position::from_index(king_pos as i32) {
-                    if child.is_capturable(&king_pos, &enemy) {
-                        // King is capturable with this board... invalid move
-                        return false;
-                    }
-                }
-            } else {
-                // No King found... board invalid
-                return false;
-            }
-
-            // King was found and wasn't capturable
-            true
-        }).collect()
+        // King was found and wasn't capturable
+        true
     }
 
-    fn move_result(&self, position: &Position, piece: &Piece) -> MoveResult {
+    pub fn generate_moves(&self, turn: &Owner) -> MoveIterator {
+        // TODO: This should return an iterator.
+        // let mut children = vec![];
+
+        return MoveIterator::new(&self, *turn);
+
+        // for (idx, piece) in self.pieces.iter().enumerate() {
+        //     if let Some(piece) = *piece {
+        //         if piece.owner == *turn {
+        //             // pieces should never exceed 64...
+        //             let p = Position::from_index(idx as i32).unwrap();
+
+        //             self.find_moves(&mut children, &p, &piece);
+        //         }
+        //     }
+        // }
+
+        // // let mut filtered = vec![];
+
+        // let enemy = match *turn {
+        //     Black => White,
+        //     White => Black,
+        // };
+
+        // // Filter out boards where king is capturable...
+        // children
+        //     .into_iter()
+        //     .filter(|child| {
+        //         // Search the board for the position of the king piece
+        //         // TODO: track king position to avoid linear search every time.
+        //         let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
+        //             if let Some(p) = *p {
+        //                 &p.owner == turn && p.piece_type == King
+        //             } else {
+        //                 false
+        //             }
+        //         });
+
+        //         if let Some((king_pos, _)) = king_pos {
+        //             if let Ok(king_pos) = Position::from_index(king_pos as i32) {
+        //                 if child.is_capturable(&king_pos, &enemy) {
+        //                     // King is capturable with this board... invalid move
+        //                     return false;
+        //                 }
+        //             }
+        //         } else {
+        //             // No King found... board invalid
+        //             return false;
+        //         }
+
+        //         // King was found and wasn't capturable
+        //         true
+        //     })
+        //     .collect()
+    }
+
+    fn move_result(&self, position: &Position, owner: &Owner) -> MoveResult {
         if position.0 < 0 || position.0 > 7 || position.1 < 0 || position.1 > 7 {
             Invalid
         } else if let Some(victim) = self.get_piece(position) {
-            if piece.owner != victim.owner {
+            if owner != &victim.owner {
                 Enemy
             } else {
                 Invalid
@@ -87,157 +184,273 @@ impl ChessBoard {
         }
     }
 
-    fn slider(
-        &self,
-        boards: &mut Vec<ChessBoard>,
-        origin: &Position,
-        vectors: &[Position],
-        piece: &Piece
-    ) {
-        for vector in vectors {
-            let mut multiplier = 1;
-            loop {
-                let position = origin + &(vector * &multiplier);
+    fn slider<'a>(
+        self: &'a Self,
+        origin: Position,
+        vectors: &'static [Position],
+        owner: Owner,
+    ) -> Box<FnMut() -> DiscoveredMove + 'a> {
 
-                match self.move_result(&position, piece) {
-                    Invalid => break,
-                    Enemy => {
-                        boards.push(self.move_piece(origin, &position));
-                        break;
-                    }
+        let mut generator_stage = 0;
+        let mut multiplier = 1;
+
+        let mut slide_generator = move || {
+            if generator_stage < vectors.len() {
+                let vector = &vectors[generator_stage];
+                let position = &origin + &(vector * &multiplier);
+
+                match self.move_result(&position, &owner) {
                     Empty => {
-                        boards.push(self.move_piece(origin, &position));
+                        multiplier += 1;
+                        Found(self.move_piece(&origin, &position))
                     }
-                }
+                    x => {
+                        generator_stage += 1;
+                        multiplier = 1;
 
-                multiplier += 1;
+                        if let Enemy = x {
+                            Found(self.move_piece(&origin, &position))
+                        } else {
+                            Terminal
+                        }
+                    },
+                }
+            } else {
+                Exhausted
             }
-        }
+
+        };
+
+        Box::new(slide_generator)
+
+        // for vector in vectors {
+        //     let mut multiplier = 1;
+        //     loop {
+        //         let position = origin + &(vector * &multiplier);
+
+        //         match self.move_result(&position, piece) {
+        //             Invalid => break,
+        //             Enemy => {
+        //                 boards.push(self.move_piece(origin, &position));
+        //                 break;
+        //             }
+        //             Empty => {
+        //                 boards.push(self.move_piece(origin, &position));
+        //             }
+        //         }
+
+        //         multiplier += 1;
+        //     }
+        // }
     }
 
-    fn pawn(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        let (double_move_row, direction) = match piece.owner {
+    fn pawn<'a>(
+        self: &'a Self,
+        origin: Position,
+        owner: Owner,
+    ) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        let mut generator_stage = 0;
+
+        let (double_move_row, direction) = match owner {
             White => (1, 1),
             Black => (6, -1),
         };
 
-        if origin.1 == double_move_row {
-            let offset = origin + &Position(0, 2 * direction);
-            if !self.has_piece(&offset) {
-                boards.push(self.move_piece(origin, &offset))
-            }
-        }
-
-        let offset = origin + &Position(0, direction);
-        if !self.has_piece(&offset) {
-            boards.push(self.move_piece(origin, &offset));
-        }
-
-        // Check attack vectors
-        for offset in &[Position(-1, direction), Position(1, direction)] {
-            let position = origin + offset;
-            if position.0 >= 0 && position.0 <= 7 {
-                if let Some(victim) = self.get_piece(&position) {
-                    if piece.owner != victim.owner {
-                        boards.push(self.move_piece(origin, &position));
+        let pawn_generator = move || {
+            // println!("Generator_Stage: {}", generator_stage);
+            match generator_stage {
+                0 => {
+                    generator_stage += 1;
+                    if origin.1 == double_move_row {
+                        let offset = &origin + &Position(0, 2 * direction);
+                        if !self.has_piece(&offset) {
+                            return Found(self.move_piece(&origin, &offset));
+                        }
+                    }
+                    Terminal
+                }
+                1 => {
+                    generator_stage += 1;
+                    let offset = &origin + &Position(0, direction);
+                    if !self.has_piece(&offset) {
+                        Found(self.move_piece(&origin, &offset))
+                    } else {
+                        Terminal
                     }
                 }
-            }
-        }
-    }
+                2 | 3 => {
+                    // Check attack vectors
 
-    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        self.slider(boards, origin, &ROOK_MOVE, piece)
-    }
+                    let offset =
+                        &[Position(-1, direction), Position(1, direction)][generator_stage - 2];
 
-    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        self.slider(boards, origin, &BISHOP_MOVE, piece)
-    }
+                    generator_stage += 1;
 
-    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        for offset in &KNIGHT_MOVE {
-            let position = origin + offset;
-
-            match self.move_result(&position, piece) {
-                Enemy | Empty => {
-                    boards.push(self.move_piece(origin, &position));
-                }
-                _ => {}
-            }
-        }
-    }
-
-    fn king(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        for offset in &QUEEN_MOVE {
-            let position = origin + offset;
-
-            match self.move_result(&position, piece) {
-                Enemy | Empty => {
-                    boards.push(self.move_piece(origin, &position));
-                }
-                _ => {}
-            }
-        }
-
-        if !piece.has_moved && !self.is_capturable(origin, &piece.owner.flip()) {
-            for rook_pos in &[Position(0, origin.1), Position(7, origin.1)] {
-                if let Some(rook) = self.get_piece(rook_pos) {
-                    if !rook.has_moved && rook.piece_type == Rook {
-                        // check if row empty
-                        let mut row_open = true;
-
-                        for i in exclusive_range(rook_pos.0, origin.0) {
-                            if self.get_piece(&Position(i, origin.1)).is_some() {
-                                row_open = false;
-                                break;
+                    let position = &origin + offset;
+                    if position.0 >= 0 && position.0 <= 7 {
+                        if let Some(victim) = self.get_piece(&position) {
+                            if owner != victim.owner {
+                                return Found(self.move_piece(&origin, &position));
                             }
                         }
-
-                        if !row_open {
-                            continue;
-                        }
-
-                        // we can castle if not in check during move
-                        let (rook, king) = if rook_pos.0 == 0 { (3, 2) } else { (5, 6) };
-
-                        if !self.is_capturable(&Position(rook, origin.1), &piece.owner.flip()) {
-                            let mut board = self.clone();
-                            board.pieces[Position(king, origin.1).to_index()] =
-                                board.pieces[origin.to_index()];
-                            board.pieces[origin.to_index()] = None;
-                            board.pieces[Position(rook, origin.1).to_index()] =
-                                board.pieces[rook_pos.to_index()];
-                            board.pieces[rook_pos.to_index()] = None;
-
-                            boards.push(board);
-                        }
                     }
+
+                    Terminal
                 }
+                _ => Exhausted,
             }
-        }
+        };
+
+        Box::new(pawn_generator)
     }
 
-    pub fn find_moves(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-        match piece.piece_type {
-            Pawn => {
-                self.pawn(boards, origin, piece);
+    fn rook<'a>(self: &'a Self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        self.slider(origin, &ROOK_MOVE, owner)
+    }
+
+    fn bishop<'a>(self: &'a Self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        self.slider(origin, &BISHOP_MOVE, owner)
+    }
+
+    fn queen<'a>(self: &'a Self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        self.slider(origin, &QUEEN_MOVE, owner)
+    }
+
+    fn knight<'a>(self: &'a Self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        let mut generator_stage = 0;  
+
+        let knight_generator = move || {
+            if generator_stage < KNIGHT_MOVE.len() {
+                let offset = &KNIGHT_MOVE[generator_stage];
+                generator_stage += 1;
+                let position = &origin + offset;
+
+                match self.move_result(&position, &owner) {
+                    Enemy | Empty => {
+                        Found(self.move_piece(&origin, &position))
+                    },
+                    _ => Terminal
+                }
+            } else {
+                Exhausted
             }
-            Rook => {
-                self.rook(boards, origin, piece);
+        };
+
+        Box::new(knight_generator)
+    }
+
+    fn king<'a>(self: &'a Self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        let mut generator_stage = 0;
+
+        let king_generator = move || {
+            if generator_stage < 2 {
+                generator_stage += 1;
+                // Castling
+                // TODO: Implement again...
+                Terminal
+            } else if generator_stage - 2 < QUEEN_MOVE.len() {
+                let offset = &QUEEN_MOVE[generator_stage - 2];
+                generator_stage += 1;
+                let position = &origin + offset;
+
+                match self.move_result(&position, &owner) {
+                    Enemy | Empty => {
+                        Found(self.move_piece(&origin, &position))
+                    }
+                    _ => Terminal
+                } 
+            } else {
+                Exhausted
             }
-            Bishop => {
-                self.bishop(boards, origin, piece);
-            }
-            Queen => {
-                self.rook(boards, origin, piece);
-                self.bishop(boards, origin, piece);
-            }
-            King => {
-                self.king(boards, origin, piece);
-            }
-            Knight => {
-                self.knight(boards, origin, piece);
-            }
+        };
+
+        return Box::new(king_generator);
+    }
+
+    // fn king(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
+    //     for offset in &QUEEN_MOVE {
+    //         let position = origin + offset;
+
+    //         match self.move_result(&position, piece) {
+    //             Enemy | Empty => {
+    //                 boards.push(self.move_piece(origin, &position));
+    //             }
+    //             _ => {}
+    //         }
+    //     }
+
+    //     if !piece.has_moved && !self.is_capturable(origin, &piece.owner.flip()) {
+    //         for rook_pos in &[Position(0, origin.1), Position(7, origin.1)] {
+    //             if let Some(rook) = self.get_piece(rook_pos) {
+    //                 if !rook.has_moved && rook.piece_type == Rook {
+    //                     // check if row empty
+    //                     let mut row_open = true;
+
+    //                     for i in exclusive_range(rook_pos.0, origin.0) {
+    //                         if self.get_piece(&Position(i, origin.1)).is_some() {
+    //                             row_open = false;
+    //                             break;
+    //                         }
+    //                     }
+
+    //                     if !row_open {
+    //                         continue;
+    //                     }
+
+    //                     // we can castle if not in check during move
+    //                     let (rook, king) = if rook_pos.0 == 0 { (3, 2) } else { (5, 6) };
+
+    //                     if !self.is_capturable(&Position(rook, origin.1), &piece.owner.flip()) {
+    //                         let mut board = self.clone();
+    //                         board.pieces[Position(king, origin.1).to_index()] =
+    //                             board.pieces[origin.to_index()];
+    //                         board.pieces[origin.to_index()] = None;
+    //                         board.pieces[Position(rook, origin.1).to_index()] =
+    //                             board.pieces[rook_pos.to_index()];
+    //                         board.pieces[rook_pos.to_index()] = None;
+
+    //                         boards.push(board);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    pub fn find_moves<'a>(
+        self: &'a Self,
+        origin: Position,
+        piece_type: PieceType,
+        owner: Owner,
+    ) -> Box<FnMut() -> DiscoveredMove + 'a> {
+        match piece_type {
+            Pawn => self.pawn(origin, owner),
+            King => self.king(origin, owner),
+            Knight => self.knight(origin, owner),
+            Bishop => self.bishop(origin, owner),
+            Rook => self.rook(origin, owner),
+            Queen => self.queen(origin, owner),
         }
+        // match piece.piece_type {
+        //     Pawn => {
+        //         self.pawn(boards, origin, piece);
+        //     }
+        //     Rook => {
+        //         self.rook(boards, origin, piece);
+        //     }
+        //     Bishop => {
+        //         self.bishop(boards, origin, piece);
+        //     }
+        //     Queen => {
+        //         self.rook(boards, origin, piece);
+        //         self.bishop(boards, origin, piece);
+        //     }
+        //     King => {
+        //         self.king(boards, origin, piece);
+        //     }
+        //     Knight => {
+        //         self.knight(boards, origin, piece);
+        //     }
+        // }
     }
 }

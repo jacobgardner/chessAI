@@ -19,10 +19,10 @@ use move_search::SearchNode;
 
 fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
-    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
+    // let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
 
-    let mut search = SearchNode::new(board, White);
-    search.generate_to_depth(5);
+    // let mut search = SearchNode::new(board, White);
+    // search.generate_to_depth(5);
 
 
     // let children = board.generate_moves(&White);
@@ -34,11 +34,11 @@ fn main() {
     let board = ChessBoard::from_ascii("
         RNBQKBNR
         PPPPPPPP
-        xxxxxxxx
-        xxxxQxxx
-        xxxxxxxx
-        xxxxkxxx
-        xxxxxxxx
+        xxbbxxxx
+        xxxqQxxr
+        xxxxxpxx
+        xxxnkxxx
+        xxxnxxxx
         xxxxxxxr",
     ).unwrap();
 

@@ -39,6 +39,9 @@ impl SearchNode {
             }
         }
     }
-
 }
+
+// We want to:
+//  * Generate the boards at will
+//  * 
 
