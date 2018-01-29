@@ -21,8 +21,8 @@ fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
     let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
 
-    let search = SearchNode::new(board, White);
-    search.generate_to_depth(5);
+    let _search = SearchNode::new(board, White);
+    // search.generate_to_depth(5);
 
 
     // let children = board.generate_moves(&White);

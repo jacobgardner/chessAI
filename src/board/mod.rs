@@ -24,7 +24,6 @@ pub const DEFAULT_CONFIGURATION: &str = "
     pppppppp
     rnbqkbnr";
 
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct ChessBoard {
     pieces: Vec<Option<Piece>>,
@@ -37,8 +36,8 @@ impl fmt::Display for ChessBoard {
         for (idx, chunk) in self.pieces.chunks(8).enumerate().rev() {
             write!(f, "{} |", idx + 1)?;
             for piece in chunk {
-                match piece {
-                    &Some(ref piece) => {
+                match *piece {
+                    Some(piece) => {
                         let is_black = match piece.owner {
                             Black => true,
                             White => false,
@@ -90,14 +89,13 @@ impl fmt::Display for ChessBoard {
 
                         write!(f, "{}", char)?;
                     }
-                    &None => {
+                    None => {
                         write!(f, " ")?;
                     }
                 }
             }
             write!(f, "| {}\n", idx + 1)?;
         }
-
 
         write!(f, "   --------\n")?;
         write!(f, "   abcdefgh\n")?;
@@ -117,42 +115,39 @@ impl ChessBoard {
 
                 if !is_within_bounds(&position) {
                     break;
-                } else {
-                    if let Some(piece) = self.pieces[position.to_index()] {
-                        let is_capturable = if &piece.owner == owner {
-                            match piece.piece_type {
-                                Bishop => (vector.0 + vector.1) % 2 == 0,
-                                Rook => (vector.0 + vector.1) % 2 != 0,
-                                Queen => true,
-                                King => multiplier == 1,
-                                Pawn => {
-                                    if multiplier == 1 {
-                                        match *owner {
-                                            Black => {
-                                                vector == &Position(1, 1)
-                                                    || vector == &Position(-1, 1)
-                                            }
-                                            White => {
-                                                vector == &Position(1, -1)
-                                                    || vector == &Position(-1, -1)
-                                            }
+                } else if let Some(piece) = self.pieces[position.to_index()] {
+                    let is_capturable = if &piece.owner == owner {
+                        match piece.piece_type {
+                            Bishop => (vector.0 + vector.1) % 2 == 0,
+                            Rook => (vector.0 + vector.1) % 2 != 0,
+                            Queen => true,
+                            King => multiplier == 1,
+                            Pawn => {
+                                if multiplier == 1 {
+                                    match *owner {
+                                        Black => {
+                                            vector == &Position(1, 1) || vector == &Position(-1, 1)
                                         }
-                                    } else {
-                                        false
+                                        White => {
+                                            vector == &Position(1, -1)
+                                                || vector == &Position(-1, -1)
+                                        }
                                     }
+                                } else {
+                                    false
                                 }
-                                _ => false,
                             }
-                        } else {
-                            false
-                        };
-
-                        if is_capturable {
-                            return true;
+                            _ => false,
                         }
+                    } else {
+                        false
+                    };
 
-                        break;
+                    if is_capturable {
+                        return true;
                     }
+
+                    break;
                 }
 
                 multiplier += 1;
@@ -163,10 +158,8 @@ impl ChessBoard {
             let position = origin + offset;
             if is_within_bounds(&position) {
                 if let Some(piece) = self.pieces[position.to_index()] {
-                    if &piece.owner == owner {
-                        if piece.piece_type == Knight {
-                            return true;
-                        }
+                    if &piece.owner == owner && piece.piece_type == Knight {
+                        return true;
                     }
                 }
             }
@@ -204,10 +197,7 @@ impl ChessBoard {
             };
 
             if let Some(piece) = piece {
-                pieces.push(Some(Piece::new(
-                    piece,
-                    owner,
-                )));
+                pieces.push(Some(Piece::new(piece, owner)));
             }
         }
 

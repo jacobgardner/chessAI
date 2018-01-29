@@ -26,7 +26,7 @@ impl ChessBoard {
         let mut children = vec![];
 
         for (idx, piece) in self.pieces.iter().enumerate() {
-            if let &Some(piece) = piece {
+            if let Some(piece) = *piece {
                 if piece.owner == *turn {
                     // pieces should never exceed 64...
                     let p = Position::from_index(idx as i32).unwrap();
@@ -49,7 +49,7 @@ impl ChessBoard {
             // Search the board for the position of the king piece
             // TODO: track king position to avoid linear search every time.
             let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
-                if let &Some(p) = p {
+                if let Some(p) = *p {
                     &p.owner == turn && p.piece_type == King
                 } else {
                     false
@@ -73,11 +73,11 @@ impl ChessBoard {
         }).collect()
     }
 
-    fn move_result(&self, position: &Position) -> MoveResult {
+    fn move_result(&self, position: &Position, piece: &Piece) -> MoveResult {
         if position.0 < 0 || position.0 > 7 || position.1 < 0 || position.1 > 7 {
             Invalid
-        } else if let Some(piece) = self.get_piece(&position) {
-            if piece.owner != piece.owner {
+        } else if let Some(victim) = self.get_piece(position) {
+            if piece.owner != victim.owner {
                 Enemy
             } else {
                 Invalid
@@ -92,13 +92,14 @@ impl ChessBoard {
         boards: &mut Vec<ChessBoard>,
         origin: &Position,
         vectors: &[Position],
+        piece: &Piece
     ) {
         for vector in vectors {
             let mut multiplier = 1;
             loop {
                 let position = origin + &(vector * &multiplier);
 
-                match self.move_result(&position) {
+                match self.move_result(&position, piece) {
                     Invalid => break,
                     Enemy => {
                         boards.push(self.move_piece(origin, &position));
@@ -136,8 +137,8 @@ impl ChessBoard {
         for offset in &[Position(-1, direction), Position(1, direction)] {
             let position = origin + offset;
             if position.0 >= 0 && position.0 <= 7 {
-                if let Some(piece) = self.get_piece(&position) {
-                    if piece.owner != piece.owner {
+                if let Some(victim) = self.get_piece(&position) {
+                    if piece.owner != victim.owner {
                         boards.push(self.move_piece(origin, &position));
                     }
                 }
@@ -145,19 +146,19 @@ impl ChessBoard {
         }
     }
 
-    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position) {
-        self.slider(boards, origin, &ROOK_MOVE)
+    fn rook(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
+        self.slider(boards, origin, &ROOK_MOVE, piece)
     }
 
-    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position) {
-        self.slider(boards, origin, &BISHOP_MOVE)
+    fn bishop(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
+        self.slider(boards, origin, &BISHOP_MOVE, piece)
     }
 
-    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position) {
+    fn knight(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
         for offset in &KNIGHT_MOVE {
             let position = origin + offset;
 
-            match self.move_result(&position) {
+            match self.move_result(&position, piece) {
                 Enemy | Empty => {
                     boards.push(self.move_piece(origin, &position));
                 }
@@ -170,7 +171,7 @@ impl ChessBoard {
         for offset in &QUEEN_MOVE {
             let position = origin + offset;
 
-            match self.move_result(&position) {
+            match self.move_result(&position, piece) {
                 Enemy | Empty => {
                     boards.push(self.move_piece(origin, &position));
                 }
@@ -186,7 +187,7 @@ impl ChessBoard {
                         let mut row_open = true;
 
                         for i in exclusive_range(rook_pos.0, origin.0) {
-                            if let Some(_) = self.get_piece(&Position(i, origin.1)) {
+                            if self.get_piece(&Position(i, origin.1)).is_some() {
                                 row_open = false;
                                 break;
                             }
@@ -222,20 +223,20 @@ impl ChessBoard {
                 self.pawn(boards, origin, piece);
             }
             Rook => {
-                self.rook(boards, origin);
+                self.rook(boards, origin, piece);
             }
             Bishop => {
-                self.bishop(boards, origin);
+                self.bishop(boards, origin, piece);
             }
             Queen => {
-                self.rook(boards, origin);
-                self.bishop(boards, origin);
+                self.rook(boards, origin, piece);
+                self.bishop(boards, origin, piece);
             }
             King => {
                 self.king(boards, origin, piece);
             }
             Knight => {
-                self.knight(boards, origin);
+                self.knight(boards, origin, piece);
             }
         }
     }
