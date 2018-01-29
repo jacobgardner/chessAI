@@ -1,5 +1,6 @@
 mod tests;
 mod move_pieces;
+pub mod score;
 
 use piece::Piece;
 use piece::PieceType::*;

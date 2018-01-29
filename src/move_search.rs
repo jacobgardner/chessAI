@@ -1,11 +1,12 @@
 use board::ChessBoard;
 use piece::Owner;
+use board::score::Score;
 
 
 pub struct SearchNode {
     board: ChessBoard,
     nodes: Vec<SearchNode>,
-    score: i64,
+    score: Score<f64>,
     turn: Owner,
     generated: bool,
 }
@@ -15,7 +16,7 @@ impl SearchNode {
         SearchNode {
             board: board,
             nodes: vec![],
-            score: 0,
+            score: Score {piece_values: 0f64, positioning: 0f64},
             turn: turn,
             generated: false
         }
