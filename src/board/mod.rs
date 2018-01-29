@@ -215,6 +215,8 @@ impl ChessBoard {
             return Err(());
         }
 
+        // TODO: This is predicated on Piece being a Copy type.
+        //  This feels... off... not sure why?
         let mut output = vec![];
 
         for chunk in pieces.chunks(8).rev() {
