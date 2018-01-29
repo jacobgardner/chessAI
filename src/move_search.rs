@@ -28,15 +28,15 @@ impl SearchNode {
         } else {
             self.generated = true;
 
-            for board in self.board.generate_moves(&self.turn.flip()) {
-                let mut node = SearchNode::new(board, self.turn.flip());
+            // for board in self.board.generate_moves(&self.turn.flip()) {
+            //     let mut node = SearchNode::new(board, self.turn.flip());
 
-                if depth > 0 {
-                    node.generate_to_depth(depth - 1);
-                }
+            //     if depth > 0 {
+            //         node.generate_to_depth(depth - 1);
+            //     }
 
-                self.nodes.push(node);
-            }
+            //     self.nodes.push(node);
+            // }
         }
     }
 }

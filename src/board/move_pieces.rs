@@ -8,7 +8,7 @@ enum MoveResult {
 }
 
 #[derive(Debug, PartialEq)]
-enum DiscoveredMove {
+pub enum DiscoveredMove {
     // Move found, but there may be at least one valid move on the same angle
     Found(ChessBoard),
     // Move not found, but search not exhausted
@@ -20,7 +20,6 @@ enum DiscoveredMove {
 use self::MoveResult::*;
 use self::DiscoveredMove::*;
 use piece::PieceType;
-use utils::exclusive_range;
 
 pub struct MoveIterator<'a> {
     position: usize,
@@ -54,7 +53,7 @@ impl<'a> Iterator for MoveIterator<'a> {
                 };
             }
 
-            if let &mut Some(ref mut gen) = &mut self.gen {
+            if let Some(ref mut gen) = self.gen {
                 loop {
                     let b = gen();
                     // println!("{:?}", b);
@@ -115,59 +114,7 @@ impl ChessBoard {
     }
 
     pub fn generate_moves(&self, turn: &Owner) -> MoveIterator {
-        // TODO: This should return an iterator.
-        // let mut children = vec![];
-
-        return MoveIterator::new(&self, *turn);
-
-        // for (idx, piece) in self.pieces.iter().enumerate() {
-        //     if let Some(piece) = *piece {
-        //         if piece.owner == *turn {
-        //             // pieces should never exceed 64...
-        //             let p = Position::from_index(idx as i32).unwrap();
-
-        //             self.find_moves(&mut children, &p, &piece);
-        //         }
-        //     }
-        // }
-
-        // // let mut filtered = vec![];
-
-        // let enemy = match *turn {
-        //     Black => White,
-        //     White => Black,
-        // };
-
-        // // Filter out boards where king is capturable...
-        // children
-        //     .into_iter()
-        //     .filter(|child| {
-        //         // Search the board for the position of the king piece
-        //         // TODO: track king position to avoid linear search every time.
-        //         let king_pos = child.pieces.iter().enumerate().find(|&(_, p)| {
-        //             if let Some(p) = *p {
-        //                 &p.owner == turn && p.piece_type == King
-        //             } else {
-        //                 false
-        //             }
-        //         });
-
-        //         if let Some((king_pos, _)) = king_pos {
-        //             if let Ok(king_pos) = Position::from_index(king_pos as i32) {
-        //                 if child.is_capturable(&king_pos, &enemy) {
-        //                     // King is capturable with this board... invalid move
-        //                     return false;
-        //                 }
-        //             }
-        //         } else {
-        //             // No King found... board invalid
-        //             return false;
-        //         }
-
-        //         // King was found and wasn't capturable
-        //         true
-        //     })
-        //     .collect()
+        MoveIterator::new(self, *turn)
     }
 
     fn move_result(&self, position: &Position, owner: &Owner) -> MoveResult {
@@ -194,7 +141,7 @@ impl ChessBoard {
         let mut generator_stage = 0;
         let mut multiplier = 1;
 
-        let mut slide_generator = move || {
+        let slide_generator = move || {
             if generator_stage < vectors.len() {
                 let vector = &vectors[generator_stage];
                 let position = &origin + &(vector * &multiplier);
@@ -364,7 +311,7 @@ impl ChessBoard {
             }
         };
 
-        return Box::new(king_generator);
+        Box::new(king_generator)
     }
 
     // fn king(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
@@ -431,26 +378,5 @@ impl ChessBoard {
             Rook => self.rook(origin, owner),
             Queen => self.queen(origin, owner),
         }
-        // match piece.piece_type {
-        //     Pawn => {
-        //         self.pawn(boards, origin, piece);
-        //     }
-        //     Rook => {
-        //         self.rook(boards, origin, piece);
-        //     }
-        //     Bishop => {
-        //         self.bishop(boards, origin, piece);
-        //     }
-        //     Queen => {
-        //         self.rook(boards, origin, piece);
-        //         self.bishop(boards, origin, piece);
-        //     }
-        //     King => {
-        //         self.king(boards, origin, piece);
-        //     }
-        //     Knight => {
-        //         self.knight(boards, origin, piece);
-        //     }
-        // }
     }
 }

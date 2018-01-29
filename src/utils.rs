@@ -6,7 +6,7 @@ pub fn is_within_bounds(position: &Position) -> bool {
 }
 
 
-pub fn exclusive_range(x0: i32, x1: i32) -> Range<i32> {
+pub fn _exclusive_range(x0: i32, x1: i32) -> Range<i32> {
     if x0 < x1 {
         x0 + 1 .. x1
     } else {
