@@ -8,6 +8,7 @@ enum MoveResult {
 }
 
 #[derive(Debug, PartialEq)]
+// TODO: Rename this to something more fitting
 pub enum DiscoveredMove {
     // Move found, but there may be at least one valid move on the same angle
     Found(ChessBoard),
