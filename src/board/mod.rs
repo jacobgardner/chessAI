@@ -1,5 +1,5 @@
 mod tests;
-mod move_pieces;
+pub mod move_pieces;
 pub mod score;
 
 use piece::Piece;
@@ -28,6 +28,7 @@ pub const DEFAULT_CONFIGURATION: &str = "
 #[derive(Debug, PartialEq, Clone)]
 pub struct ChessBoard {
     pieces: Vec<Option<Piece>>,
+    turn: Owner,
 }
 
 impl fmt::Display for ChessBoard {
@@ -177,7 +178,7 @@ impl ChessBoard {
         self.pieces[position.to_index()] != None
     }
 
-    pub fn from_ascii(board: &str) -> Result<ChessBoard, ()> {
+    pub fn from_ascii(board: &str, turn: Owner) -> Result<ChessBoard, ()> {
         let mut pieces = Vec::with_capacity(64);
 
         for ch in board.trim().chars() {
@@ -214,6 +215,9 @@ impl ChessBoard {
             output.extend(chunk);
         }
 
-        Ok(ChessBoard { pieces: output })
+        Ok(ChessBoard {
+            pieces: output,
+            turn: turn,
+        })
     }
 }

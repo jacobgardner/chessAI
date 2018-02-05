@@ -85,6 +85,7 @@ impl ChessBoard {
         board.pieces[from.to_index()] = None;
 
         board.pieces[to.to_index()].unwrap().has_moved = true;
+        board.turn = board.turn.flip();
 
         board
     }
@@ -114,8 +115,8 @@ impl ChessBoard {
         true
     }
 
-    pub fn generate_moves(&self, turn: &Owner) -> MoveIterator {
-        MoveIterator::new(self, *turn)
+    pub fn generate_moves(&self) -> MoveIterator {
+        MoveIterator::new(self, self.turn)
     }
 
     fn move_result(&self, position: &Position, owner: &Owner) -> MoveResult {
@@ -170,26 +171,6 @@ impl ChessBoard {
         };
 
         Box::new(slide_generator)
-
-        // for vector in vectors {
-        //     let mut multiplier = 1;
-        //     loop {
-        //         let position = origin + &(vector * &multiplier);
-
-        //         match self.move_result(&position, piece) {
-        //             Invalid => break,
-        //             Enemy => {
-        //                 boards.push(self.move_piece(origin, &position));
-        //                 break;
-        //             }
-        //             Empty => {
-        //                 boards.push(self.move_piece(origin, &position));
-        //             }
-        //         }
-
-        //         multiplier += 1;
-        //     }
-        // }
     }
 
     fn pawn<'a>(
@@ -205,7 +186,6 @@ impl ChessBoard {
         };
 
         let pawn_generator = move || {
-            // println!("Generator_Stage: {}", generator_stage);
             match generator_stage {
                 0 => {
                     generator_stage += 1;
@@ -265,7 +245,7 @@ impl ChessBoard {
     }
 
     fn knight<'a>(self: &'a Self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
-        let mut generator_stage = 0;  
+        let mut generator_stage = 0;
 
         let knight_generator = move || {
             if generator_stage < KNIGHT_MOVE.len() {
@@ -306,7 +286,7 @@ impl ChessBoard {
                         Found(self.move_piece(&origin, &position))
                     }
                     _ => Terminal
-                } 
+                }
             } else {
                 Exhausted
             }
@@ -314,56 +294,6 @@ impl ChessBoard {
 
         Box::new(king_generator)
     }
-
-    // fn king(&self, boards: &mut Vec<ChessBoard>, origin: &Position, piece: &Piece) {
-    //     for offset in &QUEEN_MOVE {
-    //         let position = origin + offset;
-
-    //         match self.move_result(&position, piece) {
-    //             Enemy | Empty => {
-    //                 boards.push(self.move_piece(origin, &position));
-    //             }
-    //             _ => {}
-    //         }
-    //     }
-
-    //     if !piece.has_moved && !self.is_capturable(origin, &piece.owner.flip()) {
-    //         for rook_pos in &[Position(0, origin.1), Position(7, origin.1)] {
-    //             if let Some(rook) = self.get_piece(rook_pos) {
-    //                 if !rook.has_moved && rook.piece_type == Rook {
-    //                     // check if row empty
-    //                     let mut row_open = true;
-
-    //                     for i in exclusive_range(rook_pos.0, origin.0) {
-    //                         if self.get_piece(&Position(i, origin.1)).is_some() {
-    //                             row_open = false;
-    //                             break;
-    //                         }
-    //                     }
-
-    //                     if !row_open {
-    //                         continue;
-    //                     }
-
-    //                     // we can castle if not in check during move
-    //                     let (rook, king) = if rook_pos.0 == 0 { (3, 2) } else { (5, 6) };
-
-    //                     if !self.is_capturable(&Position(rook, origin.1), &piece.owner.flip()) {
-    //                         let mut board = self.clone();
-    //                         board.pieces[Position(king, origin.1).to_index()] =
-    //                             board.pieces[origin.to_index()];
-    //                         board.pieces[origin.to_index()] = None;
-    //                         board.pieces[Position(rook, origin.1).to_index()] =
-    //                             board.pieces[rook_pos.to_index()];
-    //                         board.pieces[rook_pos.to_index()] = None;
-
-    //                         boards.push(board);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     pub fn find_moves<'a>(
         self: &'a Self,

@@ -6,15 +6,16 @@ use super::*;
 fn test_check() {
     let board = ChessBoard::from_ascii(
         "
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxbxx
-    xxxxxxxx
-    xRxxxxxx
-    xxxxxxxx
-    ",
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxbxx
+        xxxxxxxx
+        xRxxxxxx
+        xxxxxxxx
+        ",
+        White,
     ).unwrap();
 
     assert_eq!(board.is_capturable(&Position(0, 0), &Black), false);
@@ -37,15 +38,16 @@ fn test_check() {
 
     let board = ChessBoard::from_ascii(
         "
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxNxxxx
-    xxxxxxxx
-    xxxxxxxx
-    ",
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxNxxxx
+        xxxxxxxx
+        xxxxxxxx
+        ",
+        White,
     ).unwrap();
 
     assert_eq!(board.is_capturable(&Position(0, 0), &Black), false);
@@ -58,15 +60,16 @@ fn test_from_ascii() {
     // Test typical board.
     let board = ChessBoard::from_ascii(
         "
-    RNBQKBNR
-    PPPPPPPP
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    pppppppp
-    rnbqkbnr
-    ",
+        RNBQKBNR
+        PPPPPPPP
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        pppppppp
+        rnbqkbnr
+        ",
+        White,
     ).unwrap();
 
     #[rustfmt_skip]
@@ -105,15 +108,16 @@ fn test_from_ascii() {
     // Too Few spaces
     let board2 = ChessBoard::from_ascii(
         "
-    RNBQKBNR
-    PPPPPPP
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    pppppppp
-    rnbqkbnr
-    ",
+        RNBQKBNR
+        PPPPPPP
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        pppppppp
+        rnbqkbnr
+        ",
+        White,
     );
 
     assert_eq!(board2, Err(()));
@@ -121,15 +125,16 @@ fn test_from_ascii() {
     // Too many spaces
     let board3 = ChessBoard::from_ascii(
         "
-    RNBQKBNR
-    PPPPPPPPP
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    xxxxxxxx
-    pppppppp
-    rnbqkbnr
-    ",
+        RNBQKBNR
+        PPPPPPPPP
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        xxxxxxxx
+        pppppppp
+        rnbqkbnr
+        ",
+        White,
     );
 
     assert_eq!(board3, Err(()));
@@ -137,28 +142,31 @@ fn test_from_ascii() {
 
 #[test]
 fn test_generate_boards() {
-    let board = ChessBoard::from_ascii(
+    let mut board = ChessBoard::from_ascii(
         "
-    xxxxxxxx
-    xPxxxxPx
-    xxxxxxxx
-    xpxxxxxP
-    xxxpxxxp
-    Pxxxxbxx
-    xpxxxxxx
-    xxxpxxrx
-    ",
+        xxxxxxxx
+        xPxxxxPx
+        xxxxxxxx
+        xpxxxxxP
+        xxxpxxxp
+        Pxxxxbxx
+        xpxxxxxx
+        xxxpxxrx
+        ",
+        White,
     ).unwrap();
 
     println!("WHITE!");
 
-    for sub_board in board.generate_moves(&White) {
+    board.turn = White;
+    for sub_board in board.generate_moves() {
         println!("{}", sub_board);
     }
 
     println!("BLACK!");
 
-    for sub_board in board.generate_moves(&Black) {
+    board.turn = Black;
+    for sub_board in board.generate_moves() {
         println!("{}", sub_board);
     }
 }

@@ -28,7 +28,7 @@ impl SearchNode {
         } else {
             self.generated = true;
 
-            for board in self.board.generate_moves(&self.turn.flip()) {
+            for board in self.board.generate_moves() {
                 let mut node = SearchNode::new(board, self.turn.flip());
 
                 if depth > 0 {
@@ -43,5 +43,5 @@ impl SearchNode {
 
 // We want to:
 //  * Generate the boards at will
-//  * 
+//  *
 

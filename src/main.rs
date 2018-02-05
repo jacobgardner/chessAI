@@ -8,21 +8,36 @@ mod position;
 mod moves;
 mod utils;
 mod move_search;
+mod alpha_beta;
 
 use board::DEFAULT_CONFIGURATION;
 use board::ChessBoard;
 
+use alpha_beta::{AlphaBeta, CanGenerateMoves, MoveIterator};
+
 use piece::Owner::*;
 use move_search::SearchNode;
+
+// impl<'a> MoveIterator<ChessBoard> for board::move_pieces::MoveIterator<'a> {
+
+// }
+
+// impl<'a> CanGenerateMoves<board::move_pieces::MoveIterator<'a>> for ChessBoard {
+//     fn generate_moves(&self) -> board::move_pieces::MoveIterator<'a> {
+//         ChessBoard::generate_moves(self)
+//     }
+// }
 
 // use board::Board;
 
 fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
-    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION).unwrap();
+    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
 
-    let mut search = SearchNode::new(board, White);
-    search.generate_to_depth(4);
+    // let mut search = AlphaBeta { board: board };
+
+    // let mut search = SearchNode::new(board, White);
+    // search.generate_to_depth(4);
 
 
     // let children = board.generate_moves(&White);
