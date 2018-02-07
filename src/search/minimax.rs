@@ -23,15 +23,15 @@ impl<State: Searchable<State, ScoreType>, ScoreType: Score> SearchNode<State, Sc
         }
     }
 
-    pub fn search(&mut self, search_depth: usize, role: NodeRole) -> ScoreType {
-        let mut best_score = match role {
+    pub fn search(&mut self, search_depth: usize, role: &NodeRole) -> ScoreType {
+        let mut best_score = match *role {
             Minimizer => ScoreType::min_default(),
             Maximizer => ScoreType::max_default(),
         };
 
         for child in &mut self.children {
             if search_depth == 0 {
-                best_score = match role {
+                best_score = match *role {
                     Minimizer => if child.score < best_score {
                         child.score
                     } else {
@@ -44,15 +44,15 @@ impl<State: Searchable<State, ScoreType>, ScoreType: Score> SearchNode<State, Sc
                     },
                 }
             } else {
-                best_score = child.search(search_depth - 1, role.flip());
+                best_score = child.search(search_depth - 1, &role.flip());
             }
         }
 
-        if let &mut Some(ref mut iter_box) = &mut self.iterator {
+        if let Some(ref mut iter_box) = self.iterator {
             for child in iter_box {
                 let mut search_node = SearchNode::new(child);
                 if search_depth == 0 {
-                    best_score = match role {
+                    best_score = match *role {
                         Minimizer => if search_node.score < best_score {
                             search_node.score
                         } else { best_score },
@@ -63,7 +63,7 @@ impl<State: Searchable<State, ScoreType>, ScoreType: Score> SearchNode<State, Sc
                         }
                     }
                 } else {
-                    best_score = search_node.search(search_depth - 1, role.flip())
+                    best_score = search_node.search(search_depth - 1, &role.flip())
                 }
 
                 self.children.push(search_node);

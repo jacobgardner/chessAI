@@ -49,7 +49,7 @@ fn main() {
     let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
 
     let mut search_node = SearchNode::new(board);
-    let score = search_node.search(1, Maximizer);
+    let _score = search_node.search(1, &Maximizer);
 
     // let mut search = AlphaBeta::new(board, Mode::Maximizer);
     // let mut search = AlphaBeta { state: board };
