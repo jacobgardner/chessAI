@@ -7,62 +7,51 @@ mod piece;
 mod position;
 mod moves;
 mod utils;
-mod move_search;
-mod alpha_beta;
+pub mod search;
 
+use search::NodeRole::*;
 use board::DEFAULT_CONFIGURATION;
 use board::ChessBoard;
 
-use alpha_beta::{AlphaBeta, CanGenerateMoves, Mode};
+
+// use search::alpha_beta::{AlphaBeta, CanGenerateMoves, Mode};
+use search::minimax::SearchNode;
+use search::Searchable;
+use search::Score;
 
 use piece::Owner::*;
-// use move_search::SearchNode;
 
-// impl<'a> MoveIterator<ChessBoard> for board::move_pieces::MoveIterator<'a> {
+type ScoreType = f64;
 
-// }
-
-// impl<'a> CanGenerateMoves<board::move_pieces::MoveIterator<'a>> for ChessBoard {
-//     fn generate_moves(&'a self) -> board::move_pieces::MoveIterator<'a> {
-//         // self.generate_moves()
-//         ChessBoard::generate_moves(self)
-//     }
-// }
-
-// impl<'a> MoveIterator for board::move_pieces::MoveIterator<'a> {
-
-// }
-
-// impl <'a> CanGenerateMoves<'a> for ChessBoard {
-//     type Item = ChessBoard;
-//     type MoveIter = board::move_pieces::MoveIterator<'a>;
-
-//     fn generate_moves(&'a self) -> Self::MoveIter {
-//         self.generate_moves()
-//     }
-// }
-
-impl <'a> CanGenerateMoves<'a> for ChessBoard {
-    type ScoreType = f32;
-    type Item = ChessBoard;
-    type MoveIter = board::move_pieces::MoveIterator<'a>;
-
-    fn generate_moves(&'a self) -> Self::MoveIter {
-        self.generate_moves()
+impl Score for ScoreType {
+    fn min_default() -> Self {
+        std::f64::MIN
     }
 
-    fn score(&self) -> Self::ScoreType {
-        0f32
+    fn max_default() -> Self {
+        std::f64::MAX
     }
 }
 
-// use board::Board;
+impl<'a> Searchable<ChessBoard, ScoreType> for ChessBoard {
+    fn score(&self) -> ScoreType  {
+        0f64
+    }
+
+    fn generate_moves(&self) -> Box<Iterator<Item=Self>> {
+        // Box::new(self.generate_moves())
+        unimplemented!();
+    }
+}
 
 fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
     let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
 
-    let mut search = AlphaBeta::new(board, Mode::Maximizer);
+    let mut search_node = SearchNode::new(board);
+    let score = search_node.search(1, Maximizer);
+
+    // let mut search = AlphaBeta::new(board, Mode::Maximizer);
     // let mut search = AlphaBeta { state: board };
 
     // let mut search = SearchNode::new(board, White);

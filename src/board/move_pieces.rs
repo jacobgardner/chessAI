@@ -22,15 +22,15 @@ use self::MoveResult::*;
 use self::DiscoveredMove::*;
 use piece::PieceType;
 
-pub struct MoveIterator<'board_life> {
+pub struct MoveIterator<'a> {
     position: usize,
-    board: &'board_life ChessBoard,
+    board: &'a ChessBoard,
     turn: Owner,
-    gen: Option<Box<FnMut() -> DiscoveredMove + 'board_life>>,
+    gen: Option<Box<FnMut() -> DiscoveredMove + 'a>>,
 }
 
-impl<'board_life> MoveIterator<'board_life> {
-    fn new(board: &'board_life ChessBoard, turn: Owner) -> Self {
+impl<'a> MoveIterator<'a> {
+    fn new(board: &'a ChessBoard, turn: Owner) -> Self {
         MoveIterator {
             position: 0,
             board: board,
@@ -40,7 +40,7 @@ impl<'board_life> MoveIterator<'board_life> {
     }
 }
 
-impl<'board_life> Iterator for MoveIterator<'board_life> {
+impl<'a> Iterator for MoveIterator<'a> {
     type Item = ChessBoard;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -173,11 +173,11 @@ impl ChessBoard {
         Box::new(slide_generator)
     }
 
-    fn pawn<'board_life>(
-        &'board_life self,
+    fn pawn<'a>(
+        &'a self,
         origin: Position,
         owner: Owner,
-    ) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    ) -> Box<FnMut() -> DiscoveredMove + 'a> {
         let mut generator_stage = 0;
 
         let (double_move_row, direction) = match owner {
@@ -232,19 +232,19 @@ impl ChessBoard {
         Box::new(pawn_generator)
     }
 
-    fn rook<'board_life>(&'board_life self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    fn rook<'a>(&'a self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
         self.slider(origin, &ROOK_MOVE, owner)
     }
 
-    fn bishop<'board_life>(&'board_life self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    fn bishop<'a>(&'a self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
         self.slider(origin, &BISHOP_MOVE, owner)
     }
 
-    fn queen<'board_life>(&'board_life self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    fn queen<'a>(&'a self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
         self.slider(origin, &QUEEN_MOVE, owner)
     }
 
-    fn knight<'board_life>(&'board_life self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    fn knight<'a>(&'a self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
         let mut generator_stage = 0;
 
         let knight_generator = move || {
@@ -267,7 +267,7 @@ impl ChessBoard {
         Box::new(knight_generator)
     }
 
-    fn king<'board_life>(&'board_life self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    fn king<'a>(&'a self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove + 'a> {
         let mut generator_stage = 0;
 
         let king_generator = move || {
@@ -295,12 +295,12 @@ impl ChessBoard {
         Box::new(king_generator)
     }
 
-    pub fn find_moves<'board_life>(
-        self: &'board_life Self,
+    pub fn find_moves<'a>(
+        self: &'a Self,
         origin: Position,
         piece_type: PieceType,
         owner: Owner,
-    ) -> Box<FnMut() -> DiscoveredMove + 'board_life> {
+    ) -> Box<FnMut() -> DiscoveredMove + 'a> {
         match piece_type {
             Pawn => self.pawn(origin, owner),
             King => self.king(origin, owner),
