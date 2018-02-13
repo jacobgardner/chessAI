@@ -28,11 +28,11 @@ type ScoreType = f64;
 
 impl Score for ScoreType {
     fn min_default() -> Self {
-        std::f64::MIN
+        std::f64::MAX
     }
 
     fn max_default() -> Self {
-        std::f64::MAX
+        std::f64::MIN
     }
 }
 
@@ -53,8 +53,10 @@ fn main() {
     let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
 
     let mut search_node = SearchNode::new(WrappedBoard(Rc::new(board)));
-    let (score, best_move) = search_node.search(3, &Maximizer);
+    let (score, best_move) = search_node.search(4, &Maximizer);
 
+
+    println!("{}", score);
     println!("{}", best_move.unwrap().0);
 
     // let mut search = AlphaBeta::new(board, Mode::Maximizer);

@@ -66,7 +66,6 @@ impl Iterator for MoveIterator {
             if let Some(ref mut gen) = self.gen {
                 loop {
                     let b = gen();
-                    // println!("{:?}", b);
 
                     if b == Exhausted {
                         break;
