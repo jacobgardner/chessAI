@@ -12,6 +12,9 @@ pub mod search;
 use search::NodeRole::*;
 use board::DEFAULT_CONFIGURATION;
 use board::ChessBoard;
+use board::move_pieces::WrappedBoard;
+// use board::state::BoardState;
+use std::rc::Rc;
 
 
 // use search::alpha_beta::{AlphaBeta, CanGenerateMoves, Mode};
@@ -33,14 +36,15 @@ impl Score for ScoreType {
     }
 }
 
-impl<'a> Searchable<ChessBoard, ScoreType> for ChessBoard {
+impl Searchable<WrappedBoard, ScoreType> for WrappedBoard {
     fn score(&self) -> ScoreType  {
         0f64
     }
 
     fn generate_moves(&self) -> Box<Iterator<Item=Self>> {
-        // Box::new(self.generate_moves())
-        unimplemented!();
+        let iterator = self.move_iterator();
+        Box::new(iterator)
+        // unimplemented!();
     }
 }
 
@@ -48,8 +52,10 @@ fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
     let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
 
-    let mut search_node = SearchNode::new(board);
-    let _score = search_node.search(1, &Maximizer);
+    let mut search_node = SearchNode::new(WrappedBoard(Rc::new(board)));
+    let (score, best_move) = search_node.search(3, &Maximizer);
+
+    println!("{}", best_move.unwrap().0);
 
     // let mut search = AlphaBeta::new(board, Mode::Maximizer);
     // let mut search = AlphaBeta { state: board };
