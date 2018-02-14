@@ -220,4 +220,15 @@ impl ChessBoard {
             turn: turn,
         })
     }
+
+    pub fn score(&self) -> f64 {
+        let mut final_score = 0f64;
+        for piece in &self.pieces {
+            if let Some(piece) = *piece {
+                final_score += piece.value() * if piece.owner == White { 1f64 } else { -1f64 };
+            }
+        }
+
+        final_score
+    }
 }

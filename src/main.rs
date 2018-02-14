@@ -38,7 +38,7 @@ impl Score for ScoreType {
 
 impl Searchable<WrappedBoard, ScoreType> for WrappedBoard {
     fn score(&self) -> ScoreType  {
-        0f64
+        self.0.score()
     }
 
     fn generate_moves(&self) -> Box<Iterator<Item=Self>> {

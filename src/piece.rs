@@ -32,6 +32,8 @@ pub enum PieceType {
     King,
 }
 
+use self::PieceType::*;
+
 // impl Default for Piece {
 //     fn default() -> Piece {
 //         Piece { owner: Black, piece_type: Pawn, has_moved: false }
@@ -41,5 +43,16 @@ pub enum PieceType {
 impl Piece {
     pub fn new(piece_type: PieceType, owner: Owner) -> Self {
         Piece {owner: owner, piece_type: piece_type, has_moved: false}
+    }
+
+    pub fn value(&self) -> f64 {
+        match self.piece_type {
+            Pawn => 1f64,
+            Rook => 3f64,
+            Bishop => 3f64,
+            Knight => 5f64,
+            Queen => 12f64,
+            King => 1000f64,
+        }
     }
 }
