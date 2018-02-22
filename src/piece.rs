@@ -48,10 +48,10 @@ impl Piece {
     pub fn value(&self) -> f64 {
         match self.piece_type {
             Pawn => 1f64,
-            Rook => 3f64,
+            Rook => 5f64,
             Bishop => 3f64,
-            Knight => 5f64,
-            Queen => 12f64,
+            Knight => 3f64,
+            Queen => 9f64,
             King => 1000f64,
         }
     }

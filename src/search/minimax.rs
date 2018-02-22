@@ -11,12 +11,6 @@ pub struct SearchNode<State: Searchable<State, ScoreType> + Clone, ScoreType: Sc
     children: Vec<SearchNode<State, ScoreType>>,
 }
 
-// type ScoreTuple: <ScoreType
-
-// fn update_score(role: &NodeRole, best_score, compare) {
-
-// }
-
 fn score_improved<ScoreType: Score>(role: &NodeRole, best_score: &ScoreType, compare: &ScoreType) -> bool {
     match *role {
         Minimizer => compare < best_score,

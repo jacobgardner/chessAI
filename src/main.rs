@@ -12,12 +12,10 @@ pub mod search;
 use search::NodeRole::*;
 use board::DEFAULT_CONFIGURATION;
 use board::ChessBoard;
-use board::move_pieces::WrappedBoard;
-// use board::state::BoardState;
+use board::move_pieces::IterableChessBoard;
 use std::rc::Rc;
 
 
-// use search::alpha_beta::{AlphaBeta, CanGenerateMoves, Mode};
 use search::minimax::SearchNode;
 use search::Searchable;
 use search::Score;
@@ -36,9 +34,10 @@ impl Score for ScoreType {
     }
 }
 
-impl Searchable<WrappedBoard, ScoreType> for WrappedBoard {
+impl Searchable<IterableChessBoard, ScoreType> for IterableChessBoard {
     fn score(&self) -> ScoreType  {
-        self.0.score()
+        let &IterableChessBoard(ref board) = self;
+        board.score()
     }
 
     fn generate_moves(&self) -> Box<Iterator<Item=Self>> {
@@ -52,7 +51,7 @@ fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
     let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
 
-    let mut search_node = SearchNode::new(WrappedBoard(Rc::new(board)));
+    let mut search_node = SearchNode::new(IterableChessBoard(Rc::new(board)));
     let (score, best_move) = search_node.search(4, &Maximizer);
 
 

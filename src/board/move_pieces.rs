@@ -25,22 +25,17 @@ pub enum MoveResult {
 
 use self::MoveResult::*;
 
-pub struct WrappedBoard(pub Rc<ChessBoard>);
-
-impl Clone for WrappedBoard {
-    fn clone(&self) -> Self {
-        WrappedBoard(self.0.clone())
-    }
-}
+#[derive(Clone)]
+pub struct IterableChessBoard(pub Rc<ChessBoard>);
 
 pub struct MoveIterator {
     position: usize,
-    state: WrappedBoard,
+    state: IterableChessBoard,
     gen: Option<Box<FnMut() -> DiscoveredMove>>,
 }
 
 impl MoveIterator {
-    fn new(board: &WrappedBoard) -> Self {
+    fn new(board: &IterableChessBoard) -> Self {
         MoveIterator {
             position: 0,
             state: board.clone(),
@@ -50,7 +45,7 @@ impl MoveIterator {
 }
 
 impl Iterator for MoveIterator {
-    type Item = WrappedBoard;
+    type Item = IterableChessBoard;
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.position < 64 {
@@ -71,7 +66,7 @@ impl Iterator for MoveIterator {
                         break;
                     } else if let Found(b) = b {
                         if b.is_valid(&self.state.0.turn) {
-                            return Some(WrappedBoard(Rc::new(b)));
+                            return Some(IterableChessBoard(Rc::new(b)));
                         }
                     }
                 }
@@ -85,8 +80,7 @@ impl Iterator for MoveIterator {
     }
 }
 
-impl WrappedBoard {
-
+impl IterableChessBoard {
     pub fn move_iterator(&self) -> MoveIterator {
         MoveIterator::new(self)
     }
@@ -97,12 +91,11 @@ impl WrappedBoard {
         vectors: &'static [Position],
         owner: Owner,
     ) -> Box<FnMut() -> DiscoveredMove> {
+        let &IterableChessBoard(ref board) = self;
+        let board = board.clone();
 
         let mut generator_stage = 0;
         let mut multiplier = 1;
-
-        let board = self.0.clone();
-
 
         let slide_generator = move || {
             if generator_stage < vectors.len() {
@@ -123,24 +116,21 @@ impl WrappedBoard {
                         } else {
                             Terminal
                         }
-                    },
+                    }
                 }
             } else {
                 Exhausted
             }
-
         };
 
         Box::new(slide_generator)
     }
 
-    fn pawn(
-        &self,
-        origin: Position,
-        owner: Owner,
-    ) -> Box<FnMut() -> DiscoveredMove> {
+    fn pawn(&self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove> {
+        let &IterableChessBoard(ref board) = self;
+        let board = board.clone();
+
         let mut generator_stage = 0;
-        let board = self.0.clone();
 
         let (double_move_row, direction) = match owner {
             White => (1, 1),
@@ -207,8 +197,10 @@ impl WrappedBoard {
     }
 
     fn knight(&self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove> {
+        let &IterableChessBoard(ref board) = self;
+        let board = board.clone();
+
         let mut generator_stage = 0;
-        let board = self.0.clone();
 
         let knight_generator = move || {
             if generator_stage < KNIGHT_MOVE.len() {
@@ -217,10 +209,8 @@ impl WrappedBoard {
                 let position = &origin + offset;
 
                 match board.move_result(&position, &owner) {
-                    Enemy | Empty => {
-                        Found(board.move_piece(&origin, &position))
-                    },
-                    _ => Terminal
+                    Enemy | Empty => Found(board.move_piece(&origin, &position)),
+                    _ => Terminal,
                 }
             } else {
                 Exhausted
@@ -231,8 +221,10 @@ impl WrappedBoard {
     }
 
     fn king(&self, origin: Position, owner: Owner) -> Box<FnMut() -> DiscoveredMove> {
+        let &IterableChessBoard(ref board) = self;
+        let board = board.clone();
+
         let mut generator_stage = 0;
-        let board = self.0.clone();
 
         let king_generator = move || {
             if generator_stage < 2 {
@@ -246,10 +238,8 @@ impl WrappedBoard {
                 let position = &origin + offset;
 
                 match board.move_result(&position, &owner) {
-                    Enemy | Empty => {
-                        Found(board.move_piece(&origin, &position))
-                    }
-                    _ => Terminal
+                    Enemy | Empty => Found(board.move_piece(&origin, &position)),
+                    _ => Terminal,
                 }
             } else {
                 Exhausted
@@ -283,7 +273,16 @@ impl ChessBoard {
         board.pieces[to.to_index()] = board.pieces[from.to_index()];
         board.pieces[from.to_index()] = None;
 
-        board.pieces[to.to_index()].unwrap().has_moved = true;
+        let moved_piece = &mut board.pieces[to.to_index()].unwrap();
+        moved_piece.has_moved = true;
+
+        // This upgrades a Pawn to queen if it moved to an end space.
+        //  No color check is made because there should be no way that
+        //  it moves to it's own side's end.
+        if moved_piece.piece_type == Pawn && (to.1 == 0 || to.1 == 7) {
+            moved_piece.piece_type = Queen;
+        }
+
         board.turn = board.turn.flip();
 
         board
@@ -327,6 +326,4 @@ impl ChessBoard {
             Empty
         }
     }
-
-
 }
