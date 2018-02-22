@@ -140,33 +140,33 @@ fn test_from_ascii() {
     assert_eq!(board3, Err(()));
 }
 
-#[test]
-fn test_generate_boards() {
-    let mut board = ChessBoard::from_ascii(
-        "
-        xxxxxxxx
-        xPxxxxPx
-        xxxxxxxx
-        xpxxxxxP
-        xxxpxxxp
-        Pxxxxbxx
-        xpxxxxxx
-        xxxpxxrx
-        ",
-        White,
-    ).unwrap();
+// #[test]
+// fn test_generate_boards() {
+//     let mut board = ChessBoard::from_ascii(
+//         "
+//         xxxxxxxx
+//         xPxxxxPx
+//         xxxxxxxx
+//         xpxxxxxP
+//         xxxpxxxp
+//         Pxxxxbxx
+//         xpxxxxxx
+//         xxxpxxrx
+//         ",
+//         White,
+//     ).unwrap();
 
-    println!("WHITE!");
+//     println!("WHITE!");
 
-    board.turn = White;
-    for sub_board in board.generate_moves() {
-        println!("{}", sub_board);
-    }
+//     board.turn = White;
+//     for sub_board in board.generate_moves() {
+//         println!("{}", sub_board);
+//     }
 
-    println!("BLACK!");
+//     println!("BLACK!");
 
-    board.turn = Black;
-    for sub_board in board.generate_moves() {
-        println!("{}", sub_board);
-    }
-}
+//     board.turn = Black;
+//     for sub_board in board.generate_moves() {
+//         println!("{}", sub_board);
+//     }
+// }
