@@ -28,7 +28,8 @@ impl<State: Searchable<State, ScoreType> + Clone, ScoreType: Score> SearchNode<S
         }
     }
 
-    pub fn search(&mut self, search_depth: usize, role: &NodeRole) -> (ScoreType, Option<State>) {
+    pub fn search(&mut self, search_depth: usize, role: &NodeRole) -> (ScoreType, Option<State>, usize) {
+        let mut moves = 0usize;
         let mut best_score = match *role {
             Minimizer => ScoreType::min_default(),
             Maximizer => ScoreType::max_default(),
@@ -37,6 +38,7 @@ impl<State: Searchable<State, ScoreType> + Clone, ScoreType: Score> SearchNode<S
         let mut best_move: Option<State> = None;
 
         for child in &mut self.children {
+            moves += 1;
             if search_depth == 0 {
                 if score_improved(role, &best_score, &child.score) {
                     best_score = child.score;
@@ -44,14 +46,17 @@ impl<State: Searchable<State, ScoreType> + Clone, ScoreType: Score> SearchNode<S
                 }
             } else {
                 let results = child.search(search_depth - 1, &role.flip());
+                moves += results.2;
+
                 if score_improved(role, &best_score, &results.0) {
                     best_score = results.0;
-                    best_move = results.1;
+                    best_move = Some(child.state.clone());
                 }
             }
         }
 
         if let Some(ref mut iter_box) = self.iterator {
+            moves += 1;
             for child in iter_box {
                 let mut search_node = SearchNode::new(child);
 
@@ -63,9 +68,11 @@ impl<State: Searchable<State, ScoreType> + Clone, ScoreType: Score> SearchNode<S
 
                } else {
                     let results = search_node.search(search_depth - 1, &role.flip());
+                    moves += results.2;
+
                     if score_improved(role, &best_score, &results.0) {
                         best_score = results.0;
-                        best_move = results.1;
+                        best_move = Some(search_node.state.clone());
                     }
                 }
 
@@ -73,6 +80,6 @@ impl<State: Searchable<State, ScoreType> + Clone, ScoreType: Score> SearchNode<S
             }
         }
 
-        (best_score, best_move)
+        (best_score, best_move, moves)
     }
 }

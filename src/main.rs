@@ -49,14 +49,31 @@ impl Searchable<IterableChessBoard, ScoreType> for IterableChessBoard {
 
 fn main() {
     // Allowing the panic because if it doesn't build from the default configuration, we're megafucked.
-    let board = ChessBoard::from_ascii(DEFAULT_CONFIGURATION, White).unwrap();
+    let board = ChessBoard::from_ascii("
+    xxxxBxxx
+    xxxxxxxK
+    PPxxxxxx
+    xxxpxxxp
+    kxxxxxpx
+    xpxxxxxx
+    pxxxxxxx
+    xxQxxxxx", White).unwrap();
 
     let mut search_node = SearchNode::new(IterableChessBoard(Rc::new(board)));
-    let (score, best_move) = search_node.search(4, &Maximizer);
+    let (score, best_move, moves_generated) = search_node.search(3, &Maximizer);
 
 
-    println!("{}", score);
-    println!("{}", best_move.unwrap().0);
+
+
+    println!("----------------");
+    if let Some(best_move) = best_move {
+        println!("Approx Score: {}", score);
+        println!("{}", best_move.0);
+    } else {
+        println!("I... I have failed you... father.")
+    }
+    println!("----------------");
+    println!("Moves Generated: {}", moves_generated);
 
     // let mut search = AlphaBeta::new(board, Mode::Maximizer);
     // let mut search = AlphaBeta { state: board };
