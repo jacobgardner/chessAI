@@ -1,3 +1,5 @@
+use bitboard::ROW_1;
+use std::fmt;
 use std::fmt::{Display, Error, Formatter};
 
 #[derive(Debug, PartialEq)]
@@ -17,39 +19,81 @@ impl<'a> From<&'a char> for Player {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Piece {
+pub enum PieceType {
     Pawn = 0,
     Rook = 1,
     Knight = 2,
     Bishop = 3,
     Queen = 4,
     King = 5,
-    Empty
 }
 
-impl<'a> From<&'a char> for Piece {
-    fn from(chr: &char) -> Piece {
-        match chr.to_lowercase().next().unwrap_or('x') {
-            'p' => Piece::Pawn,
-            'r' => Piece::Rook,
-            'n' => Piece::Knight,
-            'b' => Piece::Bishop,
-            'q' => Piece::Queen,
-            'k' => Piece::King,
-            _ => Piece::Empty,
+impl PieceType {
+    fn from(chr: &char) -> Option<PieceType> {
+        let piece_type = match chr.to_lowercase().next().unwrap_or('x') {
+            'p' => PieceType::Pawn,
+            'r' => PieceType::Rook,
+            'n' => PieceType::Knight,
+            'b' => PieceType::Bishop,
+            'q' => PieceType::Queen,
+            'k' => PieceType::King,
+            _ => return None,
+        };
+
+        Some(piece_type)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Piece {
+    piece_type: PieceType,
+    player: Player,
+}
+
+impl Piece {
+    pub fn from(chr: &char) -> Option<Piece> {
+        if let Some(piece_type) = PieceType::from(chr) {
+            Some(Piece {
+                piece_type,
+                player: Player::from(chr),
+            })
+        } else {
+            None
         }
     }
 }
 
-pub fn to_piece_owner(chr: &char) -> Result<(Piece, Player), ()> {
-    let piece = Piece::from(chr);
+const PIECE_COUNT: usize = 6;
+const PLAYER_COUNT: usize = 2;
+const BOARD_COUNT: usize = PIECE_COUNT + PLAYER_COUNT;
 
-    if piece == Piece::Empty {
-        Err(())
-    } else {
-        Ok((piece, Player::from(chr)))
+pub struct Board {
+    pieces: [u64; PIECE_COUNT],
+    players: [u64; PLAYER_COUNT],
+}
+
+impl Board {}
+
+impl<'a> From<&'a str> for Board {
+    fn from(board: &str) -> Board {
+        Board {
+            pieces: [0; PIECE_COUNT],
+            players: [0; PLAYER_COUNT],
+        }
     }
+}
 
+impl Display for Board {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        let mut board = String::with_capacity(128);
+
+        for i in 0..8 {
+            ROW_1;
+            board += "\n";
+        }
+
+        write!(formatter, "{}", board)
+    }
 }
 
 #[test]
@@ -73,55 +117,59 @@ fn test_player_from_str() {
 
 #[test]
 fn test_to_piece_owner() {
-    assert_eq!(to_piece_owner(&'P').unwrap(), (Piece::Pawn, Player::White));
-    assert_eq!(to_piece_owner(&'p').unwrap(), (Piece::Pawn, Player::Black));
+    assert_eq!(
+        Piece::from(&'P'),
+        Some(Piece {
+            piece_type: PieceType::Pawn,
+            player: Player::White
+        })
+    );
+    assert_eq!(
+        Piece::from(&'p'),
+        Some(Piece {
+            piece_type: PieceType::Pawn,
+            player: Player::Black
+        })
+    );
 
+    assert_eq!(
+        Piece::from(&'K'),
+        Some(Piece {
+            piece_type: PieceType::King,
+            player: Player::White
+        })
+    );
+    assert_eq!(
+        Piece::from(&'k'),
+        Some(Piece {
+            piece_type: PieceType::King,
+            player: Player::Black
+        })
+    );
 
-    assert_eq!(to_piece_owner(&'K').unwrap(), (Piece::King, Player::White));
-    assert_eq!(to_piece_owner(&'k').unwrap(), (Piece::King, Player::Black));
-
-    assert_eq!(to_piece_owner(&'l'), Err(()));
+    assert_eq!(Piece::from(&'l'), None);
 }
 
 #[test]
 fn test_piece_from_str() {
-    assert_eq!(Piece::from(&'P') as u32, Piece::Pawn as u32);
-    assert_eq!(Piece::from(&'p') as u32, Piece::Pawn as u32);
+    assert_eq!(PieceType::from(&'P'), Some(PieceType::Pawn));
+    assert_eq!(PieceType::from(&'p'), Some(PieceType::Pawn));
 
-    assert_eq!(Piece::from(&'R') as u32, Piece::Rook as u32);
-    assert_eq!(Piece::from(&'r') as u32, Piece::Rook as u32);
+    assert_eq!(PieceType::from(&'R'), Some(PieceType::Rook));
+    assert_eq!(PieceType::from(&'r'), Some(PieceType::Rook));
 
-    assert_eq!(Piece::from(&'N') as u32, Piece::Knight as u32);
-    assert_eq!(Piece::from(&'n') as u32, Piece::Knight as u32);
+    assert_eq!(PieceType::from(&'N'), Some(PieceType::Knight));
+    assert_eq!(PieceType::from(&'n'), Some(PieceType::Knight));
 
-    assert_eq!(Piece::from(&'B') as u32, Piece::Bishop as u32);
-    assert_eq!(Piece::from(&'b') as u32, Piece::Bishop as u32);
+    assert_eq!(PieceType::from(&'B'), Some(PieceType::Bishop));
+    assert_eq!(PieceType::from(&'b'), Some(PieceType::Bishop));
 
-    assert_eq!(Piece::from(&'Q') as u32, Piece::Queen as u32);
-    assert_eq!(Piece::from(&'q') as u32, Piece::Queen as u32);
+    assert_eq!(PieceType::from(&'Q'), Some(PieceType::Queen));
+    assert_eq!(PieceType::from(&'q'), Some(PieceType::Queen));
 
-    assert_eq!(Piece::from(&'K') as u32, Piece::King as u32);
-    assert_eq!(Piece::from(&'k') as u32, Piece::King as u32);
+    assert_eq!(PieceType::from(&'K'), Some(PieceType::King));
+    assert_eq!(PieceType::from(&'k'), Some(PieceType::King));
 
-    assert_eq!(Piece::from(&'x') as u32, Piece::Empty as u32);
-    assert_eq!(Piece::from(&'L') as u32, Piece::Empty as u32);
-}
-
-const PIECE_COUNT: usize = 6;
-const PLAYER_COUNT: usize = 2;
-
-pub struct Board {
-    boards: [u64; PIECE_COUNT + PLAYER_COUNT],
-}
-
-impl<'a> From<&'a str> for Board {
-    fn from(board: &str) -> Board {
-        Board { boards: [0; PIECE_COUNT + PLAYER_COUNT] }
-    }
-}
-
-impl Display for Board {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), Error> {
-        Ok(())
-    }
+    assert_eq!(PieceType::from(&'x'), None);
+    assert_eq!(PieceType::from(&'L'), None);
 }
