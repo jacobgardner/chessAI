@@ -192,10 +192,6 @@ fn to_bitstring(bits: u64, padding: u64) -> String {
         .collect::<String>()
 }
 
-pub fn from_bitboard(bit_string: &str) -> u64 {
-    0
-}
-
 // TODO: More, better tests
 #[test]
 pub fn test_flip_vertical() {

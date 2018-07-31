@@ -1,6 +1,7 @@
 use std::fmt::{Display, Error, Formatter};
 
-enum Player {
+#[derive(Debug, PartialEq)]
+pub enum Player {
     Black = 0,
     White = 1,
 }
@@ -15,7 +16,7 @@ impl<'a> From<&'a char> for Player {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Piece {
     Pawn = 0,
     Rook = 1,
@@ -38,6 +39,48 @@ impl<'a> From<&'a char> for Piece {
             _ => Piece::Empty,
         }
     }
+}
+
+pub fn to_piece_owner(chr: &char) -> Result<(Piece, Player), ()> {
+    let piece = Piece::from(chr);
+
+    if piece == Piece::Empty {
+        Err(())
+    } else {
+        Ok((piece, Player::from(chr)))
+    }
+
+}
+
+#[test]
+fn test_player_from_str() {
+    assert_eq!(Player::from(&'Q'), Player::White);
+    assert_eq!(Player::from(&'K'), Player::White);
+    assert_eq!(Player::from(&'N'), Player::White);
+    assert_eq!(Player::from(&'B'), Player::White);
+    assert_eq!(Player::from(&'P'), Player::White);
+    assert_eq!(Player::from(&'R'), Player::White);
+    assert_eq!(Player::from(&'X'), Player::White);
+
+    assert_eq!(Player::from(&'q'), Player::Black);
+    assert_eq!(Player::from(&'k'), Player::Black);
+    assert_eq!(Player::from(&'n'), Player::Black);
+    assert_eq!(Player::from(&'b'), Player::Black);
+    assert_eq!(Player::from(&'p'), Player::Black);
+    assert_eq!(Player::from(&'r'), Player::Black);
+    assert_eq!(Player::from(&'x'), Player::Black);
+}
+
+#[test]
+fn test_to_piece_owner() {
+    assert_eq!(to_piece_owner(&'P').unwrap(), (Piece::Pawn, Player::White));
+    assert_eq!(to_piece_owner(&'p').unwrap(), (Piece::Pawn, Player::Black));
+
+
+    assert_eq!(to_piece_owner(&'K').unwrap(), (Piece::King, Player::White));
+    assert_eq!(to_piece_owner(&'k').unwrap(), (Piece::King, Player::Black));
+
+    assert_eq!(to_piece_owner(&'l'), Err(()));
 }
 
 #[test]
@@ -64,35 +107,16 @@ fn test_piece_from_str() {
     assert_eq!(Piece::from(&'L') as u32, Piece::Empty as u32);
 }
 
-const PIECE_COUNT: u32 = 6;
+const PIECE_COUNT: usize = 6;
+const PLAYER_COUNT: usize = 2;
 
 pub struct Board {
-    boards: [u64; 12],
-}
-
-impl Board {
-    pub fn default() -> Self {
-        let mut boards = [0u64; 12];
-
-        Board { boards: boards }
-    }
-
-    // pub fn from_string(board_str: &str) -> Self {
-    //     let mut boards = [0u64; 12];
-
-    //     for (idx, ch) in board_str.enumerate() {
-    //         let x = idx % 8;
-    //         let y = idx / 8;
-
-    //         // let boardIndex =
-
-    //    }
-    // }
+    boards: [u64; PIECE_COUNT + PLAYER_COUNT],
 }
 
 impl<'a> From<&'a str> for Board {
     fn from(board: &str) -> Board {
-        Board { boards: [0; 12] }
+        Board { boards: [0; PIECE_COUNT + PLAYER_COUNT] }
     }
 }
 

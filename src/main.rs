@@ -19,6 +19,7 @@ fn main() {
 
 
     let board = Board::from(DEFAULT_BOARD);
+    println!("{}", board);
 
     // println!("{:064b}", 0xf0f8af8fu64);
     // println!("{}", bitboard::BLACK_SQUARES.to_bitboard());
