@@ -5,7 +5,6 @@ extern crate num_derive;
 mod bitboard;
 mod board;
 
-
 use bitboard::BitBoard;
 use board::Board;
 
@@ -21,7 +20,16 @@ RNBKQBNR
 ";
 
 fn main() {
+    let pieces: [u64; 6] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
 
+    let board = Board {
+        players: [
+            pieces[0] | pieces[2] | pieces[4],
+            pieces[1] | pieces[3] | pieces[5],
+        ],
+        pieces: pieces,
+    };
+    println!("{}", board);
 
     let board = Board::from(DEFAULT_BOARD);
     println!("{}", board);

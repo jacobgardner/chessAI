@@ -69,11 +69,11 @@ impl Piece {
 
 const PIECE_COUNT: usize = 6;
 const PLAYER_COUNT: usize = 2;
-const BOARD_COUNT: usize = PIECE_COUNT + PLAYER_COUNT;
+// const BOARD_COUNT: usize = PIECE_COUNT + PLAYER_COUNT;
 
 pub struct Board {
-    pieces: [u64; PIECE_COUNT],
-    players: [u64; PLAYER_COUNT],
+    pub pieces: [u64; PIECE_COUNT],
+    pub players: [u64; PLAYER_COUNT],
 }
 
 struct BitPosition(usize);
@@ -147,8 +147,36 @@ impl Display for Board {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let mut board = String::with_capacity(128);
 
-        for i in 0..8 {
-            ROW_1;
+        for r in 0..8 {
+            for f in 0..8 {
+                let piece = self.piece_at(7-r, f).map_err(|()| Error)?;
+
+                // let piece = Some(Piece {
+                //     piece_type: PieceType::Pawn,
+                //     player: Player::White
+                // });
+
+                let chr = if let Some(piece) = piece {
+                    let piece_chr = match piece.piece_type {
+                        PieceType::Pawn => 'p',
+                        PieceType::Rook => 'r',
+                        PieceType::Bishop => 'b',
+                        PieceType::Knight => 'n',
+                        PieceType::King => 'k',
+                        PieceType::Queen => 'q',
+                    };
+
+                    if piece.player == Player::White {
+                        piece_chr.to_ascii_uppercase()
+                    } else {
+                        piece_chr
+                    }
+                } else {
+                    '.'
+                };
+
+                board += &chr.to_string();
+            }
             board += "\n";
         }
 
@@ -158,16 +186,9 @@ impl Display for Board {
 
 #[test]
 fn test_piece_at() {
-    let pieces: [u64; PIECE_COUNT] = [
-        1,
-        1 << 8,
-        1 << 12,
-        1 << 16,
-        1 << 25,
-        1 << 63,
-    ];
+    let pieces: [u64; PIECE_COUNT] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
 
-    let mut board = Board {
+    let board = Board {
         players: [
             pieces[0] | pieces[2] | pieces[4] | 1 << 5,
             pieces[1] | pieces[3] | pieces[5],
@@ -223,20 +244,8 @@ fn test_piece_at() {
         })
     );
 
-    assert_eq!(
-        board.piece_at(4, 4).unwrap(),
-        None
-    );
-    assert_eq!(
-        board.piece_at(0, 5),
-       Err(()) 
-    );
-
-
-
-
-
-
+    assert_eq!(board.piece_at(4, 4).unwrap(), None);
+    assert_eq!(board.piece_at(0, 5), Err(()));
 }
 
 #[test]
