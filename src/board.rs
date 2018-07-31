@@ -2,7 +2,11 @@ use bitboard::ROW_1;
 use std::fmt;
 use std::fmt::{Display, Error, Formatter};
 
-#[derive(Debug, PartialEq)]
+use num;
+// #[macro_use]
+// use num_derive;
+
+#[derive(Debug, PartialEq, FromPrimitive)]
 pub enum Player {
     Black = 0,
     White = 1,
@@ -18,7 +22,7 @@ impl<'a> From<&'a char> for Player {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, FromPrimitive)]
 pub enum PieceType {
     Pawn = 0,
     Rook = 1,
@@ -72,7 +76,63 @@ pub struct Board {
     players: [u64; PLAYER_COUNT],
 }
 
-impl Board {}
+struct BitPosition(usize);
+impl From<(usize, usize)> for BitPosition {
+    fn from((rank, file): (usize, usize)) -> BitPosition {
+        BitPosition(rank * 8 + file)
+    }
+}
+
+struct PositionMask(u64);
+
+impl From<(usize, usize)> for PositionMask {
+    fn from((rank, file): (usize, usize)) -> PositionMask {
+        PositionMask(1u64 << BitPosition::from((rank, file)).0)
+    }
+}
+
+impl Board {
+    pub fn piece_at(&self, rank: usize, file: usize) -> Result<Option<Piece>, ()> {
+        if rank >= 8 || file >= 8 {
+            return Err(());
+        }
+
+        let mask = PositionMask::from((rank, file)).0;
+        // println!("{:0b}", mask);
+
+        if let Some((player_id, _)) = self
+            .players
+            .iter()
+            .enumerate()
+            .find(|&(i, player_board)| mask & player_board > 0)
+        {
+            let player = num::FromPrimitive::from_usize(player_id).ok_or(())?;
+
+            let (i, _) = self
+                .pieces
+                .iter()
+                .enumerate()
+                .find(|&(_, board)| mask & board > 0)
+                .ok_or(())?;
+
+            debug_assert!(i < PIECE_COUNT);
+
+            let piece_type = num::FromPrimitive::from_usize(i).ok_or(())?;
+
+            // let piece_board = (0..PIECE_COUNT).find(|&i| mask & self.pieces[i] > 0).ok_or(())?;
+            Ok(Some(Piece { player, piece_type }))
+        } else {
+            debug_assert!({
+                let mut mask_found = false;
+                (0..PIECE_COUNT)
+                    .find(|&i| mask & self.pieces[i] > 0)
+                    .is_none()
+            });
+
+            Ok(None)
+        }
+    }
+}
 
 impl<'a> From<&'a str> for Board {
     fn from(board: &str) -> Board {
@@ -94,6 +154,89 @@ impl Display for Board {
 
         write!(formatter, "{}", board)
     }
+}
+
+#[test]
+fn test_piece_at() {
+    let pieces: [u64; PIECE_COUNT] = [
+        1,
+        1 << 8,
+        1 << 12,
+        1 << 16,
+        1 << 25,
+        1 << 63,
+    ];
+
+    let mut board = Board {
+        players: [
+            pieces[0] | pieces[2] | pieces[4] | 1 << 5,
+            pieces[1] | pieces[3] | pieces[5],
+        ],
+        pieces: pieces,
+    };
+
+    assert_eq!(
+        board.piece_at(0, 0).unwrap(),
+        Some(Piece {
+            piece_type: PieceType::Pawn,
+            player: Player::Black
+        })
+    );
+
+    assert_eq!(
+        board.piece_at(1, 0).unwrap(),
+        Some(Piece {
+            piece_type: PieceType::Rook,
+            player: Player::White
+        })
+    );
+
+    assert_eq!(
+        board.piece_at(1, 4).unwrap(),
+        Some(Piece {
+            piece_type: PieceType::Knight,
+            player: Player::Black
+        })
+    );
+
+    assert_eq!(
+        board.piece_at(2, 0).unwrap(),
+        Some(Piece {
+            piece_type: PieceType::Bishop,
+            player: Player::White
+        })
+    );
+
+    assert_eq!(
+        board.piece_at(3, 1).unwrap(),
+        Some(Piece {
+            piece_type: PieceType::Queen,
+            player: Player::Black
+        })
+    );
+
+    assert_eq!(
+        board.piece_at(7, 7).unwrap(),
+        Some(Piece {
+            piece_type: PieceType::King,
+            player: Player::White
+        })
+    );
+
+    assert_eq!(
+        board.piece_at(4, 4).unwrap(),
+        None
+    );
+    assert_eq!(
+        board.piece_at(0, 5),
+       Err(()) 
+    );
+
+
+
+
+
+
 }
 
 #[test]
