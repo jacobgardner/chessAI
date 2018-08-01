@@ -10,7 +10,8 @@ impl Board {
 
         move || {
             let player_mask = root_board.players[player as usize];
-            let all_pieces = root_board.players[0] | root_board.players[1];
+            let enemy_mask = root_board.players[1 - (player as usize)];
+            let all_pieces = player_mask | enemy_mask;
 
             for i in 0..PIECE_COUNT {
                 let mut piecetype_mask = root_board.pieces[i as usize] & player_mask;
@@ -21,11 +22,10 @@ impl Board {
                 //  when index == 64
                 while piecetype_mask > 0 {
                     let index = piecetype_mask.trailing_zeros();
-                    // println!("{} 0b{:0>64b}", index, piecetype_mask);
-
                     let piece_mask = 1 << index;
+                    let piece_inverse = !piece_mask;
 
-                    piecetype_mask &= !piece_mask;
+                    piecetype_mask &= piece_inverse;
 
                     match piece_type {
                         PieceType::Pawn => {
@@ -48,19 +48,44 @@ impl Board {
                                 }
                             } & !all_pieces;
 
+                            let mut available_captures: u64 = match player {
+                                Player::White => {
+                                    (if index % 8 != 0 { 1 << (index + 9) } else { 0 })
+                                        | (if index % 8 != 7 { 1 << (index + 7) } else { 0 })
+                                }
+                                Player::Black => 0,
+                            } & enemy_mask;
+
                             while available_moves > 0 {
                                 let new_move = available_moves.trailing_zeros();
                                 let new_move_mask = 1 << new_move;
 
                                 let mut board = root_board.clone();
                                 board.pieces[i] |= new_move_mask;
-                                board.pieces[i] &= !piece_mask;
+                                board.pieces[i] &= piece_inverse;
                                 board.players[player as usize] |= new_move_mask;
-                                board.players[player as usize] &= !piece_mask;
+                                board.players[player as usize] &= piece_inverse;
 
                                 yield board;
 
                                 available_moves &= !new_move_mask;
+                            }
+
+                            while available_captures > 0 {
+                                let new_move = available_captures.trailing_zeros();
+                                let new_move_mask = 1 << new_move;
+                                let inverse_move = !new_move_mask;
+
+                                let mut board = root_board.clone();
+                                board.pieces[i] |= new_move_mask;
+                                board.pieces[i] &= piece_inverse;
+                                board.players[player as usize] |= new_move_mask;
+                                board.players[player as usize] &= piece_inverse;
+                                board.players[1 - (player as usize)] &= inverse_move;
+
+                                yield board;
+                                available_captures &= inverse_move;
+
                             }
 
                             // println!("0b{:0>64b}", available_moves);
@@ -80,9 +105,9 @@ const PAWN_TEST: &'static str = "
     xxPxxxxx
     xxxxPxxx
     xxxxxxxx
-    xnxxxxxx
-    nxxxxxxx
-    xPxxxPxx
+    xnxnxxxx
+    nxPxxxxx
+    xPxxxPxP
     xxxxxxxx
     ";
 
