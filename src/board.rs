@@ -70,28 +70,29 @@ const PIECE_COUNT: usize = 6;
 const PLAYER_COUNT: usize = 2;
 // const BOARD_COUNT: usize = PIECE_COUNT + PLAYER_COUNT;
 
+#[derive(PartialEq)]
 pub struct Board {
     pub pieces: [u64; PIECE_COUNT],
     pub players: [u64; PLAYER_COUNT],
 }
 
-struct BitPosition(usize);
-impl From<(usize, usize)> for BitPosition {
-    fn from((rank, file): (usize, usize)) -> BitPosition {
+struct BitPosition(u8);
+impl From<(u8, u8)> for BitPosition {
+    fn from((rank, file): (u8, u8)) -> BitPosition {
         BitPosition(rank * 8 + file)
     }
 }
 
 struct PositionMask(u64);
 
-impl From<(usize, usize)> for PositionMask {
-    fn from((rank, file): (usize, usize)) -> PositionMask {
+impl From<(u8, u8)> for PositionMask {
+    fn from((rank, file): (u8, u8)) -> PositionMask {
         PositionMask(1u64 << BitPosition::from((rank, file)).0)
     }
 }
 
 impl Board {
-    pub fn piece_at(&self, rank: usize, file: usize) -> Result<Option<Piece>, ()> {
+    pub fn piece_at(&self, rank: u8, file: u8) -> Result<Option<Piece>, ()> {
         if rank >= 8 || file >= 8 {
             return Err(());
         }
@@ -142,8 +143,8 @@ impl Board {
 
         // TODO: Make sure this correctly throws an error on non-ascii
         for (i, chr) in board.chars().enumerate() {
-            let rank = 7 - (i / 8);
-            let file = i % 8;
+            let rank: u8 = (7 - (i / 8)) as u8;
+            let file: u8 = (i % 8) as u8;
 
             let piece_mask = PositionMask::from((rank, file)).0;
 
@@ -172,7 +173,7 @@ impl Display for Board {
         for r in 0..8 {
             // let rank_chr = (65u8 + (7 - r as u8))  as char;
 
-            board += &format!("0x{: <02x} {} |", (7-r) * 8, 8 - r);
+            board += &format!("0x{: <02x} {} |", (7 - r) * 8, 8 - r);
 
             for f in 0..8 {
                 let piece = self.piece_at(7 - r, f).map_err(|()| Error)?;
@@ -215,12 +216,52 @@ impl Display for Board {
 
 #[test]
 fn test_board_from_str() {
-    let board_str = "
-    ";
-    let board = Board::from(board_str);
+    let board = Board::from(
+        "
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    ",
+    ).unwrap();
 
     assert_eq!(Board::from(""), Err(()));
-    assert_eq!(board.unwrap().players[0], 5);
+    assert_eq!(board.players[0] | board.players[1], 0);
+
+    let board = Board::from(
+        "
+    .......r
+    ...P....
+    ........
+    ........
+    ..k.....
+    ........
+    .Q...P..
+    ..P.....
+    ",
+    ).unwrap();
+
+    let rook_mask = PositionMask::from((7, 7)).0;
+    let king_mask = PositionMask::from((3, 2)).0;
+
+    let queen_mask = PositionMask::from((1, 1)).0;
+    let pawn_mask =
+        PositionMask::from((0, 2)).0 | PositionMask::from((1, 5)).0 | PositionMask::from((6, 3)).0;
+
+    let black_mask = rook_mask | king_mask;
+    let white_mask = queen_mask | pawn_mask;
+
+    assert_eq!(board.players[Player::Black as usize], black_mask);
+    assert_eq!(board.players[Player::White as usize], white_mask);
+
+    assert_eq!(board.pieces[PieceType::Pawn as usize], pawn_mask);
+    assert_eq!(board.pieces[PieceType::Queen as usize], queen_mask);
+    assert_eq!(board.pieces[PieceType::Rook as usize], rook_mask);
+    assert_eq!(board.pieces[PieceType::King as usize], king_mask);
 }
 
 #[test]
