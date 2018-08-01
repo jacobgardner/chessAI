@@ -8,6 +8,7 @@ mod errors;
 mod player;
 mod piece_type;
 mod piece;
+mod move_pieces;
 
 // TODO: Maybe not do
 use self::errors::*;
@@ -15,11 +16,22 @@ use self::player::*;
 use self::piece_type::*;
 use self::piece::*;
 
-const PIECE_COUNT: usize = 6;
-const PLAYER_COUNT: usize = 2;
-// const BOARD_COUNT: usize = PIECE_COUNT + PLAYER_COUNT;
+// TODO: Write/find macros that attaches .count() method to enum
+pub const PIECE_COUNT: usize = 6;
+pub const PLAYER_COUNT: usize = 2;
 
-#[derive(PartialEq)]
+pub const DEFAULT_BOARD: &str = "
+rnbkqbnr
+pppppppp
+xxxxxxxx
+xxxxxxxx
+xxxxxxxx
+xxxxxxxx
+PPPPPPPP
+RNBKQBNR
+";
+
+#[derive(PartialEq, Clone)]
 pub struct Board {
     pub pieces: [u64; PIECE_COUNT],
     pub players: [u64; PLAYER_COUNT],
@@ -41,6 +53,14 @@ impl From<(u8, u8)> for PositionMask {
 }
 
 impl Board {
+
+    pub fn empty_board() -> Board {
+        Board {
+            pieces: [0; PIECE_COUNT],
+            players: [0; PLAYER_COUNT]
+        }
+    }
+
     pub fn piece_at(&self, rank: u8, file: u8) -> Result<Option<Piece>, BoardError> {
         if rank >= 8 || file >= 8 {
             return Err(BoardError::OutOfBounds { rank, file });

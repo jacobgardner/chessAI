@@ -1,3 +1,5 @@
+#![feature(generators, generator_trait)]
+
 extern crate num;
 #[macro_use]
 extern crate num_derive;
@@ -10,16 +12,6 @@ mod board;
 use bitboard::BitBoard;
 use board::Board;
 
-pub const DEFAULT_BOARD: &str = "
-rnbkqbnr
-pppppppp
-xxxxxxxx
-xxxxxxxx
-xxxxxxxx
-xxxxxxxx
-PPPPPPPP
-RNBKQBNR
-";
 
 fn main() -> Result<(), failure::Error> {
     let pieces: [u64; 6] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
@@ -33,7 +25,7 @@ fn main() -> Result<(), failure::Error> {
     };
     println!("{}", board);
 
-    let board = Board::from(DEFAULT_BOARD)?;
+    let board = Board::from(board::DEFAULT_BOARD)?;
     println!("{}", board);
 
     // println!("{:064b}", 0xf0f8af8fu64);
