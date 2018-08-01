@@ -8,7 +8,7 @@ mod board;
 use bitboard::BitBoard;
 use board::Board;
 
-const DEFAULT_BOARD: &str = "
+pub const DEFAULT_BOARD: &str = "
 rnbkqbnr
 pppppppp
 xxxxxxxx
@@ -19,7 +19,7 @@ PPPPPPPP
 RNBKQBNR
 ";
 
-fn main() {
+fn main() -> Result<(), ()> {
     let pieces: [u64; 6] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
 
     let board = Board {
@@ -31,7 +31,7 @@ fn main() {
     };
     println!("{}", board);
 
-    let board = Board::from(DEFAULT_BOARD);
+    let board = Board::from(DEFAULT_BOARD)?;
     println!("{}", board);
 
     // println!("{:064b}", 0xf0f8af8fu64);
@@ -40,4 +40,6 @@ fn main() {
     // println!("{}", bitboard::ROW_1.to_bitboard());
 
     println!("{}", 0b00001111.rotate_45cw().to_rotatedbitboard());
+
+    Ok(())
 }

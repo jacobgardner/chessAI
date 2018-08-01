@@ -1,10 +1,9 @@
-use bitboard::ROW_1;
 use std::fmt;
-use std::fmt::{Display, Error, Formatter};
+use std::fmt::{Debug, Display, Error, Formatter};
 
 use num;
-// #[macro_use]
-// use num_derive;
+
+use DEFAULT_BOARD;
 
 #[derive(Debug, PartialEq, FromPrimitive)]
 pub enum Player {
@@ -98,13 +97,12 @@ impl Board {
         }
 
         let mask = PositionMask::from((rank, file)).0;
-        // println!("{:0b}", mask);
 
         if let Some((player_id, _)) = self
             .players
             .iter()
             .enumerate()
-            .find(|&(i, player_board)| mask & player_board > 0)
+            .find(|&(_, player_board)| mask & player_board > 0)
         {
             let player = num::FromPrimitive::from_usize(player_id).ok_or(())?;
 
@@ -123,7 +121,6 @@ impl Board {
             Ok(Some(Piece { player, piece_type }))
         } else {
             debug_assert!({
-                let mut mask_found = false;
                 (0..PIECE_COUNT)
                     .find(|&i| mask & self.pieces[i] > 0)
                     .is_none()
@@ -132,14 +129,37 @@ impl Board {
             Ok(None)
         }
     }
+
+    pub fn from(board: &str) -> Result<Board, ()> {
+        let mut pieces = [0; PIECE_COUNT];
+        let mut players = [0; PLAYER_COUNT];
+
+        let board: String = board.split(char::is_whitespace).collect();
+
+        if board.len() != 64 {
+            return Err(());
+        }
+
+        // TODO: Make sure this correctly throws an error on non-ascii
+        for (i, chr) in board.chars().enumerate() {
+            let rank = 7 - (i / 8);
+            let file = i % 8;
+
+            let piece_mask = PositionMask::from((rank, file)).0;
+
+            if let Some(piece) = Piece::from(&chr) {
+                players[piece.player as usize] |= piece_mask;
+                pieces[piece.piece_type as usize] |= piece_mask;
+            }
+        }
+
+        Ok(Board { pieces, players })
+    }
 }
 
-impl<'a> From<&'a str> for Board {
-    fn from(board: &str) -> Board {
-        Board {
-            pieces: [0; PIECE_COUNT],
-            players: [0; PLAYER_COUNT],
-        }
+impl Debug for Board {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        Display::fmt(self, formatter)
     }
 }
 
@@ -147,9 +167,15 @@ impl Display for Board {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let mut board = String::with_capacity(128);
 
+        board += "       +--------+\n";
+
         for r in 0..8 {
+            // let rank_chr = (65u8 + (7 - r as u8))  as char;
+
+            board += &format!("0x{: <02x} {} |", (7-r) * 8, 8 - r);
+
             for f in 0..8 {
-                let piece = self.piece_at(7-r, f).map_err(|()| Error)?;
+                let piece = self.piece_at(7 - r, f).map_err(|()| Error)?;
 
                 // let piece = Some(Piece {
                 //     piece_type: PieceType::Pawn,
@@ -177,11 +203,24 @@ impl Display for Board {
 
                 board += &chr.to_string();
             }
-            board += "\n";
+            board += &format!("| {}\n", (8 - r) * 8 - 1);
         }
+
+        board += "       +--------+\n";
+        board += "        ABCDEFGH\n";
 
         write!(formatter, "{}", board)
     }
+}
+
+#[test]
+fn test_board_from_str() {
+    let board_str = "
+    ";
+    let board = Board::from(board_str);
+
+    assert_eq!(Board::from(""), Err(()));
+    assert_eq!(board.unwrap().players[0], 5);
 }
 
 #[test]
