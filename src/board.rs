@@ -46,8 +46,8 @@ pub enum Player {
     White = 1,
 }
 
-impl<'a> From<&'a char> for Player {
-    fn from(chr: &'a char) -> Player {
+impl From<char> for Player {
+    fn from(chr: char) -> Player {
         if chr.is_lowercase() {
             Player::Black
         } else {
@@ -67,7 +67,7 @@ pub enum PieceType {
 }
 
 impl PieceType {
-    fn from(chr: &char) -> Option<PieceType> {
+    fn from(chr: char) -> Option<PieceType> {
         let piece_type = match chr.to_lowercase().next().unwrap_or('x') {
             'p' => PieceType::Pawn,
             'r' => PieceType::Rook,
@@ -89,7 +89,7 @@ pub struct Piece {
 }
 
 impl Piece {
-    pub fn from(chr: &char) -> Option<Piece> {
+    pub fn from(chr: char) -> Option<Piece> {
         if let Some(piece_type) = PieceType::from(chr) {
             Some(Piece {
                 piece_type,
@@ -191,7 +191,7 @@ impl Board {
 
             let piece_mask = PositionMask::from((rank, file)).0;
 
-            if let Some(piece) = Piece::from(&chr) {
+            if let Some(piece) = Piece::from(chr) {
                 players[piece.player as usize] |= piece_mask;
                 pieces[piece.piece_type as usize] |= piece_mask;
             }

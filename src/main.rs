@@ -29,7 +29,7 @@ fn main() -> Result<(), failure::Error> {
             pieces[0] | pieces[2] | pieces[4],
             pieces[1] | pieces[3] | pieces[5],
         ],
-        pieces: pieces,
+        pieces,
     };
     println!("{}", board);
 
@@ -41,7 +41,7 @@ fn main() -> Result<(), failure::Error> {
     // println!("{}", bitboard::WHITE_SQUARES.to_bitboard());
     // println!("{}", bitboard::ROW_1.to_bitboard());
 
-    println!("{}", 0b00001111.rotate_45cw().to_rotatedbitboard());
+    println!("{}", 0b0000_1111.rotate_45cw().to_rotatedbitboard());
 
     Ok(())
 }
