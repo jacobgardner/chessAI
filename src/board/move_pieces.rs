@@ -53,7 +53,10 @@ impl Board {
                                     (if index % 8 != 0 { 1 << (index + 9) } else { 0 })
                                         | (if index % 8 != 7 { 1 << (index + 7) } else { 0 })
                                 }
-                                Player::Black => 0,
+                                Player::Black => {
+                                    (if index % 8 != 0 { 1 << (index - 9) } else { 0 })
+                                        | (if index % 8 != 7 { 1 << (index - 7) } else { 0 })
+                                }
                             } & enemy_mask;
 
                             while available_moves > 0 {
@@ -85,7 +88,6 @@ impl Board {
 
                                 yield board;
                                 available_captures &= inverse_move;
-
                             }
 
                             // println!("0b{:0>64b}", available_moves);
@@ -100,7 +102,7 @@ impl Board {
     }
 }
 
-const PAWN_TEST: &'static str = "
+const WHITE_PAWN_TEST: &'static str = "
     xxxrxxxx
     xxPxxxxx
     xxxxPxxx
@@ -111,11 +113,35 @@ const PAWN_TEST: &'static str = "
     xxxxxxxx
     ";
 
+const BLACK_PAWN_TEST: &'static str = "
+    xxxxxxxx
+    pxxxxxpx
+    xxxxxnxN
+    xxpxxxxx
+    xxxxxxxx
+    xxxxpxxx
+    xxxxpNxx
+    xxxNxxxx
+";
+
 #[test]
 fn test_generate_moves() {
-    let board = Board::from(PAWN_TEST).unwrap();
+    let board = Board::from(WHITE_PAWN_TEST).unwrap();
 
     let mut generator = board.generate_moves(Player::White);
+
+    loop {
+        let new_board = match unsafe { generator.resume() } {
+            GeneratorState::Yielded(board) => board,
+            GeneratorState::Complete(_) => break,
+        };
+
+        println!("{}", new_board);
+    }
+
+    let board = Board::from(BLACK_PAWN_TEST).unwrap();
+
+    let mut generator = board.generate_moves(Player::Black);
 
     loop {
         let new_board = match unsafe { generator.resume() } {
