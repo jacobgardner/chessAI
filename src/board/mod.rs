@@ -3,103 +3,17 @@ use std::fmt::{Debug, Display, Formatter};
 
 use num;
 
-#[derive(Debug, PartialEq)]
-pub enum InvalidStringReason {
-    IncorrectLength,
-    NonAsciiChars
-}
+// TODO: Some of these may make more sense in a module up a directory
+mod errors;
+mod player;
+mod piece_type;
+mod piece;
 
-impl Display for InvalidStringReason {
-    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
-        match self {
-            InvalidStringReason::IncorrectLength => write!(formatter, "Expected string to have exactly 64 non-space characters"),
-            InvalidStringReason::NonAsciiChars => write!(formatter, "Detected 1 or more non-ascii characters")
-        }
-    }
-}
-
-#[derive(Debug, Fail, PartialEq)]
-pub enum BoardError {
-    #[fail(display = "invalid player id: {}", player_id)]
-    InvalidPlayer { player_id: u8 },
-
-    #[fail(display = "invalid piece id: {}", piece_id)]
-    InvalidPiece { piece_id: u8 },
-
-    #[fail(display = "Bit found on player mask, but no board masks")]
-    MalformedBoard,
-
-    #[fail(
-        display = "Rank/File exceeded board limits: {} {}",
-        rank,
-        file
-    )]
-    OutOfBounds { rank: u8, file: u8 },
-
-    #[fail(display = "Malformed string for board: {}", _0)]
-    InvalidString(InvalidStringReason),
-}
-
-#[derive(Debug, PartialEq, FromPrimitive)]
-pub enum Player {
-    Black = 0,
-    White = 1,
-}
-
-impl From<char> for Player {
-    fn from(chr: char) -> Player {
-        if chr.is_lowercase() {
-            Player::Black
-        } else {
-            Player::White
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, FromPrimitive)]
-pub enum PieceType {
-    Pawn = 0,
-    Rook = 1,
-    Knight = 2,
-    Bishop = 3,
-    Queen = 4,
-    King = 5,
-}
-
-impl PieceType {
-    fn from(chr: char) -> Option<PieceType> {
-        let piece_type = match chr.to_lowercase().next().unwrap_or('x') {
-            'p' => PieceType::Pawn,
-            'r' => PieceType::Rook,
-            'n' => PieceType::Knight,
-            'b' => PieceType::Bishop,
-            'q' => PieceType::Queen,
-            'k' => PieceType::King,
-            _ => return None,
-        };
-
-        Some(piece_type)
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Piece {
-    piece_type: PieceType,
-    player: Player,
-}
-
-impl Piece {
-    pub fn from(chr: char) -> Option<Piece> {
-        if let Some(piece_type) = PieceType::from(chr) {
-            Some(Piece {
-                piece_type,
-                player: Player::from(chr),
-            })
-        } else {
-            None
-        }
-    }
-}
+// TODO: Maybe not do
+use self::errors::*;
+use self::player::*;
+use self::piece_type::*;
+use self::piece::*;
 
 const PIECE_COUNT: usize = 6;
 const PLAYER_COUNT: usize = 2;
@@ -386,80 +300,3 @@ fn test_piece_at() {
     assert_eq!(board.piece_at(0, 5), Err(BoardError::MalformedBoard));
 }
 
-#[test]
-fn test_player_from_str() {
-    assert_eq!(Player::from(&'Q'), Player::White);
-    assert_eq!(Player::from(&'K'), Player::White);
-    assert_eq!(Player::from(&'N'), Player::White);
-    assert_eq!(Player::from(&'B'), Player::White);
-    assert_eq!(Player::from(&'P'), Player::White);
-    assert_eq!(Player::from(&'R'), Player::White);
-    assert_eq!(Player::from(&'X'), Player::White);
-
-    assert_eq!(Player::from(&'q'), Player::Black);
-    assert_eq!(Player::from(&'k'), Player::Black);
-    assert_eq!(Player::from(&'n'), Player::Black);
-    assert_eq!(Player::from(&'b'), Player::Black);
-    assert_eq!(Player::from(&'p'), Player::Black);
-    assert_eq!(Player::from(&'r'), Player::Black);
-    assert_eq!(Player::from(&'x'), Player::Black);
-}
-
-#[test]
-fn test_to_piece_owner() {
-    assert_eq!(
-        Piece::from(&'P'),
-        Some(Piece {
-            piece_type: PieceType::Pawn,
-            player: Player::White
-        })
-    );
-    assert_eq!(
-        Piece::from(&'p'),
-        Some(Piece {
-            piece_type: PieceType::Pawn,
-            player: Player::Black
-        })
-    );
-
-    assert_eq!(
-        Piece::from(&'K'),
-        Some(Piece {
-            piece_type: PieceType::King,
-            player: Player::White
-        })
-    );
-    assert_eq!(
-        Piece::from(&'k'),
-        Some(Piece {
-            piece_type: PieceType::King,
-            player: Player::Black
-        })
-    );
-
-    assert_eq!(Piece::from(&'l'), None);
-}
-
-#[test]
-fn test_piece_from_str() {
-    assert_eq!(PieceType::from(&'P'), Some(PieceType::Pawn));
-    assert_eq!(PieceType::from(&'p'), Some(PieceType::Pawn));
-
-    assert_eq!(PieceType::from(&'R'), Some(PieceType::Rook));
-    assert_eq!(PieceType::from(&'r'), Some(PieceType::Rook));
-
-    assert_eq!(PieceType::from(&'N'), Some(PieceType::Knight));
-    assert_eq!(PieceType::from(&'n'), Some(PieceType::Knight));
-
-    assert_eq!(PieceType::from(&'B'), Some(PieceType::Bishop));
-    assert_eq!(PieceType::from(&'b'), Some(PieceType::Bishop));
-
-    assert_eq!(PieceType::from(&'Q'), Some(PieceType::Queen));
-    assert_eq!(PieceType::from(&'q'), Some(PieceType::Queen));
-
-    assert_eq!(PieceType::from(&'K'), Some(PieceType::King));
-    assert_eq!(PieceType::from(&'k'), Some(PieceType::King));
-
-    assert_eq!(PieceType::from(&'x'), None);
-    assert_eq!(PieceType::from(&'L'), None);
-}
