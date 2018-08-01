@@ -1,6 +1,8 @@
 extern crate num;
 #[macro_use]
 extern crate num_derive;
+#[macro_use]
+extern crate failure;
 
 mod bitboard;
 mod board;
@@ -19,7 +21,7 @@ PPPPPPPP
 RNBKQBNR
 ";
 
-fn main() -> Result<(), ()> {
+fn main() -> Result<(), failure::Error> {
     let pieces: [u64; 6] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
 
     let board = Board {
