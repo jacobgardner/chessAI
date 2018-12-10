@@ -1,5 +1,5 @@
 use super::{Board, PieceType, Player, PIECE_COUNT};
-use bitboard::{ROW_2, ROW_7};
+use crate::bitboard::{ROW_2, ROW_7};
 
 use num;
 use std::ops::{Generator, GeneratorState};

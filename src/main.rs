@@ -1,4 +1,4 @@
-#![feature(generators, generator_trait)]
+// #![feature(generators, generator_trait)]
 
 extern crate num;
 #[macro_use]
@@ -9,8 +9,8 @@ extern crate failure;
 mod bitboard;
 mod board;
 
-use bitboard::BitBoard;
-use board::Board;
+use crate::bitboard::BitBoard;
+use crate::board::Board;
 
 
 fn main() -> Result<(), failure::Error> {
