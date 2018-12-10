@@ -165,7 +165,7 @@ impl Iterator for MoveGenerator {
                         return Some(board);
                     }
                     None => {
-                        println!("None!");
+                        self.is_first_move = true;
                         self.player_piecetype_mask &= piece_inverse;
                     }
                 },
