@@ -9,3 +9,4 @@ num-traits = "0.2"
 num-derive = "0.2"
 num = "0.2"
 failure = "0.1.2"
+snapshot = { path = "../snapshot-rs" }

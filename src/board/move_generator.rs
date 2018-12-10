@@ -135,7 +135,6 @@ impl Iterator for MoveGenerator {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            println!("{} {}", self.piece_index, self.player_piecetype_mask);
             if self.player_piecetype_mask == 0 {
                 self.piece_index += 1;
                 self.is_first_move = true;

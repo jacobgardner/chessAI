@@ -33,31 +33,50 @@ const BLACK_PAWN_TEST: &'static str = "
     xxxNxxxx
 ";
 
-#[test]
-fn test_generate_moves() {
-    let board = Board::from(WHITE_PAWN_TEST).unwrap();
+#[cfg(test)]
+mod tests {
+    use snapshot::snapshot;
+    use super::*;
 
-    let mut generator = board.generate_moves(Player::White);
+    #[snapshot]
+    fn test_generate_white_pawn_moves() -> Vec<String> {
+        let mut boards = vec![];
 
-    loop {
-        let new_board = match generator.next() {
-            Some(board) => board,
-            None => break,
-        };
+        let board = Board::from(WHITE_PAWN_TEST).unwrap();
+        boards.push(format!("{}", board).to_owned());
 
-        println!("{}", new_board);
+        let mut generator = board.generate_moves(Player::White);
+
+        loop {
+            let new_board = match generator.next() {
+                Some(board) => board,
+                None => break,
+            };
+
+            boards.push(format!("{}", new_board).to_owned());
+        }
+        boards
     }
 
-    let board = Board::from(BLACK_PAWN_TEST).unwrap();
+    #[snapshot]
+    fn test_generate_black_pawn_moves() -> Vec<String> {
+        let mut boards = vec![];
 
-    let mut generator = board.generate_moves(Player::Black);
 
-    loop {
-        let new_board = match generator.next() {
-            Some(board) => board,
-            None => break,
-        };
+        let board = Board::from(BLACK_PAWN_TEST).unwrap();
+        boards.push(format!("{}", board).to_owned());
 
-        println!("{}", new_board);
+        let mut generator = board.generate_moves(Player::Black);
+
+        loop {
+            let new_board = match generator.next() {
+                Some(board) => board,
+                None => break,
+            };
+
+            boards.push(format!("{}", new_board).to_owned());
+        }
+
+        boards
     }
 }
