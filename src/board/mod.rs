@@ -9,6 +9,7 @@ mod player;
 mod piece_type;
 mod piece;
 mod move_pieces;
+mod move_generator;
 
 // TODO: Maybe not do
 use self::errors::*;
