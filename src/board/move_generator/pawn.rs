@@ -1,22 +1,60 @@
 use super::MoveGenerator;
-use crate::bitboard::{ROW_2, ROW_7};
-use crate::board::{Board, Player};
+use crate::bitboard::{ROW_1, ROW_2, ROW_7, ROW_8};
+use crate::board::{Board, PieceType, Player, PIECE_COUNT};
 
 impl MoveGenerator {
-    pub(crate) fn generate_next_pawn_move(&mut self, index: u32, piece_mask: u64) -> Option<Board> {
+    fn move_pawn(&mut self, current_position_mask: u64, next_position_mask: u64, capture: bool) -> Board {
+        let mut board = self.root_board.clone();
+
+        // Remove current position from pawn and current player bitboards
+        board.pieces[PieceType::Pawn as usize] &= !current_position_mask;
+        board.players[self.player as usize] &= !current_position_mask;
+
+        if capture {
+            debug_assert!(board.players[self.player as usize] & next_position_mask == 0, "Pawn Move Invariant Invalidated: Capture move made on space occupied by self");
+            debug_assert!(board.players[1 - (self.player as usize)] & next_position_mask != 0, "Pawn Move Invariant Invalidated: Capture move made on space not-occupied by opponent");
+            // Because this is a capture we need to remove the previous piece
+            for i in 0..PIECE_COUNT {
+                board.pieces[i] &= !next_position_mask;
+            }
+
+            // And the previous player
+            board.players[1 - (self.player as usize)] &= !next_position_mask;
+        } else {
+            debug_assert!(board.players[self.player as usize] & next_position_mask == 0, "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by self");
+            debug_assert!(board.players[1 - (self.player as usize)] & next_position_mask == 0, "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by opponent");
+        }
+
+        board.players[self.player as usize] |= next_position_mask;
+        if next_position_mask & ROW_1 > 0 || next_position_mask & ROW_8 > 0 {
+            board.pieces[PieceType::Queen as usize] |= next_position_mask;
+        } else {
+            board.pieces[PieceType::Pawn as usize] |= next_position_mask;
+        }
+
+        board
+    }
+
+    pub(crate) fn generate_next_pawn_move(&mut self, index: u32, current_position_mask: u64) -> Option<Board> {
         if self.is_first_move == true {
             self.available_moves = match self.player {
+                // TODO: This code is clear as mud.  We can probably make this look a lot better
+
+
                 // I'm not too worred about this overflowing (vertical moves only)
                 //  because if it gets to the end it turns into a queen
                 Player::White => {
-                    (if piece_mask & ROW_2 > 0 {
+                    debug_assert!(current_position_mask & ROW_1 == 0);
+
+                    (if current_position_mask & ROW_2 > 0 {
                         1 << (index + 16)
                     } else {
                         0
                     }) | (1 << (index + 8))
                 }
                 Player::Black => {
-                    (if piece_mask & ROW_7 > 0 {
+                    debug_assert!(current_position_mask & ROW_8 == 0);
+                    (if current_position_mask & ROW_7 > 0 {
                         1 << (index - 16)
                     } else {
                         0
@@ -40,30 +78,21 @@ impl MoveGenerator {
 
         if self.available_moves > 0 {
             let new_move = self.available_moves.trailing_zeros();
-            let new_move_mask = 1 << new_move;
+            let next_position_mask = 1 << new_move;
 
-            let mut board = self.root_board.clone();
-            board.pieces[self.piece_index] |= new_move_mask;
-            board.pieces[self.piece_index] &= !piece_mask;
-            board.players[self.player as usize] |= new_move_mask;
-            board.players[self.player as usize] &= !piece_mask;
+            let board = self.move_pawn(current_position_mask, next_position_mask, false);
 
-            self.available_moves &= !new_move_mask;
+            self.available_moves &= !next_position_mask;
 
             return Some(board);
         }
 
         if self.available_captures > 0 {
             let new_move = self.available_captures.trailing_zeros();
-            let new_move_mask = 1 << new_move;
-            let inverse_move = !new_move_mask;
+            let next_position_mask = 1 << new_move;
+            let inverse_move = !next_position_mask;
 
-            let mut board = self.root_board.clone();
-            board.pieces[self.piece_index] |= new_move_mask;
-            board.pieces[self.piece_index] &= !piece_mask;
-            board.players[self.player as usize] |= new_move_mask;
-            board.players[self.player as usize] &= !piece_mask;
-            board.players[1 - (self.player as usize)] &= inverse_move;
+            let board = self.move_pawn(current_position_mask, next_position_mask, true);
 
             self.available_captures &= inverse_move;
 

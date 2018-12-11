@@ -1,5 +1,4 @@
-use super::{move_generator::MoveGenerator, Board, PieceType, Player, PIECE_COUNT};
-use crate::bitboard::{ROW_2, ROW_7};
+use super::{move_generator::MoveGenerator, Board, Player};
 
 use num;
 

@@ -70,8 +70,8 @@ impl Iterator for MoveGenerator {
                 }
             }
 
-            assert!(self.player_piecetype_mask > 0);
-            assert!(self.piece_index < PIECE_COUNT);
+            debug_assert!(self.player_piecetype_mask > 0, "Invariant: If the piecetype mask was 0 it should've moved on or finished the iteration");
+            debug_assert!(self.piece_index < PIECE_COUNT, "Invariant: piece_index must be less than PIECE_COUNT");
 
             // TODO: A lot of these can be cached
             let index = self.player_piecetype_mask.trailing_zeros();
