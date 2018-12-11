@@ -156,7 +156,7 @@ impl MoveGenerator {
 
         if !self.available_moves.is_empty() {
             // We can probably join these two
-            let new_move = self.available_moves.right_position();
+            let new_move = self.available_moves.first_bit_position();
             let next_position_mask = BitBoard::from(new_move);
 
             let board = self.move_pawn(current_position_mask, next_position_mask, false);
@@ -167,7 +167,7 @@ impl MoveGenerator {
         }
 
         if !self.available_captures.is_empty() {
-            let new_move = self.available_captures.right_position();
+            let new_move = self.available_captures.first_bit_position();
             let next_position_mask = BitBoard::from(new_move);
             let inverse_move = next_position_mask.inverse();
 

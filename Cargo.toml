@@ -8,8 +8,9 @@ edition = "2018"
 strict = []
 
 [dependencies]
-num-traits = "0.2"
-num-derive = "0.2"
-num = "0.2"
-failure = "0.1.2"
+num-traits = "^0.2"
+num-derive = "^0.2"
+num = "^0.2"
+failure = "^0.1.2"
 snapshot = { git = "https://github.com/jacobgardner/snapshot-rs.git", branch = "hjson" }
+uncover = "^0.1.1"

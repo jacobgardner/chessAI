@@ -79,7 +79,7 @@ impl Iterator for MoveGenerator {
             );
 
             // TODO: A lot of these can be cached
-            let rightmost_position = self.player_piecetype_mask.right_position();
+            let rightmost_position = self.player_piecetype_mask.first_bit_position();
             let piece_mask = BitBoard::from(rightmost_position);
             let piece_inverse = piece_mask.inverse();
 

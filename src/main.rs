@@ -6,11 +6,13 @@
 #![cfg_attr(feature = "strict", deny(warnings))]
 // #![feature(generators, generator_trait)]
 
-extern crate num;
-#[macro_use]
-extern crate num_derive;
-#[macro_use]
-extern crate failure;
+#[macro_use] extern crate uncover;
+#[macro_use] extern crate num_derive;
+#[macro_use] extern crate failure;
+
+define_uncover_macros!(
+    enable_if(cfg!(debug_assertions))
+);
 
 mod bitboard;
 mod bitposition;
@@ -51,7 +53,7 @@ fn main() -> Result<(), failure::Error> {
         "{}",
         BitBoard::from(0b0000_1111)
             .rotate_45cw()
-            .to_rotatedbitboard()
+            .to_bitboard()
     );
 
     Ok(())
