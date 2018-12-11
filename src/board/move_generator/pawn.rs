@@ -86,6 +86,9 @@ impl MoveGenerator {
             "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
         );
 
+        // TODO: Our snapshot tests caught this bug occuring but it wasn't able to pinpoint
+        //  where the bug was occuring.  We need more granular unit tests to catch stuff
+        //  like this.
         let mut moves = self.all_pieces.inverse().intersect(match self.player {
             Player::White => BitBoard::from(index.shift(0, 1)),
             Player::Black => BitBoard::from(index.shift(0, -1)),

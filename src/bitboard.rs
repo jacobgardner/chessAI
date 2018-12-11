@@ -146,6 +146,10 @@ impl BitBoard {
     pub fn flip_antidiagonal(self) -> Self {
         let mut board = self.board;
         let mut temp = board ^ (board << 36);
+        // TODO: During refactor this bug was not caught... because we didn't have a teset for it.
+        //  TL;DR Add tests for this and the other methods.
+
+        // board ^= board ^ ANTIDIAGONAL_K4.board & (temp ^ (board >> 36));
         board ^= ANTIDIAGONAL_K4.board & (temp ^ (board >> 36));
         temp = ANTIDIAGONAL_K2.board & (board ^ (board << 18));
         board ^= temp ^ (temp >> 18);
