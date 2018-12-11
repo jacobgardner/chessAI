@@ -34,7 +34,7 @@ impl BitPosition {
 impl From<u32> for BitPosition {
     fn from(right_index: u32) -> Self {
         BitPosition {
-            right_index: right_index,
+            right_index,
         }
     }
 }
@@ -42,13 +42,13 @@ impl From<u32> for BitPosition {
 impl From<(u8, u8)> for BitPosition {
     fn from((rank, file): (u8, u8)) -> Self {
         BitPosition {
-            right_index: (rank * 8 + file) as u32,
+            right_index: u32::from(rank * 8 + file),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 
 }

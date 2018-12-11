@@ -144,7 +144,7 @@ impl MoveGenerator {
         index: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
-        if self.is_first_move == true {
+        if self.is_first_move {
             self.available_moves = self.pawn_available_moves(index, current_position_mask);
             self.available_captures = self.pawn_captures(index);
 

@@ -283,7 +283,7 @@ fn test_piece_at() {
                 .join(BitPosition::from(5).into()),
             pieces[1].join(pieces[3]).join(pieces[5]),
         ],
-        pieces: pieces,
+        pieces,
     };
 
     assert_eq!(

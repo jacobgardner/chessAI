@@ -167,7 +167,7 @@ impl BitBoard {
         self.flip_vertical().flip_diagonal()
     }
 
-    pub fn rotate_45cw(mut self) -> Self {
+    pub fn rotate_45cw(self) -> Self {
         let mut board = self.board;
 
         board ^= ROTATE_45CW_K1.board & (board ^ board.rotate_right(8));
@@ -177,7 +177,7 @@ impl BitBoard {
         BitBoard::from(board)
     }
 
-    pub fn rotate_45ccw(mut self) -> Self {
+    pub fn rotate_45ccw(self) -> Self {
         let mut board = self.board;
         board ^= ROTATE_45CCW_K1.board & (board ^ board.rotate_right(8));
         board ^= ROTATE_45CCW_K2.board & (board ^ board.rotate_right(16));
@@ -187,7 +187,7 @@ impl BitBoard {
         BitBoard::from(board)
     }
 
-    pub fn to_bitboard(mut self) -> String {
+    pub fn to_bitboard(self) -> String {
         let mut bits = String::with_capacity(64 + 8);
 
         let mut board = self.board;
@@ -207,7 +207,7 @@ impl BitBoard {
         // 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1
 
         let ranges: Vec<(u64, u64)> = vec![(1, 0), (3, 1), (6, 3)];
-        let mut board = self.board;
+        let board = self.board;
 
         for range in ranges {
             bits += &to_bitstring(bitrange(range.0, range.1) & board, range.0 - range.1);
