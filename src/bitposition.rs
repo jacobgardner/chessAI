@@ -1,4 +1,6 @@
-#[derive(Copy, Clone, Debug)]
+use crate::rank_file::RankFile;
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct BitPosition {
     pub(crate) right_index: u32,
 }
@@ -33,8 +35,14 @@ impl BitPosition {
 
 impl From<u32> for BitPosition {
     fn from(right_index: u32) -> Self {
+        BitPosition { right_index }
+    }
+}
+
+impl From<RankFile> for BitPosition {
+    fn from(rank_file: RankFile) -> Self {
         BitPosition {
-            right_index,
+            right_index: rank_file as u32,
         }
     }
 }
@@ -49,6 +57,110 @@ impl From<(u8, u8)> for BitPosition {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
+    use super::*;
+    use std::panic::catch_unwind;
+
+    #[test]
+    fn test_shift() {
+        let position = BitPosition::from(RankFile::D4);
+        assert_eq!(position.shift(1, 1), BitPosition::from(RankFile::E5));
+        assert_eq!(position.shift(4, 0), BitPosition::from(RankFile::H4));
+        assert_eq!(position.shift(4, 1), BitPosition::from(RankFile::H5));
+        assert_eq!(position.shift(4, 4), BitPosition::from(RankFile::H8));
+        assert_eq!(position.shift(-3, 0), BitPosition::from(RankFile::A4));
+        assert_eq!(position.shift(-3, -3), BitPosition::from(RankFile::A1));
+        assert_eq!(position.shift(-3, 3), BitPosition::from(RankFile::A7));
+    }
+
+    #[test]
+    fn test_shift_bounds() {
+        let position = BitPosition::from(RankFile::A1);
+
+        assert!(catch_unwind(|| position.shift(-1, -1)).is_err());
+        assert!(catch_unwind(|| position.shift(-1, 0)).is_err());
+        assert!(catch_unwind(|| position.shift(0, -1)).is_err());
+        assert!(catch_unwind(|| position.shift(8, 0)).is_err());
+        assert!(catch_unwind(|| position.shift(8, 8)).is_err());
+        assert!(catch_unwind(|| position.shift(0, 8)).is_err());
+    }
+
+    #[test]
+    fn test_is_leftmost() {
+        let should_be_true = vec![
+            RankFile::A1,
+            RankFile::A2,
+            RankFile::A3,
+            RankFile::A4,
+            RankFile::A5,
+            RankFile::A6,
+            RankFile::A7,
+            RankFile::A8,
+        ];
+
+        let should_be_false = vec![
+            RankFile::H1,
+            RankFile::H2,
+            RankFile::H3,
+            RankFile::H4,
+            RankFile::H5,
+            RankFile::H6,
+            RankFile::H7,
+            RankFile::H8,
+            RankFile::B1,
+            RankFile::G8,
+            RankFile::D3,
+            RankFile::F7,
+
+        ];
+
+        for rf in should_be_true {
+            assert!(BitPosition::from(rf).is_leftmost());
+        }
+
+        for rf in should_be_false {
+            assert!(!BitPosition::from(rf).is_leftmost());
+        }
+
+    }
+
+    #[test]
+    fn test_is_rightmost() {
+        let should_be_true = vec![
+            RankFile::H1,
+            RankFile::H2,
+            RankFile::H3,
+            RankFile::H4,
+            RankFile::H5,
+            RankFile::H6,
+            RankFile::H7,
+            RankFile::H8,
+        ];
+
+        let should_be_false = vec![
+            RankFile::A1,
+            RankFile::A2,
+            RankFile::A3,
+            RankFile::A4,
+            RankFile::A5,
+            RankFile::A6,
+            RankFile::A7,
+            RankFile::A8,
+            RankFile::B1,
+            RankFile::G8,
+            RankFile::D3,
+            RankFile::F7,
+
+        ];
+
+        for rf in should_be_true {
+            assert!(BitPosition::from(rf).is_rightmost());
+        }
+
+        for rf in should_be_false {
+            assert!(!BitPosition::from(rf).is_rightmost());
+        }
+
+
+    }
 
 }

@@ -1,5 +1,6 @@
 // TODO: Disable allow dead code at some point.
-#![cfg_attr(feature = "strict", allow(dead_code))]
+#![allow(dead_code)]
+// #![cfg_attr(feature = "strict", allow(dead_code))]
 // TODO: Enable at some point
 // #![cfg_attr(feature = "strict", deny(missing_docs))]
 #![cfg_attr(feature = "strict", deny(warnings))]
@@ -14,6 +15,7 @@ extern crate failure;
 mod bitboard;
 mod bitposition;
 mod board;
+mod rank_file;
 
 use crate::bitboard::BitBoard;
 use crate::board::Board;
