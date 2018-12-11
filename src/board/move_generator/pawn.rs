@@ -49,9 +49,13 @@ impl MoveGenerator {
         board
     }
 
+    // TODO: index and current_position_mask represent the same thing.  Do we need both?
     #[inline(always)]
     fn pawn_available_moves(&self, index: u32, current_position_mask: u64) -> u64 {
-        debug_assert!(current_position_mask & (ROW_1 | ROW_8) == 0);
+        debug_assert!(
+            current_position_mask & (ROW_1 | ROW_8) == 0,
+            "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
+        );
 
         let mut moves = !self.all_pieces
             & match self.player {
@@ -82,6 +86,20 @@ impl MoveGenerator {
         moves
     }
 
+    #[inline(always)]
+    fn pawn_captures(&self, index: u32) -> u64 {
+        self.enemy_mask & match self.player {
+            Player::White => {
+                (if index % 8 != 0 { 1 << (index + 9) } else { 0 })
+                    | (if index % 8 != 7 { 1 << (index + 7) } else { 0 })
+            }
+            Player::Black => {
+                (if index % 8 != 0 { 1 << (index - 9) } else { 0 })
+                    | (if index % 8 != 7 { 1 << (index - 7) } else { 0 })
+            }
+        }
+    }
+
     pub(crate) fn generate_next_pawn_move(
         &mut self,
         index: u32,
@@ -89,17 +107,7 @@ impl MoveGenerator {
     ) -> Option<Board> {
         if self.is_first_move == true {
             self.available_moves = self.pawn_available_moves(index, current_position_mask);
-
-            self.available_captures = match self.player {
-                Player::White => {
-                    (if index % 8 != 0 { 1 << (index + 9) } else { 0 })
-                        | (if index % 8 != 7 { 1 << (index + 7) } else { 0 })
-                }
-                Player::Black => {
-                    (if index % 8 != 0 { 1 << (index - 9) } else { 0 })
-                        | (if index % 8 != 7 { 1 << (index - 7) } else { 0 })
-                }
-            } & self.enemy_mask;
+            self.available_captures = self.pawn_captures(index);
 
             self.is_first_move = false;
         }
