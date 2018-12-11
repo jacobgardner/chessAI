@@ -2,10 +2,15 @@ use crate::rank_file::RankFile;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct BitPosition {
+    // This is called right_index because it's the distance from the
+    //  right side of the bits.  
+    // 1 << 10 would have a right index of 10...
+    // TODO: Figure out a better way to word that
+    // TODO: Figure out a better name
     pub(crate) right_index: u32,
 }
 
-// Q: Should this be an option instead or should this be 
+// TODO: Should this be an option instead or should this be 
 //  like a vec that just panics if bounds are violated?
 impl BitPosition {
     pub fn shift(self, x: i32, y: i32) -> Self {
