@@ -79,25 +79,6 @@ impl MoveGenerator {
                 }
         }
 
-        // let moves = !self.all_pieces & match self.player {
-        //     // TODO: This code is clear as mud.  We can probably make this look a lot better
-
-        //     Player::White => {
-        //         (if current_position_mask & ROW_2 > 0 {
-        //             1 << (index + 16)
-        //         } else {
-        //             0
-        //         }) | (1 << (index + 8))
-        //     }
-        //     Player::Black => {
-        //         (if current_position_mask & ROW_7 > 0 {
-        //             1 << (index - 16)
-        //         } else {
-        //             0
-        //         }) | (1 << (index - 8))
-        //     }
-        // };
-
         moves
     }
 
