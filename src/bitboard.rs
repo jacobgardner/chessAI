@@ -56,23 +56,6 @@ pub struct BitBoard {
     board: u64,
 }
 
-// pub trait BitBoard {
-//     fn flip_vertical(self) -> Self;
-//     fn flip_horizontal(self) -> Self;
-//     fn flip_diagonal(self) -> Self;
-//     fn flip_antidiagonal(self) -> Self;
-
-//     fn rotate_180(self) -> Self;
-//     fn rotate_90cw(self) -> Self;
-//     fn rotate_90ccw(self) -> Self;
-
-//     fn rotate_45cw(self) -> Self;
-//     fn rotate_45ccw(self) -> Self;
-
-//     fn to_bitboard(self) -> String;
-//     fn to_rotatedbitboard(self) -> String;
-// }
-
 impl From<u64> for BitBoard {
     #[inline(always)]
     fn from(bits: u64) -> Self {
