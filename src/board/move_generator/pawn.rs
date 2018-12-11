@@ -31,34 +31,42 @@ impl MoveGenerator {
             );
 
             debug_assert!(
-                !board.players[1 - (self.player as usize)].intersect(next_position_mask).is_empty(), 
+                !board.players[1 - (self.player as usize)].intersect(next_position_mask).is_empty(),
                 "Pawn Move Invariant Invalidated: Capture move made on space not-occupied by opponent"
             );
 
             // Because this is a capture we need to remove the previous piece
             for i in 0..PIECE_COUNT {
-                board.pieces[i] = board.pieces[i].intersect( next_position_mask.inverse());
+                board.pieces[i] = board.pieces[i].intersect(next_position_mask.inverse());
             }
 
             // And the previous player
-            board.players[1 - (self.player as usize)] = board.players[1 - (self.player as usize)].intersect(next_position_mask.inverse());
+            board.players[1 - (self.player as usize)] =
+                board.players[1 - (self.player as usize)].intersect(next_position_mask.inverse());
         } else {
             debug_assert!(
-                board.players[self.player as usize].intersect(next_position_mask).is_empty(),
+                board.players[self.player as usize]
+                    .intersect(next_position_mask)
+                    .is_empty(),
                 "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by self"
             );
             debug_assert!(
-                board.players[1 - (self.player as usize)].intersect(next_position_mask).is_empty(), 
+                board.players[1 - (self.player as usize)].intersect(next_position_mask).is_empty(),
                 "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by opponent"
             );
         }
 
-        board.players[self.player as usize] = board.players[self.player as usize].join(next_position_mask);
+        board.players[self.player as usize] =
+            board.players[self.player as usize].join(next_position_mask);
 
-        if !next_position_mask.intersect(ROW_1).is_empty() || !next_position_mask.intersect(ROW_8).is_empty() {
-            board.pieces[PieceType::Queen as usize] = board.pieces[PieceType::Queen as usize].join( next_position_mask);
+        if !next_position_mask.intersect(ROW_1).is_empty()
+            || !next_position_mask.intersect(ROW_8).is_empty()
+        {
+            board.pieces[PieceType::Queen as usize] =
+                board.pieces[PieceType::Queen as usize].join(next_position_mask);
         } else {
-            board.pieces[PieceType::Pawn as usize] = board.pieces[PieceType::Pawn as usize].join( next_position_mask);
+            board.pieces[PieceType::Pawn as usize] =
+                board.pieces[PieceType::Pawn as usize].join(next_position_mask);
         }
 
         board
@@ -78,33 +86,28 @@ impl MoveGenerator {
             "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
         );
 
-        let mut moves = self.all_pieces.intersect(match self.player {
+        let mut moves = self.all_pieces.inverse().intersect(match self.player {
             Player::White => BitBoard::from(index.shift(0, 1)),
             Player::Black => BitBoard::from(index.shift(0, -1)),
         });
 
         if !moves.is_empty() {
-
-            moves = moves.join(
-
-             self.all_pieces.inverse().intersect(
-                 match self.player {
-                    Player::White => {
-                        if !current_position_mask.intersect(ROW_2).is_empty() {
-                            BitBoard::from(index.shift(0, 2))
-                        } else {
-                            BitBoard::empty()
-                        }
+            moves = moves.join(self.all_pieces.inverse().intersect(match self.player {
+                Player::White => {
+                    if !current_position_mask.intersect(ROW_2).is_empty() {
+                        BitBoard::from(index.shift(0, 2))
+                    } else {
+                        BitBoard::empty()
                     }
-                    Player::Black => {
-                        if !current_position_mask.intersect( ROW_7 ).is_empty() {
-                            BitBoard::from(index.shift(0, -2))
-                        } else {
-                            BitBoard::empty()
-                        }
+                }
+                Player::Black => {
+                    if !current_position_mask.intersect(ROW_7).is_empty() {
+                        BitBoard::from(index.shift(0, -2))
+                    } else {
+                        BitBoard::empty()
                     }
-                })
-            )
+                }
+            }))
         }
 
         moves
@@ -112,37 +115,28 @@ impl MoveGenerator {
 
     #[inline(always)]
     fn pawn_captures(&self, index: BitPosition) -> BitBoard {
-        self.enemy_mask.intersect(
-             match self.player {
-                Player::White => {
-                    if !index.is_leftmost() {
-                        BitBoard::from(index.shift(-1, 1))
-                    } else {
-                        BitBoard::empty()
-                    }.join(
-                        if !index.is_rightmost() {
-                            BitBoard::from(index.shift(1, 1))
-                        } else {
-                            BitBoard::empty()
-                        }
-                    )
-
-                    
-                }
-                Player::Black => {
-                    if !index.is_leftmost() {
-                        BitBoard::from(index.shift(-1, -1))
-                    } else {
-                        BitBoard::empty()
-                    }.join(
-                        if !index.is_rightmost() {
-                            BitBoard::from(index.shift(1, -1))
-                        } else {
-                            BitBoard::empty()
-                        }
-                    )
-                }
-            })
+        self.enemy_mask.intersect(match self.player {
+            Player::White => if !index.is_leftmost() {
+                BitBoard::from(index.shift(-1, 1))
+            } else {
+                BitBoard::empty()
+            }
+            .join(if !index.is_rightmost() {
+                BitBoard::from(index.shift(1, 1))
+            } else {
+                BitBoard::empty()
+            }),
+            Player::Black => if !index.is_leftmost() {
+                BitBoard::from(index.shift(-1, -1))
+            } else {
+                BitBoard::empty()
+            }
+            .join(if !index.is_rightmost() {
+                BitBoard::from(index.shift(1, -1))
+            } else {
+                BitBoard::empty()
+            }),
+        })
     }
 
     pub(crate) fn generate_next_pawn_move(

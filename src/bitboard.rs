@@ -146,7 +146,7 @@ impl BitBoard {
     pub fn flip_antidiagonal(self) -> Self {
         let mut board = self.board;
         let mut temp = board ^ (board << 36);
-        board ^= board ^ ANTIDIAGONAL_K4.board & (temp ^ (board >> 36));
+        board ^= ANTIDIAGONAL_K4.board & (temp ^ (board >> 36));
         temp = ANTIDIAGONAL_K2.board & (board ^ (board << 18));
         board ^= temp ^ (temp >> 18);
         temp = ANTIDIAGONAL_K1.board & (board ^ (board << 9));

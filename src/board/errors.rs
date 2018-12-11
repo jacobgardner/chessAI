@@ -1,16 +1,21 @@
-use std::fmt::{self, Formatter, Display};
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, PartialEq)]
 pub enum InvalidStringReason {
     IncorrectLength,
-    NonAsciiChars
+    NonAsciiChars,
 }
 
 impl Display for InvalidStringReason {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         match self {
-            InvalidStringReason::IncorrectLength => write!(formatter, "Expected string to have exactly 64 non-space characters"),
-            InvalidStringReason::NonAsciiChars => write!(formatter, "Detected 1 or more non-ascii characters")
+            InvalidStringReason::IncorrectLength => write!(
+                formatter,
+                "Expected string to have exactly 64 non-space characters"
+            ),
+            InvalidStringReason::NonAsciiChars => {
+                write!(formatter, "Detected 1 or more non-ascii characters")
+            }
         }
     }
 }
@@ -26,11 +31,7 @@ pub enum BoardError {
     #[fail(display = "Bit found on player mask, but no board masks")]
     MalformedBoard,
 
-    #[fail(
-        display = "Rank/File exceeded board limits: {} {}",
-        rank,
-        file
-    )]
+    #[fail(display = "Rank/File exceeded board limits: {} {}", rank, file)]
     OutOfBounds { rank: u8, file: u8 },
 
     #[fail(display = "Malformed string for board: {}", _0)]

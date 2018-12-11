@@ -14,7 +14,6 @@ impl From<char> for Player {
     }
 }
 
-
 #[test]
 fn test_player_from_str() {
     assert_eq!(Player::from('Q'), Player::White);

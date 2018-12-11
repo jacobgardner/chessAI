@@ -41,19 +41,11 @@ pub struct Board {
     pub players: [BitBoard; PLAYER_COUNT],
 }
 
-// struct PositionMask(u64);
-
-// impl From<(u8, u8)> for PositionMask {
-//     fn from((rank, file): (u8, u8)) -> PositionMask {
-//         PositionMask(1u64 << BitPosition::from((rank, file)).0)
-//     }
-// }
-
 impl Board {
     pub fn empty_board() -> Board {
         Board {
-            pieces: [BitBoard::from(0); PIECE_COUNT],
-            players: [BitBoard::from(0); PLAYER_COUNT],
+            pieces: [BitBoard::empty(); PIECE_COUNT],
+            players: [BitBoard::empty(); PLAYER_COUNT],
         }
     }
 
