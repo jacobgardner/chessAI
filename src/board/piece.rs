@@ -29,6 +29,7 @@ fn test_to_piece_owner() {
             player: Player::White
         })
     );
+
     assert_eq!(
         Piece::from('p'),
         Some(Piece {
