@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Jacob Gardner <jacob.v.gardner@gmail.com>"]
 edition = "2018"
 
+[features]
+strict = []
+
 [dependencies]
 num-traits = "0.2"
 num-derive = "0.2"

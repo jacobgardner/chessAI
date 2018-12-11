@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::bitposition::BitPosition;
 use std::num::Wrapping;
 

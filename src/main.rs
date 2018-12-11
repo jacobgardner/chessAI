@@ -1,3 +1,8 @@
+// TODO: Disable allow dead code at some point.
+#![cfg_attr(feature = "strict", allow(dead_code))]
+// TODO: Enable at some point
+// #![cfg_attr(feature = "strict", deny(missing_docs))]
+#![cfg_attr(feature = "strict", deny(warnings))]
 // #![feature(generators, generator_trait)]
 
 extern crate num;
