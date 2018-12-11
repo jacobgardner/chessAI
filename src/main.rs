@@ -7,19 +7,26 @@ extern crate num_derive;
 extern crate failure;
 
 mod bitboard;
+mod bitposition;
 mod board;
 
 use crate::bitboard::BitBoard;
 use crate::board::Board;
 
-
 fn main() -> Result<(), failure::Error> {
-    let pieces: [u64; 6] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
+    let pieces: [BitBoard; 6] = [
+        BitBoard::from(1),
+        BitBoard::from(1 << 8),
+        BitBoard::from(1 << 12),
+        BitBoard::from(1 << 16),
+        BitBoard::from(1 << 25),
+        BitBoard::from(1 << 63),
+    ];
 
     let board = Board {
         players: [
-            pieces[0] | pieces[2] | pieces[4],
-            pieces[1] | pieces[3] | pieces[5],
+            pieces[0].join(pieces[2]).join(pieces[4]),
+            pieces[1].join(pieces[3]).join(pieces[5]),
         ],
         pieces,
     };
@@ -33,7 +40,12 @@ fn main() -> Result<(), failure::Error> {
     // println!("{}", bitboard::WHITE_SQUARES.to_bitboard());
     // println!("{}", bitboard::ROW_1.to_bitboard());
 
-    println!("{}", 0b0000_1111.rotate_45cw().to_rotatedbitboard());
+    println!(
+        "{}",
+        BitBoard::from(0b0000_1111)
+            .rotate_45cw()
+            .to_rotatedbitboard()
+    );
 
     Ok(())
 }

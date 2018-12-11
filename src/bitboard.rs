@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::bitposition::BitPosition;
 use std::num::Wrapping;
 
 pub const ROW_8: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
@@ -11,10 +12,12 @@ pub const ROW_3: BitBoard = BitBoard::new(0x0000_0000_00ff_0000);
 pub const ROW_2: BitBoard = BitBoard::new(0x0000_0000_0000_ff00);
 pub const ROW_1: BitBoard = BitBoard::new(0x0000_0000_0000_00ff);
 
-pub const WHITE_SQUARES: BitBoard =
-    BitBoard::new(0b0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010);
-pub const BLACK_SQUARES: BitBoard =
-    BitBoard::new(0b1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101);
+pub const WHITE_SQUARES: BitBoard = BitBoard::new(
+    0b0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010,
+);
+pub const BLACK_SQUARES: BitBoard = BitBoard::new(
+    0b1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101,
+);
 
 const HORIZONTAL_K1: BitBoard = BitBoard::new(0x5555_5555_5555_5555);
 const HORIZONTAL_K2: BitBoard = BitBoard::new(0x3333_3333_3333_3333);
@@ -48,7 +51,7 @@ pub enum RankFile {
     A8, B8, C8, D8, E8, F8, G8, H8,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub struct BitBoard {
     board: u64,
 }
@@ -70,19 +73,57 @@ pub struct BitBoard {
 //     fn to_rotatedbitboard(self) -> String;
 // }
 
+impl From<u64> for BitBoard {
+    #[inline(always)]
+    fn from(bits: u64) -> Self {
+        BitBoard { board: bits }
+    }
+}
+
+impl From<BitPosition> for BitBoard {
+    fn from(position: BitPosition) -> Self {
+        BitBoard {
+            board: 1 << position.right_index,
+        }
+    }
+}
+
 impl BitBoard {
     #[inline(always)]
-    pub fn new(board: u64) -> Self {
+    pub const fn new(board: u64) -> Self {
         BitBoard { board }
+    }
+
+    #[inline(always)]
+    pub fn empty() -> Self {
+        BitBoard { board: 0 }
+    }
+
+    #[inline(always)]
+    pub fn join(self, rhs: BitBoard) -> Self {
+        BitBoard::from(self.board | rhs.board)
+    }
+
+    #[inline(always)]
+    pub fn intersect(self, rhs: BitBoard) -> Self {
+        BitBoard::from(self.board & rhs.board)
+    }
+
+    pub fn inverse(self) -> Self {
+        BitBoard::from(!self.board)
+    }
+
+    pub fn is_empty(self) -> bool {
+        self.board == 0
     }
 
     // TODO: We probably want to inline all of these
 
-    fn flip_vertical(self) -> Self {
-        BitBoard::new(self.board.swap_bytes())
+    pub fn flip_vertical(self) -> Self {
+        BitBoard::from(self.board.swap_bytes())
     }
 
-    fn flip_horizontal(self) -> Self {
+    pub fn flip_horizontal(self) -> Self {
         let mut board = self.board;
         board = (Wrapping((board >> 1) & HORIZONTAL_K1.board)
             + Wrapping(2) * Wrapping(board & HORIZONTAL_K1.board))
@@ -94,7 +135,7 @@ impl BitBoard {
             + Wrapping(16) * Wrapping(board & HORIZONTAL_K4.board))
         .0;
 
-        BitBoard::new(board)
+        BitBoard::from(board)
 
         // self ^= k4 & (self ^ self.rotate_left(8));
         // self ^= k2 & (self ^ self.rotate_left(4));
@@ -103,7 +144,11 @@ impl BitBoard {
         // self.rotate_right(7)
     }
 
-    fn flip_diagonal(self) -> Self {
+    pub fn right_position(self) -> BitPosition {
+        BitPosition::from(self.board.trailing_zeros())
+    }
+
+    pub fn flip_diagonal(self) -> Self {
         let mut board = self.board;
         let mut temp = DIAGONAL_K4.board & (board ^ (board << 28));
         board ^= temp ^ (temp >> 28);
@@ -112,10 +157,10 @@ impl BitBoard {
         temp = DIAGONAL_K1.board & (board ^ (board << 7));
         board ^= temp ^ (temp >> 7);
 
-        BitBoard::new(board)
+        BitBoard::from(board)
     }
 
-    fn flip_antidiagonal(self) -> Self {
+    pub fn flip_antidiagonal(self) -> Self {
         let mut board = self.board;
         let mut temp = board ^ (board << 36);
         board ^= board ^ ANTIDIAGONAL_K4.board & (temp ^ (board >> 36));
@@ -124,42 +169,42 @@ impl BitBoard {
         temp = ANTIDIAGONAL_K1.board & (board ^ (board << 9));
         board ^= temp ^ (temp >> 9);
 
-        BitBoard::new(board)
+        BitBoard::from(board)
     }
 
-    fn rotate_180(self) -> Self {
+    pub fn rotate_180(self) -> Self {
         self.flip_vertical().flip_horizontal()
     }
 
-    fn rotate_90cw(self) -> Self {
+    pub fn rotate_90cw(self) -> Self {
         self.flip_diagonal().flip_vertical()
     }
 
-    fn rotate_90ccw(self) -> Self {
+    pub fn rotate_90ccw(self) -> Self {
         self.flip_vertical().flip_diagonal()
     }
 
-    fn rotate_45cw(mut self) -> Self {
+    pub fn rotate_45cw(mut self) -> Self {
         let mut board = self.board;
 
         board ^= ROTATE_45CW_K1.board & (board ^ board.rotate_right(8));
         board ^= ROTATE_45CW_K2.board & (board ^ board.rotate_right(16));
         board ^= ROTATE_45CW_K4.board & (board ^ board.rotate_right(32));
 
-        BitBoard::new(board)
+        BitBoard::from(board)
     }
 
-    fn rotate_45ccw(mut self) -> Self {
+    pub fn rotate_45ccw(mut self) -> Self {
         let mut board = self.board;
         board ^= ROTATE_45CCW_K1.board & (board ^ board.rotate_right(8));
         board ^= ROTATE_45CCW_K2.board & (board ^ board.rotate_right(16));
         board ^= ROTATE_45CCW_K4.board & (board ^ board.rotate_right(32));
 
         // self
-        BitBoard::new(board)
+        BitBoard::from(board)
     }
 
-    fn to_bitboard(mut self) -> String {
+    pub fn to_bitboard(mut self) -> String {
         let mut bits = String::with_capacity(64 + 8);
 
         let mut board = self.board;
@@ -173,7 +218,7 @@ impl BitBoard {
         bits
     }
 
-    fn to_rotatedbitboard(self) -> String {
+    pub fn to_rotatedbitboard(self) -> String {
         let mut bits = String::new();
 
         // 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1

@@ -1,21 +1,24 @@
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
+use crate::bitposition::BitPosition;
+use crate::BitBoard;
+
 use num;
 
 // TODO: Some of these may make more sense in a module up a directory
 mod errors;
-mod player;
-mod piece_type;
-mod piece;
-mod move_pieces;
 mod move_generator;
+mod move_pieces;
+mod piece;
+mod piece_type;
+mod player;
 
 // TODO: Maybe not do
 use self::errors::*;
-use self::player::*;
-use self::piece_type::*;
 use self::piece::*;
+use self::piece_type::*;
+use self::player::*;
 
 // TODO: Write/find macros that attaches .count() method to enum
 pub const PIECE_COUNT: usize = 6;
@@ -34,31 +37,23 @@ RNBKQBNR
 
 #[derive(PartialEq, Clone)]
 pub struct Board {
-    pub pieces: [u64; PIECE_COUNT],
-    pub players: [u64; PLAYER_COUNT],
+    pub pieces: [BitBoard; PIECE_COUNT],
+    pub players: [BitBoard; PLAYER_COUNT],
 }
 
-struct BitPosition(u8);
-impl From<(u8, u8)> for BitPosition {
-    fn from((rank, file): (u8, u8)) -> BitPosition {
-        BitPosition(rank * 8 + file)
-    }
-}
+// struct PositionMask(u64);
 
-struct PositionMask(u64);
-
-impl From<(u8, u8)> for PositionMask {
-    fn from((rank, file): (u8, u8)) -> PositionMask {
-        PositionMask(1u64 << BitPosition::from((rank, file)).0)
-    }
-}
+// impl From<(u8, u8)> for PositionMask {
+//     fn from((rank, file): (u8, u8)) -> PositionMask {
+//         PositionMask(1u64 << BitPosition::from((rank, file)).0)
+//     }
+// }
 
 impl Board {
-
     pub fn empty_board() -> Board {
         Board {
-            pieces: [0; PIECE_COUNT],
-            players: [0; PLAYER_COUNT]
+            pieces: [BitBoard::from(0); PIECE_COUNT],
+            players: [BitBoard::from(0); PLAYER_COUNT],
         }
     }
 
@@ -67,13 +62,13 @@ impl Board {
             return Err(BoardError::OutOfBounds { rank, file });
         }
 
-        let mask = PositionMask::from((rank, file)).0;
+        let mask = BitBoard::from(BitPosition::from((rank, file)));
 
         if let Some((player_id, _)) = self
             .players
             .iter()
             .enumerate()
-            .find(|&(_, player_board)| mask & player_board > 0)
+            .find(|&(_, player_board)| !mask.intersect(*player_board).is_empty())
         {
             let player =
                 num::FromPrimitive::from_usize(player_id).ok_or(BoardError::InvalidPlayer {
@@ -84,7 +79,7 @@ impl Board {
                 .pieces
                 .iter()
                 .enumerate()
-                .find(|&(_, board)| mask & board > 0)
+                .find(|&(_, board)| !mask.intersect(*board).is_empty())
                 .ok_or(BoardError::MalformedBoard)?;
 
             debug_assert!(i < PIECE_COUNT);
@@ -97,7 +92,7 @@ impl Board {
         } else {
             debug_assert!({
                 (0..PIECE_COUNT)
-                    .find(|&i| mask & self.pieces[i] > 0)
+                    .find(|&i| !mask.intersect(self.pieces[i]).is_empty())
                     .is_none()
             });
 
@@ -106,29 +101,36 @@ impl Board {
     }
 
     pub fn from(board: &str) -> Result<Board, BoardError> {
-        let mut pieces = [0; PIECE_COUNT];
-        let mut players = [0; PLAYER_COUNT];
+        let mut pieces = [BitBoard::empty(); PIECE_COUNT];
+        let mut players = [BitBoard::empty(); PLAYER_COUNT];
 
         let board: String = board.split(char::is_whitespace).collect();
 
         if board.len() != 64 {
-            return Err(BoardError::InvalidString(InvalidStringReason::IncorrectLength));
+            return Err(BoardError::InvalidString(
+                InvalidStringReason::IncorrectLength,
+            ));
         }
 
         // TODO: Make sure this correctly throws an error on non-ascii
         for (i, chr) in board.chars().enumerate() {
             if !chr.is_ascii() {
-                return Err(BoardError::InvalidString(InvalidStringReason::NonAsciiChars));
+                return Err(BoardError::InvalidString(
+                    InvalidStringReason::NonAsciiChars,
+                ));
             }
 
             let rank: u8 = (7 - (i / 8)) as u8;
             let file: u8 = (i % 8) as u8;
 
-            let piece_mask = PositionMask::from((rank, file)).0;
+            let piece_mask = BitBoard::from(BitPosition::from((rank, file)));
 
             if let Some(piece) = Piece::from(chr) {
-                players[piece.player as usize] |= piece_mask;
-                pieces[piece.piece_type as usize] |= piece_mask;
+                let piece_type = piece.piece_type as usize;
+                let player = piece.player as usize;
+
+                players[player] = players[player].join(piece_mask);
+                pieces[piece_type] = pieces[piece_type].join(piece_mask);
             }
         }
 
@@ -205,10 +207,16 @@ fn test_board_from_str() {
     xxxxxxxx
     xxxxxxxx
     ",
-    ).unwrap();
+    )
+    .unwrap();
 
-    assert_eq!(Board::from(""), Err(BoardError::InvalidString(InvalidStringReason::IncorrectLength)));
-    assert_eq!(board.players[0] | board.players[1], 0);
+    assert_eq!(
+        Board::from(""),
+        Err(BoardError::InvalidString(
+            InvalidStringReason::IncorrectLength
+        ))
+    );
+    assert_eq!(board.players[0].join(board.players[1]), BitBoard::empty());
 
     let board = Board::from(
         "
@@ -221,17 +229,19 @@ fn test_board_from_str() {
     .Q...P..
     ..P.....
     ",
-    ).unwrap();
+    )
+    .unwrap();
 
-    let rook_mask = PositionMask::from((7, 7)).0;
-    let king_mask = PositionMask::from((3, 2)).0;
+    let rook_mask = BitBoard::from(BitPosition::from((7, 7)));
+    let king_mask = BitBoard::from(BitPosition::from((3, 2)));
 
-    let queen_mask = PositionMask::from((1, 1)).0;
-    let pawn_mask =
-        PositionMask::from((0, 2)).0 | PositionMask::from((1, 5)).0 | PositionMask::from((6, 3)).0;
+    let queen_mask = BitBoard::from(BitPosition::from((1, 1)));
+    let pawn_mask = BitBoard::from(BitPosition::from((0, 2)))
+        .join(BitPosition::from((1, 5)).into())
+        .join(BitPosition::from((6, 3)).into());
 
-    let black_mask = rook_mask | king_mask;
-    let white_mask = queen_mask | pawn_mask;
+    let black_mask = rook_mask.join(king_mask);
+    let white_mask = queen_mask.join(pawn_mask);
 
     assert_eq!(board.players[Player::Black as usize], black_mask);
     assert_eq!(board.players[Player::White as usize], white_mask);
@@ -254,17 +264,32 @@ fn test_board_from_str() {
     ",
     );
 
-    assert_eq!(board, Err(BoardError::InvalidString(InvalidStringReason::NonAsciiChars)));
+    assert_eq!(
+        board,
+        Err(BoardError::InvalidString(
+            InvalidStringReason::NonAsciiChars
+        ))
+    );
 }
 
 #[test]
 fn test_piece_at() {
-    let pieces: [u64; PIECE_COUNT] = [1, 1 << 8, 1 << 12, 1 << 16, 1 << 25, 1 << 63];
+    let pieces: [BitBoard; PIECE_COUNT] = [
+        BitBoard::from(1),
+        BitBoard::from(1 << 8),
+        BitBoard::from(1 << 12),
+        BitBoard::from(1 << 16),
+        BitBoard::from(1 << 25),
+        BitBoard::from(1 << 63),
+    ];
 
     let board = Board {
         players: [
-            pieces[0] | pieces[2] | pieces[4] | 1 << 5,
-            pieces[1] | pieces[3] | pieces[5],
+            pieces[0]
+                .join(pieces[2])
+                .join(pieces[4])
+                .join(BitPosition::from(5).into()),
+            pieces[1].join(pieces[3]).join(pieces[5]),
         ],
         pieces: pieces,
     };
@@ -320,4 +345,3 @@ fn test_piece_at() {
     assert_eq!(board.piece_at(4, 4).unwrap(), None);
     assert_eq!(board.piece_at(0, 5), Err(BoardError::MalformedBoard));
 }
-
