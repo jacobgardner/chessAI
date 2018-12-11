@@ -13,6 +13,7 @@ pub struct BitPosition {
 // TODO: Should this be an option instead or should this be 
 //  like a vec that just panics if bounds are violated?
 impl BitPosition {
+    #[inline(always)]
     pub fn shift(self, x: i32, y: i32) -> Self {
         covered_by!("BitPosition::shift");
         covered_by!("BitPosition::shift_errors");

@@ -72,11 +72,24 @@ impl MoveGenerator {
         board
     }
 
+    fn available_single_moves(&self, pawn_position: BitPosition) -> BitBoard {
+        self.all_pieces.inverse().intersect(match self.player {
+            Player::White => {
+                covered_by!("Pawn::available_single_moves -> White");
+                BitBoard::from(pawn_position.shift(0, 1))
+            }
+            Player::Black => {
+                covered_by!("Pawn::available_single_moves -> Black");
+                BitBoard::from(pawn_position.shift(0, -1))
+            }
+        })
+    }
+
     // TODO: index and current_position_mask represent the same thing.  Do we need both?
     #[inline(always)]
-    fn pawn_available_moves(
+    fn available_moves(
         &self,
-        index: BitPosition,
+        current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> BitBoard {
         debug_assert!(
@@ -89,23 +102,20 @@ impl MoveGenerator {
         // TODO: Our snapshot tests caught this bug occuring but it wasn't able to pinpoint
         //  where the bug was occuring.  We need more granular unit tests to catch stuff
         //  like this.
-        let mut moves = self.all_pieces.inverse().intersect(match self.player {
-            Player::White => BitBoard::from(index.shift(0, 1)),
-            Player::Black => BitBoard::from(index.shift(0, -1)),
-        });
+        let mut moves = self.available_single_moves(current_position);
 
         if !moves.is_empty() {
             moves = moves.join(self.all_pieces.inverse().intersect(match self.player {
                 Player::White => {
                     if !current_position_mask.intersect(ROW_2).is_empty() {
-                        BitBoard::from(index.shift(0, 2))
+                        BitBoard::from(current_position.shift(0, 2))
                     } else {
                         BitBoard::empty()
                     }
                 }
                 Player::Black => {
                     if !current_position_mask.intersect(ROW_7).is_empty() {
-                        BitBoard::from(index.shift(0, -2))
+                        BitBoard::from(current_position.shift(0, -2))
                     } else {
                         BitBoard::empty()
                     }
@@ -148,7 +158,7 @@ impl MoveGenerator {
         current_position_mask: BitBoard,
     ) -> Option<Board> {
         if self.is_first_move {
-            self.available_moves = self.pawn_available_moves(index, current_position_mask);
+            self.available_moves = self.available_moves(index, current_position_mask);
             self.available_captures = self.pawn_captures(index);
 
             self.is_first_move = false;
@@ -185,6 +195,7 @@ impl MoveGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rank_file::RankFile;
     use snapshot::snapshot;
 
     const WHITE_PAWN_TEST: &'static str = "
@@ -198,6 +209,30 @@ mod tests {
     xxxxxxxx
     ";
 
+    #[test]
+    fn test_single_moves_white() {
+        covers!("Pawn::available_single_moves -> White");
+
+        let board = Board::from(WHITE_PAWN_TEST).unwrap();
+
+        let generator = MoveGenerator::new(board, Player::White);
+
+        assert_eq!(
+            generator.available_single_moves(RankFile::B2.into()),
+            BitBoard::from(RankFile::B3)
+        );
+
+        assert_eq!(
+            generator.available_single_moves(RankFile::C3.into()),
+            BitBoard::from(RankFile::C4)
+        );
+
+        assert_eq!(
+            generator.available_single_moves(RankFile::H2.into()),
+            BitBoard::empty()
+        );
+    }
+
     const BLACK_PAWN_TEST: &'static str = "
     xxxxxxxx
     pxxxxxpx
@@ -207,7 +242,31 @@ mod tests {
     xxxxpxxx
     xxxxpNxx
     xxxNxxxx
-";
+    ";
+
+    #[test]
+    fn test_single_moves_black() {
+        covers!("Pawn::available_single_moves -> Black");
+
+        let board = Board::from(BLACK_PAWN_TEST).unwrap();
+
+        let generator = MoveGenerator::new(board, Player::Black);
+
+        assert_eq!(
+            generator.available_single_moves(RankFile::E2.into()),
+            BitBoard::from(RankFile::E1)
+        );
+
+        assert_eq!(
+            generator.available_single_moves(RankFile::G7.into()),
+            BitBoard::from(RankFile::G6)
+        );
+
+        assert_eq!(
+            generator.available_single_moves(RankFile::E3.into()),
+            BitBoard::empty()
+        );
+    }
 
     #[snapshot]
     fn test_generate_white_pawn_moves() -> Vec<String> {
