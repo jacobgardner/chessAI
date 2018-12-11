@@ -1,5 +1,8 @@
 use std::fmt::{self, Display, Formatter};
 
+
+// TODO: Do we need to use failure?
+
 #[derive(Debug, PartialEq)]
 pub enum InvalidStringReason {
     IncorrectLength,

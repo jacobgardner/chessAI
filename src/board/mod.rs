@@ -9,10 +9,11 @@ use num;
 // TODO: Some of these may make more sense in a module up a directory
 mod errors;
 mod move_generator;
-mod move_pieces;
 mod piece;
 mod piece_type;
 mod player;
+
+use self::move_generator::MoveGenerator;
 
 // TODO: Maybe not do
 use self::errors::*;
@@ -127,6 +128,12 @@ impl Board {
         }
 
         Ok(Board { pieces, players })
+    }
+
+    pub fn generate_moves(&self, player: Player) -> MoveGenerator {
+        let root_board = self.clone();
+
+        MoveGenerator::new(root_board, player)
     }
 }
 

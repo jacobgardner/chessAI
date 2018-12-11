@@ -5,8 +5,12 @@ pub struct BitPosition {
     pub(crate) right_index: u32,
 }
 
+// Q: Should this be an option instead or should this be 
+//  like a vec that just panics if bounds are violated?
 impl BitPosition {
     pub fn shift(self, x: i32, y: i32) -> Self {
+        covered_by!("BitPosition::shift");
+        covered_by!("BitPosition::shift_errors");
         debug_assert!(
             x + (self.right_index as i32 % 8) >= 0 && x + (self.right_index as i32 % 8) < 8,
             "Attempted to shift a bit left/right outside of the board"
@@ -25,10 +29,12 @@ impl BitPosition {
     }
 
     pub fn is_leftmost(self) -> bool {
+        covered_by!("BitPosition::is_leftmost");
         self.right_index % 8 == 0
     }
 
     pub fn is_rightmost(self) -> bool {
+        covered_by!("BitPosition::is_rightmost");
         self.right_index % 8 == 7
     }
 }
@@ -62,6 +68,7 @@ mod tests {
 
     #[test]
     fn test_shift() {
+        covers!("BitPosition::shift");
         let position = BitPosition::from(RankFile::D4);
         assert_eq!(position.shift(1, 1), BitPosition::from(RankFile::E5));
         assert_eq!(position.shift(4, 0), BitPosition::from(RankFile::H4));
@@ -74,6 +81,7 @@ mod tests {
 
     #[test]
     fn test_shift_bounds() {
+        covers!("BitPosition::shift_errors");
         let position = BitPosition::from(RankFile::A1);
 
         assert!(catch_unwind(|| position.shift(-1, -1)).is_err());
@@ -86,6 +94,7 @@ mod tests {
 
     #[test]
     fn test_is_leftmost() {
+        covers!("BitPosition::is_leftmost");
         let should_be_true = vec![
             RankFile::A1,
             RankFile::A2,
@@ -125,6 +134,7 @@ mod tests {
 
     #[test]
     fn test_is_rightmost() {
+        covers!("BitPosition::is_rightmost");
         let should_be_true = vec![
             RankFile::H1,
             RankFile::H2,
