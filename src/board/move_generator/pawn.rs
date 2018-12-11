@@ -2,8 +2,16 @@ use super::MoveGenerator;
 use crate::bitboard::{ROW_1, ROW_2, ROW_7, ROW_8};
 use crate::board::{Board, PieceType, Player, PIECE_COUNT};
 
+// TODO: En Passant (https://en.wikipedia.org/wiki/En_passant)
+
 impl MoveGenerator {
-    fn move_pawn(&mut self, current_position_mask: u64, next_position_mask: u64, capture: bool) -> Board {
+    // TODO: We may be able to make this mostly work for other pieces as well
+    fn move_pawn(
+        &mut self,
+        current_position_mask: u64,
+        next_position_mask: u64,
+        capture: bool,
+    ) -> Board {
         let mut board = self.root_board.clone();
 
         // Remove current position from pawn and current player bitboards
@@ -11,7 +19,10 @@ impl MoveGenerator {
         board.players[self.player as usize] &= !current_position_mask;
 
         if capture {
-            debug_assert!(board.players[self.player as usize] & next_position_mask == 0, "Pawn Move Invariant Invalidated: Capture move made on space occupied by self");
+            debug_assert!(
+                board.players[self.player as usize] & next_position_mask == 0,
+                "Pawn Move Invariant Invalidated: Capture move made on space occupied by self"
+            );
             debug_assert!(board.players[1 - (self.player as usize)] & next_position_mask != 0, "Pawn Move Invariant Invalidated: Capture move made on space not-occupied by opponent");
             // Because this is a capture we need to remove the previous piece
             for i in 0..PIECE_COUNT {
@@ -21,7 +32,10 @@ impl MoveGenerator {
             // And the previous player
             board.players[1 - (self.player as usize)] &= !next_position_mask;
         } else {
-            debug_assert!(board.players[self.player as usize] & next_position_mask == 0, "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by self");
+            debug_assert!(
+                board.players[self.player as usize] & next_position_mask == 0,
+                "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by self"
+            );
             debug_assert!(board.players[1 - (self.player as usize)] & next_position_mask == 0, "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by opponent");
         }
 
@@ -35,32 +49,65 @@ impl MoveGenerator {
         board
     }
 
-    pub(crate) fn generate_next_pawn_move(&mut self, index: u32, current_position_mask: u64) -> Option<Board> {
+    #[inline(always)]
+    fn pawn_available_moves(&self, index: u32, current_position_mask: u64) -> u64 {
+        debug_assert!(current_position_mask & (ROW_1 | ROW_8) == 0);
+
+        let mut moves = !self.all_pieces
+            & match self.player {
+                Player::White => 1 << (index + 8),
+                Player::Black => 1 << (index - 8),
+            };
+
+        if moves > 0 {
+            moves |= !self.all_pieces
+                & match self.player {
+                    Player::White => {
+                        if current_position_mask & ROW_2 > 0 {
+                            1 << (index + 16)
+                        } else {
+                            0
+                        }
+                    }
+                    Player::Black => {
+                        if current_position_mask & ROW_7 > 0 {
+                            1 << (index - 16)
+                        } else {
+                            0
+                        }
+                    }
+                }
+        }
+
+        // let moves = !self.all_pieces & match self.player {
+        //     // TODO: This code is clear as mud.  We can probably make this look a lot better
+
+        //     Player::White => {
+        //         (if current_position_mask & ROW_2 > 0 {
+        //             1 << (index + 16)
+        //         } else {
+        //             0
+        //         }) | (1 << (index + 8))
+        //     }
+        //     Player::Black => {
+        //         (if current_position_mask & ROW_7 > 0 {
+        //             1 << (index - 16)
+        //         } else {
+        //             0
+        //         }) | (1 << (index - 8))
+        //     }
+        // };
+
+        moves
+    }
+
+    pub(crate) fn generate_next_pawn_move(
+        &mut self,
+        index: u32,
+        current_position_mask: u64,
+    ) -> Option<Board> {
         if self.is_first_move == true {
-            self.available_moves = match self.player {
-                // TODO: This code is clear as mud.  We can probably make this look a lot better
-
-
-                // I'm not too worred about this overflowing (vertical moves only)
-                //  because if it gets to the end it turns into a queen
-                Player::White => {
-                    debug_assert!(current_position_mask & ROW_1 == 0);
-
-                    (if current_position_mask & ROW_2 > 0 {
-                        1 << (index + 16)
-                    } else {
-                        0
-                    }) | (1 << (index + 8))
-                }
-                Player::Black => {
-                    debug_assert!(current_position_mask & ROW_8 == 0);
-                    (if current_position_mask & ROW_7 > 0 {
-                        1 << (index - 16)
-                    } else {
-                        0
-                    }) | (1 << (index - 8))
-                }
-            } & !self.all_pieces;
+            self.available_moves = self.pawn_available_moves(index, current_position_mask);
 
             self.available_captures = match self.player {
                 Player::White => {
@@ -114,7 +161,7 @@ mod tests {
     xxxxPxxx
     xxxxxxxx
     xnxnxxxx
-    nxPxxxxx
+    nxPxxxxn
     xPxxxPxP
     xxxxxxxx
     ";
@@ -122,7 +169,7 @@ mod tests {
     const BLACK_PAWN_TEST: &'static str = "
     xxxxxxxx
     pxxxxxpx
-    xxxxxnxN
+    NxxxxnxN
     xxpxxxxx
     xxxxxxxx
     xxxxpxxx
