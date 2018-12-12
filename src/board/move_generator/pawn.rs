@@ -16,6 +16,8 @@ impl MoveGenerator {
     ) -> Board {
         let mut board = self.root_board.clone();
 
+        // TODO: This method could be cleaned up a lottle
+
         // Remove current position from pawn and current player bitboards
         board.pieces[PieceType::Pawn as usize] =
             board.pieces[PieceType::Pawn as usize].intersect(current_position_mask.inverse());
@@ -105,10 +107,10 @@ impl MoveGenerator {
             BitBoard::from(current_position.shift(0, direction))
         } else {
             BitBoard::empty()
-        }.intersect(self.all_pieces.inverse())
+        }
+        .intersect(self.all_pieces.inverse())
     }
 
-    // TODO: index and current_position_mask represent the same thing.  Do we need both?
     #[inline(always)]
     fn available_moves(
         &self,
@@ -122,9 +124,6 @@ impl MoveGenerator {
             "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
         );
 
-        // TODO: Our snapshot tests caught this bug occuring but it wasn't able to pinpoint
-        //  where the bug was occuring.  We need more granular unit tests to catch stuff
-        //  like this.
         let mut moves = self.check_for_single_move(current_position);
 
         // If we couldn't single-move, we definitely can't double move
@@ -137,39 +136,21 @@ impl MoveGenerator {
 
     #[inline(always)]
     fn diagonals(&self, current_position: BitPosition) -> BitBoard {
-        match self.player {
-            Player::White => {
-                let left_diagonal = if !current_position.is_leftmost() {
-                    BitBoard::from(current_position.shift(-1, 1))
-                } else {
-                    BitBoard::empty()
-                };
+        let direction = self.pawn_direction();
 
-                let right_diagonal = if !current_position.is_rightmost() {
-                    BitBoard::from(current_position.shift(1, 1))
-                } else {
-                    BitBoard::empty()
-                };
+        let left_diagonal = if !current_position.is_leftmost() {
+            BitBoard::from(current_position.shift(-1, direction))
+        } else {
+            BitBoard::empty()
+        };
 
-                left_diagonal.join(right_diagonal)
-            }
+        let right_diagonal = if !current_position.is_rightmost() {
+            BitBoard::from(current_position.shift(1, direction))
+        } else {
+            BitBoard::empty()
+        };
 
-            Player::Black => {
-                let left_diagonal = if !current_position.is_leftmost() {
-                    BitBoard::from(current_position.shift(-1, -1))
-                } else {
-                    BitBoard::empty()
-                };
-
-                let right_diagonal = if !current_position.is_rightmost() {
-                    BitBoard::from(current_position.shift(1, -1))
-                } else {
-                    BitBoard::empty()
-                };
-
-                left_diagonal.join(right_diagonal)
-            }
-        }
+        left_diagonal.join(right_diagonal)
     }
 
     #[inline(always)]
@@ -196,6 +177,9 @@ impl MoveGenerator {
 
             let board = self.move_pawn(current_position_mask, next_position_mask, false);
 
+            // TODO: Add BitBoard method that does this
+            //  Something like bitboard.zero_at(new_move)
+            //  Or just bitboard.sub(next_position_mask)
             self.available_moves = self.available_moves.intersect(next_position_mask.inverse());
 
             return Some(board);
@@ -216,6 +200,8 @@ impl MoveGenerator {
         None
     }
 }
+
+// TODO: Add Capture Tests
 
 #[cfg(test)]
 mod tests {
