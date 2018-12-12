@@ -4,8 +4,6 @@ use crate::bitboard::{ENDS, FILE_1, FILE_2, FILE_7, FILE_8};
 use crate::bitposition::BitPosition;
 use crate::board::{Board, PieceType, Player, PIECE_COUNT};
 
-// TODO: En Passant (https://en.wikipedia.org/wiki/En_passant)
-
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
         &mut self,
