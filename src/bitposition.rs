@@ -34,6 +34,8 @@ impl BitPosition {
         }
     }
 
+    // LOW: Check if modulus on position is faster than
+    //  using RANK_A bitboard constant
     pub fn is_leftmost(self) -> bool {
         covered_by!("BitPosition::is_leftmost");
         self.right_index % 8 == 0

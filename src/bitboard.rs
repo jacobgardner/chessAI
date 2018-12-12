@@ -2,15 +2,28 @@ use crate::bitposition::BitPosition;
 use crate::rank_file::RankFile;
 
 use std::num::Wrapping;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 
-pub const ROW_8: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
-pub const ROW_7: BitBoard = BitBoard::new(0x00ff_0000_0000_0000);
-pub const ROW_6: BitBoard = BitBoard::new(0x0000_ff00_0000_0000);
-pub const ROW_5: BitBoard = BitBoard::new(0x0000_00ff_0000_0000);
-pub const ROW_4: BitBoard = BitBoard::new(0x0000_0000_ff00_0000);
-pub const ROW_3: BitBoard = BitBoard::new(0x0000_0000_00ff_0000);
-pub const ROW_2: BitBoard = BitBoard::new(0x0000_0000_0000_ff00);
-pub const ROW_1: BitBoard = BitBoard::new(0x0000_0000_0000_00ff);
+pub const FILE_8: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
+pub const FILE_7: BitBoard = BitBoard::new(0x00ff_0000_0000_0000);
+pub const FILE_6: BitBoard = BitBoard::new(0x0000_ff00_0000_0000);
+pub const FILE_5: BitBoard = BitBoard::new(0x0000_00ff_0000_0000);
+pub const FILE_4: BitBoard = BitBoard::new(0x0000_0000_ff00_0000);
+pub const FILE_3: BitBoard = BitBoard::new(0x0000_0000_00ff_0000);
+pub const FILE_2: BitBoard = BitBoard::new(0x0000_0000_0000_ff00);
+pub const FILE_1: BitBoard = BitBoard::new(0x0000_0000_0000_00ff);
+
+pub const RANK_A: BitBoard = BitBoard::new(0x0101_0101_0101_0101);
+pub const RANK_B: BitBoard = BitBoard::new(0x0202_0202_0202_0202);
+pub const RANK_C: BitBoard = BitBoard::new(0x0404_0404_0404_0404);
+pub const RANK_D: BitBoard = BitBoard::new(0x0808_0808_0808_0808);
+pub const RANK_E: BitBoard = BitBoard::new(0x1010_1010_1010_1010);
+pub const RANK_F: BitBoard = BitBoard::new(0x2020_2020_2020_2020);
+pub const RANK_G: BitBoard = BitBoard::new(0x4040_4040_4040_4040);
+pub const RANK_H: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
+
+pub const ENDS: BitBoard = BitBoard::new(FILE_1.board | FILE_8.board);
+pub const SIDES: BitBoard = BitBoard::new(RANK_A.board | RANK_H.board);
 
 pub const WHITE_SQUARES: BitBoard = BitBoard::new(
     0b0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010,
@@ -78,10 +91,17 @@ impl Rotated45BitBoard {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub struct BitBoard {
     board: u64,
 }
+
+impl std::fmt::Debug for BitBoard {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        writeln!(f, "\n{}", self.to_bitboard())
+    }
+}
+
 
 impl From<u64> for BitBoard {
     #[inline(always)]
@@ -103,6 +123,34 @@ impl From<RankFile> for BitBoard {
     #[inline(always)]
     fn from(rank_file: RankFile) -> Self {
         BitBoard::from(BitPosition::from(rank_file))
+    }
+}
+
+impl Sub for BitBoard {
+    type Output = BitBoard;
+
+    fn sub(self, rhs: BitBoard) -> Self::Output {
+        self.sub(rhs)
+    }
+}
+
+impl SubAssign for BitBoard {
+    fn sub_assign(&mut self, rhs: BitBoard) {
+        *self = self.sub(rhs);
+    }
+}
+
+impl Add for BitBoard {
+    type Output = BitBoard;
+
+    fn add(self, rhs: BitBoard) -> Self::Output {
+        self.join(rhs)
+    }
+}
+
+impl AddAssign for BitBoard {
+    fn add_assign(&mut self, rhs: BitBoard) {
+        *self = self.join(rhs);
     }
 }
 
@@ -142,9 +190,14 @@ impl BitBoard {
         self.board == 0
     }
 
+    // TODO: Rename.  This sucks
     #[inline(always)]
     pub fn first_bit_position(self) -> BitPosition {
         BitPosition::from(self.board.trailing_zeros())
+    }
+
+    pub fn sub(self, rhs: BitBoard) -> BitBoard {
+        self.intersect(rhs.inverse())
     }
 
     pub fn flip_vertical(self) -> Self {
@@ -258,10 +311,10 @@ fn bitrange(start: u64, end: u64) -> u64 {
 }
 
 fn to_bitstring(bits: u64, padding: u64) -> String {
-    // format!("{:0padding$b}\n", (bits & ROW_8) >> (64 - 8), padding = padding).chars().rev().collect::<String>()
+    // format!("{:0padding$b}\n", (bits & FILE_8) >> (64 - 8), padding = padding).chars().rev().collect::<String>()
     format!(
         "{:0padding$b}",
-        (bits & ROW_8.board) >> (64 - 8),
+        (bits & FILE_8.board) >> (64 - 8),
         padding = padding as usize
     )
     .chars()
@@ -272,6 +325,38 @@ fn to_bitstring(bits: u64, padding: u64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const A: u64 = 0b001011001;
+    const B: u64 = 0b100110111;
+
+    const A_MIN_B: u64 = 0b001001000;
+    const A_JOIN_B: u64 = 0b101111111;
+
+    #[test]
+    fn test_sub() {
+        assert_eq!(BitBoard::new(A) - BitBoard::new(B), BitBoard::new(A_MIN_B));
+    }
+
+    #[test]
+    fn test_subassign() {
+        let mut c_a = BitBoard::new(A);
+        c_a -= BitBoard::new(B);
+
+        assert_eq!(c_a, BitBoard::new(A_MIN_B));
+    }
+
+    #[test]
+    fn test_add() {
+        assert_eq!(BitBoard::new(A) + BitBoard::new(B), BitBoard::new(A_JOIN_B));
+    }
+
+    #[test]
+    fn test_addassign() {
+        let mut c_a = BitBoard::new(A);
+        c_a += BitBoard::new(B);
+
+        assert_eq!(c_a, BitBoard::new(A_JOIN_B));
+    }
 
     #[test]
     fn test_empty() {
@@ -330,8 +415,8 @@ mod tests {
     #[test]
     fn test_flip_vertical() {
         covers!("BitBoard::flip_vertical");
-        assert_eq!(ROW_1.flip_vertical(), ROW_8);
-        assert_eq!(ROW_8.flip_vertical(), ROW_1);
+        assert_eq!(FILE_1.flip_vertical(), FILE_8);
+        assert_eq!(FILE_8.flip_vertical(), FILE_1);
 
         assert_eq!(WHITE_SQUARES.flip_vertical(), BLACK_SQUARES);
         assert_eq!(BLACK_SQUARES.flip_vertical(), WHITE_SQUARES);

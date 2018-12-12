@@ -47,7 +47,7 @@ fn main() -> Result<(), failure::Error> {
     // println!("{:064b}", 0xf0f8af8fu64);
     // println!("{}", bitboard::BLACK_SQUARES.to_bitboard());
     // println!("{}", bitboard::WHITE_SQUARES.to_bitboard());
-    // println!("{}", bitboard::ROW_1.to_bitboard());
+    // println!("{}", bitboard::FILE_1.to_bitboard());
 
     println!(
         "{}",
