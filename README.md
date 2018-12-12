@@ -4,6 +4,16 @@ Chess AI
 A new attempt at a Chess AI in Rust.  This attempt will try to achieve the following goals:
 
 - [ ] Using proper bitboards for move generation
+    - [ ] Pawn
+        - [x] Single Move
+        - [x] Double Move
+        - [x] Normal Captures
+        - [ ] En Passant
+    - [ ] Rook
+    - [ ] Knight
+    - [ ] Bishop
+    - [ ] Queen
+    - [ ] King
 - [ ] Using some sort of Arena for the tree
 - [ ] Minimax w/ alpha-beta pruning
 - [ ] Iterative depth first search
