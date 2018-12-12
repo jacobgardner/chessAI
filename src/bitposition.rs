@@ -3,7 +3,7 @@ use crate::rank_file::RankFile;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct BitPosition {
     // This is called right_index because it's the distance from the
-    //  right side of the bits.  
+    //  right side of the bits.
     // 1 << 10 would have a right index of 10...
     // TODO: Figure out a better way to word that
     // TODO: Figure out a better name
@@ -126,7 +126,6 @@ mod tests {
             RankFile::G8,
             RankFile::D3,
             RankFile::F7,
-
         ];
 
         for rf in should_be_true {
@@ -136,7 +135,6 @@ mod tests {
         for rf in should_be_false {
             assert!(!BitPosition::from(rf).is_leftmost());
         }
-
     }
 
     #[test]
@@ -166,7 +164,6 @@ mod tests {
             RankFile::G8,
             RankFile::D3,
             RankFile::F7,
-
         ];
 
         for rf in should_be_true {
@@ -176,8 +173,6 @@ mod tests {
         for rf in should_be_false {
             assert!(!BitPosition::from(rf).is_rightmost());
         }
-
-
     }
 
 }

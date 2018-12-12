@@ -102,7 +102,6 @@ impl std::fmt::Debug for BitBoard {
     }
 }
 
-
 impl From<u64> for BitBoard {
     #[inline(always)]
     fn from(bits: u64) -> Self {

@@ -2,7 +2,11 @@ use super::MoveGenerator;
 use crate::bitboard::BitBoard;
 use crate::bitboard::{ENDS, FILE_1, FILE_2, FILE_7, FILE_8};
 use crate::bitposition::BitPosition;
-use crate::board::{Board, PieceType, Player, PIECE_COUNT};
+use crate::board::board::Board;
+use crate::board::chess_move::Move;
+use crate::board::piece_type::PieceType;
+use crate::board::player::Player;
+use crate::board::PIECE_COUNT;
 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
@@ -22,7 +26,13 @@ impl MoveGenerator {
             let new_move = self.available_moves.first_bit_position();
             let next_position_mask = BitBoard::from(new_move);
 
-            let board = self.move_pawn(current_position_mask, next_position_mask, false);
+            let board = self.move_pawn(
+                index,
+                current_position_mask,
+                new_move,
+                next_position_mask,
+                false,
+            );
 
             self.available_moves -= next_position_mask;
 
@@ -33,7 +43,13 @@ impl MoveGenerator {
             let new_move = self.available_captures.first_bit_position();
             let next_position_mask = BitBoard::from(new_move);
 
-            let board = self.move_pawn(current_position_mask, next_position_mask, true);
+            let board = self.move_pawn(
+                index,
+                current_position_mask,
+                new_move,
+                next_position_mask,
+                true,
+            );
 
             self.available_captures -= next_position_mask;
 
@@ -43,10 +59,15 @@ impl MoveGenerator {
         None
     }
 
+    // TODO: WE HAVE TO MAKE SURE WE'RE CLEARING THE CORRECT PIECE W/ EN PASSANT
+    // TODO: capture = true is really just an optimization.  We could use the capture code
+    //  for non-capture moves as well and then optimize lather when stable
     // NOTE: We may be able to make this mostly work for other pieces as well
     fn move_pawn(
         &mut self,
+        current_position: BitPosition,
         current_position_mask: BitBoard,
+        next_position: BitPosition,
         next_position_mask: BitBoard,
         capture: bool,
     ) -> Board {
@@ -60,6 +81,7 @@ impl MoveGenerator {
         board.players[player_index] -= current_position_mask;
 
         if capture {
+            // This invariant is specifically not true in the case of en-passant
             debug_assert!(
                 !board.players[1 - player_index].intersect(next_position_mask).is_empty(),
                 "Pawn Move Invariant Invalidated: Capture move made on space not-occupied by opponent"
@@ -90,6 +112,14 @@ impl MoveGenerator {
         };
 
         board.pieces[next_piece as usize] += next_position_mask;
+
+        board.prev_move = Some(Move {
+            piece_type: PieceType::Pawn,
+            from: current_position.into(),
+            to: next_position.into(),
+        });
+
+        debug_assert!(self.root_board.prev_move != board.prev_move);
 
         board
     }
@@ -196,7 +226,33 @@ impl MoveGenerator {
     fn pawn_captures(&self, current_position: BitPosition) -> BitBoard {
         covered_by!("Pawn::captures -> White");
         covered_by!("Pawn::captures -> Black");
-        self.enemy_mask.intersect(self.diagonals(current_position))
+
+        // debug_assert!(
+        //     !(self.root_board.prev_move.is_none() && !self.enemy_mask.is_empty()),
+        //     "Somehow we can capture on the first move?"
+        // );
+
+        let en_passant_mask = BitBoard::empty();
+        // let en_passant_mask = match self.root_board.prev_move.as_ref() {
+        //     Some(prev_move) => {
+        //         if prev_move.piece_type == PieceType::Pawn {
+        //             if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
+        //                 BitPosition::from((prev_move.from.rank(), 2)).into()
+        //             } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
+        //                 BitPosition::from((prev_move.from.rank(), 5)).into()
+        //             } else {
+        //                 BitBoard::empty()
+        //             }
+        //         } else {
+        //             BitBoard::empty()
+        //         }
+        //     }
+        //     None => BitBoard::empty(),
+        // };
+
+        self.enemy_mask
+            .join(en_passant_mask)
+            .intersect(self.diagonals(current_position))
     }
 }
 
@@ -209,24 +265,36 @@ mod tests {
     const WHITE_PAWN_TEST: &'static str = "
     xxxrxxxx
     xxPxxxxx
-    xxxxPxxx
     xxxxxxxx
+    xxxxPpxx
     xnxnxxxx
     nxPxxxxn
     xPxxxPxP
     xxxxxxxx
     ";
 
+    const WHITE_EN_PASSANT: Move = Move {
+        piece_type: PieceType::Pawn,
+        from: RankFile::F7,
+        to: RankFile::F5,
+    };
+
     const BLACK_PAWN_TEST: &'static str = "
     xxxxxxxx
     pxxxxxpx
     NxxxxNxN
     Nxpxxxxx
+    xxxPpxxx
     xxxxxxxx
-    xxxxpxxx
     xxxxpNxx
     xxxNxxxx
     ";
+
+    const BLACK_EN_PASSANT: Move = Move {
+        piece_type: PieceType::Pawn,
+        from: RankFile::D4,
+        to: RankFile::D2,
+    };
 
     #[test]
     fn test_single_moves_white() {
@@ -358,7 +426,10 @@ mod tests {
         let board = Board::from(WHITE_PAWN_TEST).unwrap();
         let generator = MoveGenerator::new(board, Player::White);
 
-        assert_eq!(generator.pawn_captures(RankFile::F2.into()), BitBoard::empty());
+        assert_eq!(
+            generator.pawn_captures(RankFile::F2.into()),
+            BitBoard::empty()
+        );
 
         let expected = BitBoard::from(RankFile::A3);
         assert_eq!(generator.pawn_captures(RankFile::B2.into()), expected);
@@ -373,7 +444,10 @@ mod tests {
         let board = Board::from(BLACK_PAWN_TEST).unwrap();
         let generator = MoveGenerator::new(board, Player::Black);
 
-        assert_eq!(generator.pawn_captures(RankFile::A7.into()), BitBoard::empty());
+        assert_eq!(
+            generator.pawn_captures(RankFile::A7.into()),
+            BitBoard::empty()
+        );
 
         let expected = BitBoard::from(RankFile::D1);
         assert_eq!(generator.pawn_captures(RankFile::E2.into()), expected);
@@ -382,12 +456,12 @@ mod tests {
         assert_eq!(generator.pawn_captures(RankFile::G7.into()), expected);
     }
 
-
     #[snapshot]
     fn test_generate_white_pawn_moves() -> Vec<String> {
         let mut boards = vec![];
 
-        let board = Board::from(WHITE_PAWN_TEST).unwrap();
+        let mut board = Board::from(WHITE_PAWN_TEST).unwrap();
+        board.prev_move = Some(WHITE_EN_PASSANT);
         boards.push(format!("{}", board).to_owned());
 
         let mut generator = board.generate_moves(Player::White);
@@ -407,7 +481,8 @@ mod tests {
     fn test_generate_black_pawn_moves() -> Vec<String> {
         let mut boards = vec![];
 
-        let board = Board::from(BLACK_PAWN_TEST).unwrap();
+        let mut board = Board::from(BLACK_PAWN_TEST).unwrap();
+        board.prev_move = Some(BLACK_EN_PASSANT);
         boards.push(format!("{}", board).to_owned());
 
         let mut generator = board.generate_moves(Player::Black);

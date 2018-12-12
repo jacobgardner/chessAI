@@ -1,7 +1,9 @@
 mod pawn;
 
-use super::Board;
-use super::{PieceType, Player, PIECE_COUNT};
+use super::board::Board;
+use super::piece_type::PieceType;
+use super::player::Player;
+use super::PIECE_COUNT;
 use crate::BitBoard;
 
 pub struct MoveGenerator {
