@@ -72,17 +72,40 @@ impl MoveGenerator {
         board
     }
 
-    fn available_single_moves(&self, pawn_position: BitPosition) -> BitBoard {
-        self.all_pieces.inverse().intersect(match self.player {
-            Player::White => {
-                covered_by!("Pawn::available_single_moves -> White");
-                BitBoard::from(pawn_position.shift(0, 1))
-            }
-            Player::Black => {
-                covered_by!("Pawn::available_single_moves -> Black");
-                BitBoard::from(pawn_position.shift(0, -1))
-            }
-        })
+    #[inline(always)]
+    fn pawn_direction(&self) -> i32 {
+        match self.player {
+            Player::White => 1,
+            Player::Black => -1,
+        }
+    }
+
+    fn check_for_single_move(&self, pawn_position: BitPosition) -> BitBoard {
+        covered_by!("Pawn::available_single_moves -> White");
+        covered_by!("Pawn::available_single_moves -> Black");
+        self.all_pieces.inverse().intersect(BitBoard::from(
+            pawn_position.shift(0, self.pawn_direction()),
+        ))
+    }
+
+    fn check_for_double_move(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> BitBoard {
+        covered_by!("Pawn::available_double_moves -> White");
+        covered_by!("Pawn::available_double_moves -> Black");
+
+        let (direction, row) = match self.player {
+            Player::White => (2, ROW_2),
+            Player::Black => (-2, ROW_7),
+        };
+
+        if !current_position_mask.intersect(row).is_empty() {
+            BitBoard::from(current_position.shift(0, direction))
+        } else {
+            BitBoard::empty()
+        }.intersect(self.all_pieces.inverse())
     }
 
     // TODO: index and current_position_mask represent the same thing.  Do we need both?
@@ -102,54 +125,56 @@ impl MoveGenerator {
         // TODO: Our snapshot tests caught this bug occuring but it wasn't able to pinpoint
         //  where the bug was occuring.  We need more granular unit tests to catch stuff
         //  like this.
-        let mut moves = self.available_single_moves(current_position);
+        let mut moves = self.check_for_single_move(current_position);
 
+        // If we couldn't single-move, we definitely can't double move
         if !moves.is_empty() {
-            moves = moves.join(self.all_pieces.inverse().intersect(match self.player {
-                Player::White => {
-                    if !current_position_mask.intersect(ROW_2).is_empty() {
-                        BitBoard::from(current_position.shift(0, 2))
-                    } else {
-                        BitBoard::empty()
-                    }
-                }
-                Player::Black => {
-                    if !current_position_mask.intersect(ROW_7).is_empty() {
-                        BitBoard::from(current_position.shift(0, -2))
-                    } else {
-                        BitBoard::empty()
-                    }
-                }
-            }))
+            moves = moves.join(self.check_for_double_move(current_position, current_position_mask));
         }
 
         moves
     }
 
     #[inline(always)]
-    fn pawn_captures(&self, index: BitPosition) -> BitBoard {
-        self.enemy_mask.intersect(match self.player {
-            Player::White => if !index.is_leftmost() {
-                BitBoard::from(index.shift(-1, 1))
-            } else {
-                BitBoard::empty()
+    fn diagonals(&self, current_position: BitPosition) -> BitBoard {
+        match self.player {
+            Player::White => {
+                let left_diagonal = if !current_position.is_leftmost() {
+                    BitBoard::from(current_position.shift(-1, 1))
+                } else {
+                    BitBoard::empty()
+                };
+
+                let right_diagonal = if !current_position.is_rightmost() {
+                    BitBoard::from(current_position.shift(1, 1))
+                } else {
+                    BitBoard::empty()
+                };
+
+                left_diagonal.join(right_diagonal)
             }
-            .join(if !index.is_rightmost() {
-                BitBoard::from(index.shift(1, 1))
-            } else {
-                BitBoard::empty()
-            }),
-            Player::Black => if !index.is_leftmost() {
-                BitBoard::from(index.shift(-1, -1))
-            } else {
-                BitBoard::empty()
+
+            Player::Black => {
+                let left_diagonal = if !current_position.is_leftmost() {
+                    BitBoard::from(current_position.shift(-1, -1))
+                } else {
+                    BitBoard::empty()
+                };
+
+                let right_diagonal = if !current_position.is_rightmost() {
+                    BitBoard::from(current_position.shift(1, -1))
+                } else {
+                    BitBoard::empty()
+                };
+
+                left_diagonal.join(right_diagonal)
             }
-            .join(if !index.is_rightmost() {
-                BitBoard::from(index.shift(1, -1))
-            } else {
-                BitBoard::empty()
-            }),
-        })
+        }
+    }
+
+    #[inline(always)]
+    fn pawn_captures(&self, current_position: BitPosition) -> BitBoard {
+        self.enemy_mask.intersect(self.diagonals(current_position))
     }
 
     pub(crate) fn generate_next_pawn_move(
@@ -218,17 +243,41 @@ mod tests {
         let generator = MoveGenerator::new(board, Player::White);
 
         assert_eq!(
-            generator.available_single_moves(RankFile::B2.into()),
+            generator.check_for_single_move(RankFile::B2.into()),
             BitBoard::from(RankFile::B3)
         );
 
         assert_eq!(
-            generator.available_single_moves(RankFile::C3.into()),
+            generator.check_for_single_move(RankFile::C3.into()),
             BitBoard::from(RankFile::C4)
         );
 
         assert_eq!(
-            generator.available_single_moves(RankFile::H2.into()),
+            generator.check_for_single_move(RankFile::H2.into()),
+            BitBoard::empty()
+        );
+    }
+
+    #[test]
+    fn test_double_moves_white() {
+        covers!("Pawn::available_double_moves -> White");
+
+        let board = Board::from(WHITE_PAWN_TEST).unwrap();
+
+        let generator = MoveGenerator::new(board, Player::White);
+
+        assert_eq!(
+            generator.check_for_double_move(RankFile::F2.into(), RankFile::F2.into()),
+            BitBoard::from(RankFile::F4)
+        );
+
+        assert_eq!(
+            generator.check_for_double_move(RankFile::C3.into(), RankFile::C3.into()),
+            BitBoard::empty()
+        );
+
+        assert_eq!(
+            generator.check_for_double_move(RankFile::B2.into(), RankFile::B2.into()),
             BitBoard::empty()
         );
     }
@@ -237,7 +286,7 @@ mod tests {
     xxxxxxxx
     pxxxxxpx
     NxxxxnxN
-    xxpxxxxx
+    Nxpxxxxx
     xxxxxxxx
     xxxxpxxx
     xxxxpNxx
@@ -253,17 +302,41 @@ mod tests {
         let generator = MoveGenerator::new(board, Player::Black);
 
         assert_eq!(
-            generator.available_single_moves(RankFile::E2.into()),
+            generator.check_for_single_move(RankFile::E2.into()),
             BitBoard::from(RankFile::E1)
         );
 
         assert_eq!(
-            generator.available_single_moves(RankFile::G7.into()),
+            generator.check_for_single_move(RankFile::G7.into()),
             BitBoard::from(RankFile::G6)
         );
 
         assert_eq!(
-            generator.available_single_moves(RankFile::E3.into()),
+            generator.check_for_single_move(RankFile::E3.into()),
+            BitBoard::empty()
+        );
+    }
+
+    #[test]
+    fn test_double_moves_black() {
+        covers!("Pawn::available_double_moves -> Black");
+
+        let board = Board::from(BLACK_PAWN_TEST).unwrap();
+
+        let generator = MoveGenerator::new(board, Player::Black);
+
+        assert_eq!(
+            generator.check_for_double_move(RankFile::G7.into(), RankFile::G7.into()),
+            BitBoard::from(RankFile::G5)
+        );
+
+        assert_eq!(
+            generator.check_for_double_move(RankFile::A7.into(), RankFile::A7.into()),
+            BitBoard::empty()
+        );
+
+        assert_eq!(
+            generator.check_for_double_move(RankFile::C5.into(), RankFile::C5.into()),
             BitBoard::empty()
         );
     }

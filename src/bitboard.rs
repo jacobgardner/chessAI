@@ -251,8 +251,6 @@ impl BitBoard {
 
         bits
     }
-
-
 }
 
 fn bitrange(start: u64, end: u64) -> u64 {
