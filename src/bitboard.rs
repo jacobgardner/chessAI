@@ -154,7 +154,6 @@ impl AddAssign for BitBoard {
     }
 }
 
-// TODO: Check if inlining(always) is actually better than what the compiler does by default
 impl BitBoard {
     #[inline(always)]
     pub const fn new(board: u64) -> Self {

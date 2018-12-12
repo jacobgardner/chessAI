@@ -1,10 +1,7 @@
-// TODO: Disable allow dead code at some point.
 #![allow(dead_code)]
 // #![cfg_attr(feature = "strict", allow(dead_code))]
-// TODO: Enable at some point
 // #![cfg_attr(feature = "strict", deny(missing_docs))]
 #![cfg_attr(feature = "strict", deny(warnings))]
-// #![feature(generators, generator_trait)]
 
 #[macro_use] extern crate uncover;
 #[macro_use] extern crate num_derive;

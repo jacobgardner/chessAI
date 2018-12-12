@@ -10,8 +10,7 @@ pub struct BitPosition {
     pub(crate) right_index: u32,
 }
 
-// TODO: Should this be an option instead or should this be 
-//  like a vec that just panics if bounds are violated?
+// NOTE: This is like a vec in that just panics if bounds are violated
 impl BitPosition {
     #[inline(always)]
     pub fn shift(self, x: i32, y: i32) -> Self {

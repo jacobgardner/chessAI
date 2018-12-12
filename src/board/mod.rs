@@ -14,14 +14,12 @@ mod piece_type;
 mod player;
 
 use self::move_generator::MoveGenerator;
+use self::piece_type::PieceType;
+use self::player::Player;
+use self::piece::Piece;
+use self::errors::{BoardError, InvalidStringReason};
 
-// TODO: Maybe not do
-use self::errors::*;
-use self::piece::*;
-use self::piece_type::*;
-use self::player::*;
-
-// TODO: Write/find macros that attaches .count() method to enum
+// LOW: Write/find macros that attaches .count() method to enum
 pub const PIECE_COUNT: usize = 6;
 pub const PLAYER_COUNT: usize = 2;
 
