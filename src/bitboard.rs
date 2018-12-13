@@ -58,7 +58,6 @@ pub struct Rotated45BitBoard {
 }
 
 impl From<u64> for Rotated45BitBoard {
-    #[inline(always)]
     fn from(bits: u64) -> Self {
         Rotated45BitBoard { board: bits }
     }
@@ -102,16 +101,13 @@ impl std::fmt::Debug for BitBoard {
     }
 }
 
-
 impl From<u64> for BitBoard {
-    #[inline(always)]
     fn from(bits: u64) -> Self {
         BitBoard { board: bits }
     }
 }
 
 impl From<BitPosition> for BitBoard {
-    #[inline(always)]
     fn from(position: BitPosition) -> Self {
         BitBoard {
             board: 1 << position.right_index,
@@ -120,7 +116,6 @@ impl From<BitPosition> for BitBoard {
 }
 
 impl From<RankFile> for BitBoard {
-    #[inline(always)]
     fn from(rank_file: RankFile) -> Self {
         BitBoard::from(BitPosition::from(rank_file))
     }
@@ -154,44 +149,51 @@ impl AddAssign for BitBoard {
     }
 }
 
-// TODO: Check if inlining(always) is actually better than what the compiler does by default
 impl BitBoard {
-    #[inline(always)]
     pub const fn new(board: u64) -> Self {
         BitBoard { board }
     }
 
-    #[inline(always)]
     pub fn empty() -> Self {
         covered_by!("BitBoard::empty");
         BitBoard { board: 0 }
     }
 
-    #[inline(always)]
     pub fn join(self, rhs: BitBoard) -> Self {
         covered_by!("BitBoard::join");
         BitBoard::from(self.board | rhs.board)
     }
 
-    #[inline(always)]
     pub fn intersect(self, rhs: BitBoard) -> Self {
         covered_by!("BitBoard::intersect");
         BitBoard::from(self.board & rhs.board)
     }
 
-    #[inline(always)]
     pub fn inverse(self) -> Self {
         covered_by!("BitBoard::inverse");
         BitBoard::from(!self.board)
     }
 
-    #[inline(always)]
     pub fn is_empty(self) -> bool {
         self.board == 0
     }
 
+    pub fn shift_down(self) -> Self {
+        covered_by!("BitBoard::shift_down");
+        BitBoard::from(self.board >> 8)
+    }
+
+    pub fn shift_up(self) -> Self {
+        covered_by!("BitBoard::shift_up");
+        BitBoard::from(self.board << 8)
+    }
+
+    pub fn count_pieces(self) -> u32 {
+        covered_by!("BitBoard::count_pieces");
+        self.board.count_ones()
+    }
+
     // TODO: Rename.  This sucks
-    #[inline(always)]
     pub fn first_bit_position(self) -> BitPosition {
         BitPosition::from(self.board.trailing_zeros())
     }
@@ -410,6 +412,33 @@ mod tests {
             BitBoard::from(1).inverse(),
             BitBoard::from(0xffff_ffff_ffff_fffe)
         );
+    }
+
+    #[test]
+    fn test_count_pieces() {
+        covers!("BitBoard::count_pieces");
+
+        assert_eq!(WHITE_SQUARES.count_pieces(), 32);
+        assert_eq!(BLACK_SQUARES.count_pieces(), 32);
+        assert_eq!(RANK_D.count_pieces(), 8);
+        assert_eq!(FILE_4.count_pieces(), 8);
+
+        assert_eq!(BitBoard::new(0x00100).count_pieces(), 1);
+
+    }
+
+    #[test]
+    fn test_shift_down() {
+        covers!("BitBoard::shift_down");
+
+        assert_eq!(FILE_4.shift_down(), FILE_3);
+    }
+
+    #[test]
+    fn test_shift_up() {
+        covers!("BitBoard::shift_up");
+
+        assert_eq!(FILE_4.shift_up(), FILE_5);
     }
 
     #[test]

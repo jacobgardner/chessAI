@@ -3,17 +3,15 @@ use crate::rank_file::RankFile;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct BitPosition {
     // This is called right_index because it's the distance from the
-    //  right side of the bits.  
+    //  right side of the bits.
     // 1 << 10 would have a right index of 10...
     // TODO: Figure out a better way to word that
     // TODO: Figure out a better name
     pub(crate) right_index: u32,
 }
 
-// TODO: Should this be an option instead or should this be 
-//  like a vec that just panics if bounds are violated?
+// NOTE: This is like a vec in that just panics if bounds are violated
 impl BitPosition {
-    #[inline(always)]
     pub fn shift(self, x: i32, y: i32) -> Self {
         covered_by!("BitPosition::shift");
         covered_by!("BitPosition::shift_errors");
@@ -127,7 +125,6 @@ mod tests {
             RankFile::G8,
             RankFile::D3,
             RankFile::F7,
-
         ];
 
         for rf in should_be_true {
@@ -137,7 +134,6 @@ mod tests {
         for rf in should_be_false {
             assert!(!BitPosition::from(rf).is_leftmost());
         }
-
     }
 
     #[test]
@@ -167,7 +163,6 @@ mod tests {
             RankFile::G8,
             RankFile::D3,
             RankFile::F7,
-
         ];
 
         for rf in should_be_true {
@@ -177,8 +172,6 @@ mod tests {
         for rf in should_be_false {
             assert!(!BitPosition::from(rf).is_rightmost());
         }
-
-
     }
 
 }

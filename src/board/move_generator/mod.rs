@@ -1,7 +1,9 @@
 mod pawn;
 
-use super::Board;
-use super::{PieceType, Player, PIECE_COUNT};
+use super::board::Board;
+use super::piece_type::PieceType;
+use super::player::Player;
+use super::PIECE_COUNT;
 use crate::BitBoard;
 
 pub struct MoveGenerator {
@@ -81,7 +83,6 @@ impl Iterator for MoveGenerator {
             // TODO: A lot of these can be cached
             let rightmost_position = self.player_piecetype_mask.first_bit_position();
             let piece_mask = BitBoard::from(rightmost_position);
-            let piece_inverse = piece_mask.inverse();
 
             let piece_type: PieceType = num::FromPrimitive::from_usize(self.piece_index).unwrap();
 
@@ -93,15 +94,14 @@ impl Iterator for MoveGenerator {
                         }
                         None => {
                             self.is_first_move = true;
-                            self.player_piecetype_mask =
-                                self.player_piecetype_mask.intersect(piece_inverse);
+                            self.player_piecetype_mask -= piece_mask;
                         }
                     }
                 }
                 _ => {
-                    // TODO: We'll want to remove the piece from the mask if there are no
+                    // NOTE: We'll want to remove the piece from the mask if there are no
                     //  moves left.
-                    self.player_piecetype_mask = self.player_piecetype_mask.intersect(piece_inverse)
+                    self.player_piecetype_mask -= piece_mask;
                 }
             }
         }

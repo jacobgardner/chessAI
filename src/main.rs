@@ -1,18 +1,16 @@
-// TODO: Disable allow dead code at some point.
 #![allow(dead_code)]
 // #![cfg_attr(feature = "strict", allow(dead_code))]
-// TODO: Enable at some point
 // #![cfg_attr(feature = "strict", deny(missing_docs))]
 #![cfg_attr(feature = "strict", deny(warnings))]
-// #![feature(generators, generator_trait)]
 
-#[macro_use] extern crate uncover;
-#[macro_use] extern crate num_derive;
-#[macro_use] extern crate failure;
+#[macro_use]
+extern crate uncover;
+#[macro_use]
+extern crate num_derive;
+#[macro_use]
+extern crate failure;
 
-define_uncover_macros!(
-    enable_if(cfg!(debug_assertions))
-);
+define_uncover_macros!(enable_if(cfg!(debug_assertions)));
 
 mod bitboard;
 mod bitposition;
@@ -20,7 +18,7 @@ mod board;
 mod rank_file;
 
 use crate::bitboard::BitBoard;
-use crate::board::Board;
+use crate::board::board::Board;
 
 fn main() -> Result<(), failure::Error> {
     let pieces: [BitBoard; 6] = [
@@ -38,6 +36,7 @@ fn main() -> Result<(), failure::Error> {
             pieces[1].join(pieces[3]).join(pieces[5]),
         ],
         pieces,
+        prev_move: None,
     };
     println!("{}", board);
 
@@ -51,9 +50,7 @@ fn main() -> Result<(), failure::Error> {
 
     println!(
         "{}",
-        BitBoard::from(0b0000_1111)
-            .rotate_45cw()
-            .to_bitboard()
+        BitBoard::from(0b0000_1111).rotate_45cw().to_bitboard()
     );
 
     Ok(())
