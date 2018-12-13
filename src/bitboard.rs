@@ -58,7 +58,6 @@ pub struct Rotated45BitBoard {
 }
 
 impl From<u64> for Rotated45BitBoard {
-    #[inline(always)]
     fn from(bits: u64) -> Self {
         Rotated45BitBoard { board: bits }
     }
@@ -103,14 +102,12 @@ impl std::fmt::Debug for BitBoard {
 }
 
 impl From<u64> for BitBoard {
-    #[inline(always)]
     fn from(bits: u64) -> Self {
         BitBoard { board: bits }
     }
 }
 
 impl From<BitPosition> for BitBoard {
-    #[inline(always)]
     fn from(position: BitPosition) -> Self {
         BitBoard {
             board: 1 << position.right_index,
@@ -119,7 +116,6 @@ impl From<BitPosition> for BitBoard {
 }
 
 impl From<RankFile> for BitBoard {
-    #[inline(always)]
     fn from(rank_file: RankFile) -> Self {
         BitBoard::from(BitPosition::from(rank_file))
     }
@@ -154,36 +150,30 @@ impl AddAssign for BitBoard {
 }
 
 impl BitBoard {
-    #[inline(always)]
     pub const fn new(board: u64) -> Self {
         BitBoard { board }
     }
 
-    #[inline(always)]
     pub fn empty() -> Self {
         covered_by!("BitBoard::empty");
         BitBoard { board: 0 }
     }
 
-    #[inline(always)]
     pub fn join(self, rhs: BitBoard) -> Self {
         covered_by!("BitBoard::join");
         BitBoard::from(self.board | rhs.board)
     }
 
-    #[inline(always)]
     pub fn intersect(self, rhs: BitBoard) -> Self {
         covered_by!("BitBoard::intersect");
         BitBoard::from(self.board & rhs.board)
     }
 
-    #[inline(always)]
     pub fn inverse(self) -> Self {
         covered_by!("BitBoard::inverse");
         BitBoard::from(!self.board)
     }
 
-    #[inline(always)]
     pub fn is_empty(self) -> bool {
         self.board == 0
     }
@@ -204,7 +194,6 @@ impl BitBoard {
     }
 
     // TODO: Rename.  This sucks
-    #[inline(always)]
     pub fn first_bit_position(self) -> BitPosition {
         BitPosition::from(self.board.trailing_zeros())
     }

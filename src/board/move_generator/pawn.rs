@@ -127,7 +127,6 @@ impl MoveGenerator {
         }
     }
 
-    // TODO: WE HAVE TO MAKE SURE WE'RE CLEARING THE CORRECT PIECE W/ EN PASSANT
     // NOTE: The ONLY case where capture_mask != next_position_mask is en passant
     //  We may be able to optimize stuff so we don't need an extra 64 bits for this
     //  function
@@ -187,7 +186,6 @@ impl MoveGenerator {
         board.players[1 - (self.player as usize)] -= next_position_mask;
     }
 
-    #[inline(always)]
     fn pawn_direction(&self) -> i32 {
         match self.player {
             Player::White => 1,
@@ -230,7 +228,6 @@ impl MoveGenerator {
         possible_double_move - self.all_pieces
     }
 
-    #[inline(always)]
     fn available_moves(
         &self,
         current_position: BitPosition,
@@ -255,7 +252,6 @@ impl MoveGenerator {
 
     // NOTE: Functions like this really only need the position and the player
     //  there's no real reason it needs to be apart of MoveGeneration
-    #[inline(always)]
     fn diagonals(&self, current_position: BitPosition) -> BitBoard {
         covered_by!("Pawn::diagonals -> White");
         covered_by!("Pawn::diagonals -> Black");
@@ -276,7 +272,6 @@ impl MoveGenerator {
         left_diagonal.join(right_diagonal)
     }
 
-    #[inline(always)]
     fn pawn_captures(&self, current_position: BitPosition) -> BitBoard {
         covered_by!("Pawn::captures -> White");
         covered_by!("Pawn::captures -> Black");

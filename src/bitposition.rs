@@ -12,7 +12,6 @@ pub struct BitPosition {
 
 // NOTE: This is like a vec in that just panics if bounds are violated
 impl BitPosition {
-    #[inline(always)]
     pub fn shift(self, x: i32, y: i32) -> Self {
         covered_by!("BitPosition::shift");
         covered_by!("BitPosition::shift_errors");
