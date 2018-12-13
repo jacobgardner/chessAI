@@ -31,7 +31,7 @@ impl MoveGenerator {
                 current_position_mask,
                 new_move,
                 next_position_mask,
-                false,
+                BitBoard::empty(),
             );
 
             self.available_moves -= next_position_mask;
@@ -48,7 +48,7 @@ impl MoveGenerator {
                 current_position_mask,
                 new_move,
                 next_position_mask,
-                true,
+                next_position_mask,
             );
 
             self.available_captures -= next_position_mask;
@@ -59,9 +59,43 @@ impl MoveGenerator {
         None
     }
 
+    fn slide_move_sanity_check(&self, board: &Board, next_position_mask: BitBoard) {
+        if cfg!(debug_assertions) {
+            debug_assert!(
+                board.players[self.player as usize]
+                    .intersect(next_position_mask)
+                    .is_empty(),
+                "Move Invariant Invalidated: Non-capture move made on space occupied by self"
+            );
+
+            debug_assert!(
+                board.players[self.player as usize]
+                    .intersect(next_position_mask)
+                    .is_empty(),
+                "Move Invariant Invalidated: Non-capture move made on space occupied by opponent"
+            );
+
+            // TODO: We'll want additional sanity checks for whether the pieces we're moving through
+            //  are empty as well.
+        }
+    }
+
+    fn capture_sanity_check(&self, board: &Board, capture_mask: BitBoard) {
+        if cfg!(debug_assertions) {
+            debug_assert!(
+                !board.players[1 - self.player as usize].intersect(capture_mask).is_empty(),
+                format!("Capture Invariant Invalidated: Capture move made on space not-occupied by opponent:\n{}\n{:?}", board, capture_mask)
+            );
+
+            // TODO: We'll want the same sanity check above for moving through spaces.  Should be
+            //  OK to delay this until we get to a non-pawn piece
+        }
+    }
+
     // TODO: WE HAVE TO MAKE SURE WE'RE CLEARING THE CORRECT PIECE W/ EN PASSANT
-    // TODO: capture = true is really just an optimization.  We could use the capture code
-    //  for non-capture moves as well and then optimize lather when stable
+    // NOTE: The ONLY case where capture_mask != next_position_mask is en passant
+    //  We may be able to optimize stuff so we don't need an extra 64 bits for this
+    //  function
     // NOTE: We may be able to make this mostly work for other pieces as well
     fn move_pawn(
         &mut self,
@@ -69,7 +103,7 @@ impl MoveGenerator {
         current_position_mask: BitBoard,
         next_position: BitPosition,
         next_position_mask: BitBoard,
-        capture: bool,
+        capture_mask: BitBoard,
     ) -> Board {
         let mut board = self.root_board.clone();
 
@@ -80,31 +114,16 @@ impl MoveGenerator {
         board.pieces[pawn_index] -= current_position_mask;
         board.players[player_index] -= current_position_mask;
 
-        if capture {
-            // This invariant is specifically not true in the case of en-passant
-            debug_assert!(
-                !board.players[1 - player_index].intersect(next_position_mask).is_empty(),
-                "Pawn Move Invariant Invalidated: Capture move made on space not-occupied by opponent"
-            );
-
-            // Because this is a capture we need to remove the previous piece
-            self.remove_piece(&mut board, next_position_mask);
+        if capture_mask.is_empty() {
+            self.slide_move_sanity_check(&board, next_position_mask);
         } else {
-            debug_assert!(
-                board.players[player_index]
-                    .intersect(next_position_mask)
-                    .is_empty(),
-                "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by self"
-            );
-
-            debug_assert!(
-                board.players[1 - player_index].intersect(next_position_mask).is_empty(),
-                "Pawn Move Invariant Invalidated: Non-capture move made on space occupied by opponent"
-            );
+            self.capture_sanity_check(&board, capture_mask);
+            self.remove_piece(&mut board, capture_mask);
         }
 
         board.players[player_index] += next_position_mask;
 
+        // NOTE: When making this function generic we'll need a PAWN check
         let next_piece = if next_position_mask.intersect(ENDS).is_empty() {
             PieceType::Pawn
         } else {

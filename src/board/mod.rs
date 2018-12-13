@@ -1,4 +1,4 @@
-// TODO: Some of these may make more sense in a module up a directory
+// LOW: Some of these may make more sense in a module up a directory
 pub mod board;
 mod chess_move;
 mod errors;
