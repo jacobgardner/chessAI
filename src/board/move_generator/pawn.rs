@@ -14,11 +14,40 @@ impl MoveGenerator {
         index: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
+        let mut en_passant_mask = BitBoard::empty();
+
         if self.is_first_move {
             self.available_moves = self.available_moves(index, current_position_mask);
             self.available_captures = self.pawn_captures(index);
+            // en_passant_mask = self.check_en_passant();
 
             self.is_first_move = false;
+        }
+
+        if !en_passant_mask.is_empty() {
+            debug_assert!(
+                en_passant_mask.count_pieces() == 1,
+                "There can only be a single en passant capture per piece possible."
+            );
+
+            let new_move = self.available_moves.first_bit_position();
+            let next_position_mask = BitBoard::from(new_move);
+
+            debug_assert!(
+                next_position_mask != en_passant_mask, 
+                "The en passant capture mask should be the mask of the \
+                pawn being captured. Not of the position being moved to."
+            );
+
+            let board = self.move_pawn(
+                index,
+                current_position_mask,
+                new_move,
+                next_position_mask,
+                en_passant_mask,
+            );
+
+            return Some(board)
         }
 
         if !self.available_moves.is_empty() {

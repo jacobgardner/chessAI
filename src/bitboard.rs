@@ -188,6 +188,11 @@ impl BitBoard {
         self.board == 0
     }
 
+    pub fn count_pieces(self) -> u32 {
+        covered_by!("BitBoard::count_pieces");
+        self.board.count_ones()
+    }
+
     // TODO: Rename.  This sucks
     #[inline(always)]
     pub fn first_bit_position(self) -> BitPosition {
@@ -408,6 +413,19 @@ mod tests {
             BitBoard::from(1).inverse(),
             BitBoard::from(0xffff_ffff_ffff_fffe)
         );
+    }
+
+    #[test]
+    fn test_count_pieces() {
+        covers!("BitBoard::count_pieces");
+
+        assert_eq!(WHITE_SQUARES.count_pieces(), 32);
+        assert_eq!(BLACK_SQUARES.count_pieces(), 32);
+        assert_eq!(RANK_D.count_pieces(), 8);
+        assert_eq!(FILE_4.count_pieces(), 8);
+
+        assert_eq!(BitBoard::new(0x00100).count_pieces(), 1);
+
     }
 
     #[test]
