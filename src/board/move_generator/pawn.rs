@@ -19,7 +19,7 @@ impl MoveGenerator {
         if self.is_first_move {
             self.available_moves = self.available_moves(index, current_position_mask);
             self.available_captures = self.pawn_captures(index);
-            // en_passant_mask = self.check_en_passant();
+            en_passant_mask = self.check_en_passant();
 
             self.is_first_move = false;
         }
@@ -30,24 +30,30 @@ impl MoveGenerator {
                 "There can only be a single en passant capture per piece possible."
             );
 
-            let new_move = self.available_moves.first_bit_position();
-            let next_position_mask = BitBoard::from(new_move);
+            let next_position_mask = en_passant_mask
+                .shift_down()
+                .join(en_passant_mask.shift_up())
+                .intersect(self.diagonals(current_position_mask.first_bit_position()));
 
             debug_assert!(
-                next_position_mask != en_passant_mask, 
+                next_position_mask != en_passant_mask,
                 "The en passant capture mask should be the mask of the \
-                pawn being captured. Not of the position being moved to."
+                 pawn being captured. Not of the position being moved to."
             );
 
-            let board = self.move_pawn(
-                index,
-                current_position_mask,
-                new_move,
-                next_position_mask,
-                en_passant_mask,
-            );
+            if !next_position_mask.is_empty() {
+                let new_move = next_position_mask.first_bit_position();
 
-            return Some(board)
+                let board = self.move_pawn(
+                    index,
+                    current_position_mask,
+                    new_move,
+                    next_position_mask,
+                    en_passant_mask,
+                );
+
+                return Some(board);
+            }
         }
 
         if !self.available_moves.is_empty() {
@@ -275,32 +281,36 @@ impl MoveGenerator {
         covered_by!("Pawn::captures -> White");
         covered_by!("Pawn::captures -> Black");
 
-        // debug_assert!(
-        //     !(self.root_board.prev_move.is_none() && !self.enemy_mask.is_empty()),
-        //     "Somehow we can capture on the first move?"
-        // );
+        debug_assert!(
+            !(self.root_board.prev_move.is_none() && !self.enemy_mask.is_empty()),
+            "Somehow we can capture on the first move?"
+        );
 
-        let en_passant_mask = BitBoard::empty();
-        // let en_passant_mask = match self.root_board.prev_move.as_ref() {
-        //     Some(prev_move) => {
-        //         if prev_move.piece_type == PieceType::Pawn {
-        //             if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
-        //                 BitPosition::from((prev_move.from.rank(), 2)).into()
-        //             } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
-        //                 BitPosition::from((prev_move.from.rank(), 5)).into()
-        //             } else {
-        //                 BitBoard::empty()
-        //             }
-        //         } else {
-        //             BitBoard::empty()
-        //         }
-        //     }
-        //     None => BitBoard::empty(),
-        // };
+        self.enemy_mask.intersect(self.diagonals(current_position))
+    }
 
-        self.enemy_mask
-            .join(en_passant_mask)
-            .intersect(self.diagonals(current_position))
+    fn check_en_passant(&self) -> BitBoard {
+        // The previous move MUST be a pawn double move
+        let en_passant_mask = match self.root_board.prev_move.as_ref() {
+            Some(prev_move) => {
+                if prev_move.piece_type == PieceType::Pawn {
+                    if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
+                        covered_by!("Pawn::en_passant -> Black");
+                        prev_move.to.into()
+                    } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
+                        covered_by!("Pawn::en_passant -> White");
+                        prev_move.to.into()
+                    } else {
+                        BitBoard::empty()
+                    }
+                } else {
+                    BitBoard::empty()
+                }
+            }
+            None => BitBoard::empty(),
+        };
+
+        en_passant_mask
     }
 }
 
@@ -340,9 +350,29 @@ mod tests {
 
     const BLACK_EN_PASSANT: Move = Move {
         piece_type: PieceType::Pawn,
-        from: RankFile::D4,
-        to: RankFile::D2,
+        from: RankFile::D2,
+        to: RankFile::D4,
     };
+
+    #[test]
+    fn test_en_passant_white() {
+        covers!("Pawn::en_passant -> White");
+        let mut board = Board::from(WHITE_PAWN_TEST).unwrap();
+        board.prev_move = Some(WHITE_EN_PASSANT);
+        let generator = MoveGenerator::new(board, Player::White);
+
+        assert_eq!(generator.check_en_passant(), RankFile::F5.into());
+    }
+
+    #[test]
+    fn test_en_passant_black() {
+        covers!("Pawn::en_passant -> Black");
+        let mut board = Board::from(BLACK_PAWN_TEST).unwrap();
+        board.prev_move = Some(BLACK_EN_PASSANT);
+        let generator = MoveGenerator::new(board, Player::Black);
+
+        assert_eq!(generator.check_en_passant(), RankFile::D4.into());
+    }
 
     #[test]
     fn test_single_moves_white() {
@@ -471,7 +501,8 @@ mod tests {
     #[test]
     fn test_captures_white() {
         covers!("Pawn::captures -> White");
-        let board = Board::from(WHITE_PAWN_TEST).unwrap();
+        let mut board = Board::from(WHITE_PAWN_TEST).unwrap();
+        board.prev_move = Some(WHITE_EN_PASSANT);
         let generator = MoveGenerator::new(board, Player::White);
 
         assert_eq!(
@@ -489,7 +520,8 @@ mod tests {
     #[test]
     fn test_captures_black() {
         covers!("Pawn::captures -> Black");
-        let board = Board::from(BLACK_PAWN_TEST).unwrap();
+        let mut board = Board::from(BLACK_PAWN_TEST).unwrap();
+        board.prev_move = Some(BLACK_EN_PASSANT);
         let generator = MoveGenerator::new(board, Player::Black);
 
         assert_eq!(

@@ -188,6 +188,16 @@ impl BitBoard {
         self.board == 0
     }
 
+    pub fn shift_down(self) -> Self {
+        covered_by!("BitBoard::shift_down");
+        BitBoard::from(self.board >> 8)
+    }
+
+    pub fn shift_up(self) -> Self {
+        covered_by!("BitBoard::shift_up");
+        BitBoard::from(self.board << 8)
+    }
+
     pub fn count_pieces(self) -> u32 {
         covered_by!("BitBoard::count_pieces");
         self.board.count_ones()
@@ -426,6 +436,20 @@ mod tests {
 
         assert_eq!(BitBoard::new(0x00100).count_pieces(), 1);
 
+    }
+
+    #[test]
+    fn test_shift_down() {
+        covers!("BitBoard::shift_down");
+
+        assert_eq!(FILE_4.shift_down(), FILE_3);
+    }
+
+    #[test]
+    fn test_shift_up() {
+        covers!("BitBoard::shift_up");
+
+        assert_eq!(FILE_4.shift_up(), FILE_5);
     }
 
     #[test]
