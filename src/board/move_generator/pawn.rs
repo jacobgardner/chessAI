@@ -11,87 +11,116 @@ use crate::board::PIECE_COUNT;
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
         &mut self,
-        index: BitPosition,
+        current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
         let mut en_passant_mask = BitBoard::empty();
 
         if self.is_first_move {
-            self.available_moves = self.available_moves(index, current_position_mask);
-            self.available_captures = self.pawn_captures(index);
+            self.available_moves = self.available_moves(current_position, current_position_mask);
+            self.available_captures = self.pawn_captures(current_position);
             en_passant_mask = self.check_en_passant();
 
             self.is_first_move = false;
         }
 
         if !en_passant_mask.is_empty() {
-            debug_assert!(
-                en_passant_mask.count_pieces() == 1,
-                "There can only be a single en passant capture per piece possible."
-            );
-
-            let next_position_mask = en_passant_mask
-                .shift_down()
-                .join(en_passant_mask.shift_up())
-                .intersect(self.diagonals(current_position_mask.first_bit_position()));
-
-            debug_assert!(
-                next_position_mask != en_passant_mask,
-                "The en passant capture mask should be the mask of the \
-                 pawn being captured. Not of the position being moved to."
-            );
-
-            if !next_position_mask.is_empty() {
-                let new_move = next_position_mask.first_bit_position();
-
-                let board = self.move_pawn(
-                    index,
-                    current_position_mask,
-                    new_move,
-                    next_position_mask,
-                    en_passant_mask,
-                );
-
+            if let Some(board) = self.generate_en_passant_board(
+                current_position,
+                current_position_mask,
+                en_passant_mask,
+            ) {
                 return Some(board);
             }
         }
 
         if !self.available_moves.is_empty() {
-            // We can probably join these two
-            let new_move = self.available_moves.first_bit_position();
-            let next_position_mask = BitBoard::from(new_move);
-
-            let board = self.move_pawn(
-                index,
+            let (board, available_moves) = self.generate_pawn_board(
+                current_position,
                 current_position_mask,
-                new_move,
-                next_position_mask,
-                BitBoard::empty(),
+                self.available_moves,
+                false,
             );
-
-            self.available_moves -= next_position_mask;
-
+            self.available_moves = available_moves;
             return Some(board);
         }
 
         if !self.available_captures.is_empty() {
-            let new_move = self.available_captures.first_bit_position();
-            let next_position_mask = BitBoard::from(new_move);
-
-            let board = self.move_pawn(
-                index,
+            let (board, available_captures) = self.generate_pawn_board(
+                current_position,
                 current_position_mask,
-                new_move,
-                next_position_mask,
-                next_position_mask,
+                self.available_captures,
+                true,
             );
-
-            self.available_captures -= next_position_mask;
-
+            self.available_captures = available_captures;
             return Some(board);
         }
 
         None
+    }
+
+    fn generate_pawn_board(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        available_moves: BitBoard,
+        is_capture: bool,
+    ) -> (Board, BitBoard) {
+        let new_move = available_moves.first_bit_position();
+        let next_position_mask = BitBoard::from(new_move);
+
+        let board = self.move_pawn(
+            current_position,
+            current_position_mask,
+            new_move,
+            next_position_mask,
+            if is_capture {
+                next_position_mask
+            } else {
+                BitBoard::empty()
+            },
+        );
+
+        (board, available_moves - next_position_mask)
+    }
+
+    fn generate_en_passant_board(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        en_passant_mask: BitBoard,
+    ) -> Option<Board> {
+        debug_assert!(
+            en_passant_mask.count_pieces() == 1,
+            "There can only be a single en passant capture per piece possible."
+        );
+
+        let next_position_mask = en_passant_mask
+            .shift_down()
+            .join(en_passant_mask.shift_up())
+            .intersect(self.diagonals(current_position_mask.first_bit_position()));
+
+        debug_assert!(
+            next_position_mask != en_passant_mask,
+            "The en passant capture mask should be the mask of the \
+             pawn being captured. Not of the position being moved to."
+        );
+
+        if !next_position_mask.is_empty() {
+            let new_move = next_position_mask.first_bit_position();
+
+            let board = self.move_pawn(
+                current_position,
+                current_position_mask,
+                new_move,
+                next_position_mask,
+                en_passant_mask,
+            );
+
+            Some(board)
+        } else {
+            None
+        }
     }
 
     fn slide_move_sanity_check(&self, board: &Board, next_position_mask: BitBoard) {
@@ -132,7 +161,7 @@ impl MoveGenerator {
     //  function
     // NOTE: We may be able to make this mostly work for other pieces as well
     fn move_pawn(
-        &mut self,
+        &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
         next_position: BitPosition,
@@ -286,26 +315,19 @@ impl MoveGenerator {
 
     fn check_en_passant(&self) -> BitBoard {
         // The previous move MUST be a pawn double move
-        let en_passant_mask = match self.root_board.prev_move.as_ref() {
-            Some(prev_move) => {
-                if prev_move.piece_type == PieceType::Pawn {
-                    if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
-                        covered_by!("Pawn::en_passant -> Black");
-                        prev_move.to.into()
-                    } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
-                        covered_by!("Pawn::en_passant -> White");
-                        prev_move.to.into()
-                    } else {
-                        BitBoard::empty()
-                    }
-                } else {
-                    BitBoard::empty()
+        if let Some(prev_move) = self.root_board.prev_move.as_ref() {
+            if prev_move.piece_type == PieceType::Pawn {
+                if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
+                    covered_by!("Pawn::en_passant -> Black");
+                    return prev_move.to.into();
+                } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
+                    covered_by!("Pawn::en_passant -> White");
+                    return prev_move.to.into();
                 }
             }
-            None => BitBoard::empty(),
         };
 
-        en_passant_mask
+        BitBoard::empty()
     }
 }
 
