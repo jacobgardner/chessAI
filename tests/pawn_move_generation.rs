@@ -1,8 +1,8 @@
 #![cfg(test)]
 extern crate lib;
 
+use lib::chess::{Board, Player};
 use lib::fixtures::*;
-use lib::chess::{Player, Board};
 use snapshot::snapshot;
 
 #[snapshot]

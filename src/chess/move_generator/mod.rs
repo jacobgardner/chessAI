@@ -1,4 +1,5 @@
 mod pawn;
+mod rook;
 
 use crate::chess::BitBoard;
 use crate::chess::Board;
@@ -86,24 +87,21 @@ impl Iterator for MoveGenerator {
 
             let piece_type: PieceType = num::FromPrimitive::from_usize(self.piece_index).unwrap();
 
-            match piece_type {
-                PieceType::Pawn => {
-                    match self.generate_next_pawn_move(rightmost_position, piece_mask) {
-                        Some(board) => {
-                            return Some(board);
-                        }
-                        None => {
-                            self.is_first_move = true;
-                            self.player_piecetype_mask -= piece_mask;
-                        }
-                    }
+            let board = match piece_type {
+                PieceType::Pawn => self.generate_next_pawn_move(rightmost_position, piece_mask),
+                PieceType::Rook => self.generate_next_rook_move(rightmost_position, piece_mask),
+                _ => None,
+            };
+
+            match board {
+                Some(board) => {
+                    return Some(board);
                 }
-                _ => {
-                    // NOTE: We'll want to remove the piece from the mask if there are no
-                    //  moves left.
+                None => {
+                    self.is_first_move = true;
                     self.player_piecetype_mask -= piece_mask;
                 }
-            }
+            };
         }
     }
 }

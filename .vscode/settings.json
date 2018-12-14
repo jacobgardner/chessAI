@@ -17,4 +17,7 @@
         "TODO",
         "FIXME"
     ],
+    "files.exclude": {
+        "target/**": true
+    },
 }

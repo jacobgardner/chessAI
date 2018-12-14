@@ -424,7 +424,6 @@ mod tests {
         assert_eq!(FILE_4.count_pieces(), 8);
 
         assert_eq!(BitBoard::new(0x00100).count_pieces(), 1);
-
     }
 
     #[test]
