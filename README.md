@@ -4,11 +4,11 @@ Chess AI
 A new attempt at a Chess AI in Rust.  This attempt will try to achieve the following goals:
 
 - [ ] Using proper bitboards for move generation
-    - [ ] Pawn
+    - [x] Pawn
         - [x] Single Move
         - [x] Double Move
         - [x] Normal Captures
-        - [ ] En Passant
+        - [x] En Passant
     - [ ] Rook
     - [ ] Knight
     - [ ] Bishop
