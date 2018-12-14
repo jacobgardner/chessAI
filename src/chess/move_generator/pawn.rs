@@ -1,12 +1,13 @@
 use super::MoveGenerator;
-use crate::bitboard::BitBoard;
-use crate::bitboard::{ENDS, FILE_1, FILE_2, FILE_7, FILE_8};
-use crate::bitposition::BitPosition;
-use crate::board::board::Board;
-use crate::board::chess_move::Move;
-use crate::board::piece_type::PieceType;
-use crate::board::player::Player;
-use crate::board::PIECE_COUNT;
+
+use crate::chess::bitboard::{ENDS, FILE_1, FILE_2, FILE_7, FILE_8};
+use crate::chess::BitBoard;
+use crate::chess::BitPosition;
+use crate::chess::Board;
+use crate::chess::Move;
+use crate::chess::PieceType;
+use crate::chess::Player;
+use crate::chess::PIECE_COUNT;
 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
@@ -334,42 +335,8 @@ impl MoveGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rank_file::RankFile;
-    use snapshot::snapshot;
-
-    const WHITE_PAWN_TEST: &'static str = "
-    xxxrxxxx
-    xxPxxxxx
-    xxxxxxxx
-    xxxxPpxx
-    xnxnxxxx
-    nxPxxxxn
-    xPxxxPxP
-    xxxxxxxx
-    ";
-
-    const WHITE_EN_PASSANT: Move = Move {
-        piece_type: PieceType::Pawn,
-        from: RankFile::F7,
-        to: RankFile::F5,
-    };
-
-    const BLACK_PAWN_TEST: &'static str = "
-    xxxxxxxx
-    pxxxxxpx
-    NxxxxNxN
-    Nxpxxxxx
-    xxxPpxxx
-    xxxxxxxx
-    xxxxpNxx
-    xxxNxxxx
-    ";
-
-    const BLACK_EN_PASSANT: Move = Move {
-        piece_type: PieceType::Pawn,
-        from: RankFile::D2,
-        to: RankFile::D4,
-    };
+    use crate::chess::RankFile;
+    use crate::fixtures::*;
 
     #[test]
     fn test_en_passant_white() {
@@ -551,48 +518,5 @@ mod tests {
 
         let expected = BitBoard::from(RankFile::H6).join(RankFile::F6.into());
         assert_eq!(generator.pawn_captures(RankFile::G7.into()), expected);
-    }
-
-    #[snapshot]
-    fn test_generate_white_pawn_moves() -> Vec<String> {
-        let mut boards = vec![];
-
-        let mut board = Board::from(WHITE_PAWN_TEST).unwrap();
-        board.prev_move = Some(WHITE_EN_PASSANT);
-        boards.push(format!("{}", board).to_owned());
-
-        let mut generator = board.generate_moves(Player::White);
-
-        loop {
-            let new_board = match generator.next() {
-                Some(board) => board,
-                None => break,
-            };
-
-            boards.push(format!("{}", new_board).to_owned());
-        }
-        boards
-    }
-
-    #[snapshot]
-    fn test_generate_black_pawn_moves() -> Vec<String> {
-        let mut boards = vec![];
-
-        let mut board = Board::from(BLACK_PAWN_TEST).unwrap();
-        board.prev_move = Some(BLACK_EN_PASSANT);
-        boards.push(format!("{}", board).to_owned());
-
-        let mut generator = board.generate_moves(Player::Black);
-
-        loop {
-            let new_board = match generator.next() {
-                Some(board) => board,
-                None => break,
-            };
-
-            boards.push(format!("{}", new_board).to_owned());
-        }
-
-        boards
     }
 }

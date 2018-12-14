@@ -1,14 +1,12 @@
 {
-  "chess::board::move_generator::pawn::tests::test_generate_black_pawn_moves":
+  "pawn_move_generation::test_generate_black_pawn_moves":
   {
     file:
     [
-      src
-      board
-      move_generator
-      pawn.rs
+      tests
+      pawn_move_generation.rs
     ]
-    module_path: chess::board::move_generator::pawn::tests
+    module_path: pawn_move_generation
     test_function: test_generate_black_pawn_moves
     recorded_value:
     [
@@ -179,16 +177,14 @@
         '''
     ]
   }
-  "chess::board::move_generator::pawn::tests::test_generate_white_pawn_moves":
+  "pawn_move_generation::test_generate_white_pawn_moves":
   {
     file:
     [
-      src
-      board
-      move_generator
-      pawn.rs
+      tests
+      pawn_move_generation.rs
     ]
-    module_path: chess::board::move_generator::pawn::tests
+    module_path: pawn_move_generation
     test_function: test_generate_white_pawn_moves
     recorded_value:
     [

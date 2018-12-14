@@ -1,5 +1,6 @@
-use crate::bitposition::BitPosition;
 use num;
+
+use crate::chess::BitPosition;
 
 #[cfg_attr( rustfmt, rustfmt_skip)]
 #[derive(PartialEq, Clone, Copy, Debug, FromPrimitive)]

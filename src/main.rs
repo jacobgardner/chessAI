@@ -12,13 +12,12 @@ extern crate failure;
 
 define_uncover_macros!(enable_if(cfg!(debug_assertions)));
 
-mod bitboard;
-mod bitposition;
-mod board;
-mod rank_file;
+pub mod chess;
+pub mod fixtures;
 
-use crate::bitboard::BitBoard;
-use crate::board::board::Board;
+use crate::chess::BitBoard;
+use crate::chess::Board;
+use crate::chess::DEFAULT_BOARD;
 
 fn main() -> Result<(), failure::Error> {
     let pieces: [BitBoard; 6] = [
@@ -40,7 +39,7 @@ fn main() -> Result<(), failure::Error> {
     };
     println!("{}", board);
 
-    let board = Board::from(board::DEFAULT_BOARD)?;
+    let board = Board::from(DEFAULT_BOARD)?;
     println!("{}", board);
 
     // println!("{:064b}", 0xf0f8af8fu64);

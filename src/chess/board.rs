@@ -1,17 +1,16 @@
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
-use crate::bitboard::BitBoard;
-use crate::bitposition::BitPosition;
-
-use super::chess_move::Move;
-use super::errors::{BoardError, InvalidStringReason};
-use super::move_generator::MoveGenerator;
-use super::piece::Piece;
-use super::piece_type::PieceType;
-use super::player::Player;
-use super::PIECE_COUNT;
-use super::PLAYER_COUNT;
+use crate::chess::errors::{BoardError, InvalidStringReason};
+use crate::chess::BitBoard;
+use crate::chess::BitPosition;
+use crate::chess::Move;
+use crate::chess::MoveGenerator;
+use crate::chess::Piece;
+use crate::chess::PieceType;
+use crate::chess::Player;
+use crate::chess::PIECE_COUNT;
+use crate::chess::PLAYER_COUNT;
 
 #[derive(PartialEq, Clone)]
 pub struct Board {
@@ -179,6 +178,7 @@ impl Display for Board {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chess::*;
 
     #[test]
     fn test_board_from_str() {
