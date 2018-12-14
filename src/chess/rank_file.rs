@@ -1,4 +1,4 @@
-use crate::bitposition::BitPosition;
+use crate::chess::bitposition::BitPosition;
 use num;
 
 #[cfg_attr( rustfmt, rustfmt_skip)]

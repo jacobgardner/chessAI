@@ -1,5 +1,5 @@
-use crate::bitposition::BitPosition;
-use crate::rank_file::RankFile;
+use crate::chess::bitposition::BitPosition;
+use crate::chess::rank_file::RankFile;
 
 use std::num::Wrapping;
 use std::ops::{Add, AddAssign, Sub, SubAssign};

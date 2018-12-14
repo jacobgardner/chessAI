@@ -1,10 +1,10 @@
 mod pawn;
 
-use super::board::Board;
-use super::piece_type::PieceType;
-use super::player::Player;
-use super::PIECE_COUNT;
-use crate::BitBoard;
+use crate::chess::board::Board;
+use crate::chess::piece_type::PieceType;
+use crate::chess::player::Player;
+use crate::chess::PIECE_COUNT;
+use crate::chess::bitboard::BitBoard;
 
 pub struct MoveGenerator {
     root_board: Board,

@@ -1,8 +1,8 @@
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
-use crate::bitboard::BitBoard;
-use crate::bitposition::BitPosition;
+use crate::chess::bitboard::BitBoard;
+use crate::chess::bitposition::BitPosition;
 
 use super::chess_move::Move;
 use super::errors::{BoardError, InvalidStringReason};
