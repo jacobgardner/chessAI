@@ -10,6 +10,10 @@ impl MoveGenerator {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
+        if self.is_first_move {
+
+        }
+
         None
     }
 }
