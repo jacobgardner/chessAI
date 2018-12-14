@@ -335,41 +335,8 @@ impl MoveGenerator {
 mod tests {
     use super::*;
     use crate::chess::rank_file::RankFile;
-    use snapshot::snapshot;
+    use crate::fixtures::*;
 
-    const WHITE_PAWN_TEST: &'static str = "
-    xxxrxxxx
-    xxPxxxxx
-    xxxxxxxx
-    xxxxPpxx
-    xnxnxxxx
-    nxPxxxxn
-    xPxxxPxP
-    xxxxxxxx
-    ";
-
-    const WHITE_EN_PASSANT: Move = Move {
-        piece_type: PieceType::Pawn,
-        from: RankFile::F7,
-        to: RankFile::F5,
-    };
-
-    const BLACK_PAWN_TEST: &'static str = "
-    xxxxxxxx
-    pxxxxxpx
-    NxxxxNxN
-    Nxpxxxxx
-    xxxPpxxx
-    xxxxxxxx
-    xxxxpNxx
-    xxxNxxxx
-    ";
-
-    const BLACK_EN_PASSANT: Move = Move {
-        piece_type: PieceType::Pawn,
-        from: RankFile::D2,
-        to: RankFile::D4,
-    };
 
     #[test]
     fn test_en_passant_white() {
@@ -551,48 +518,5 @@ mod tests {
 
         let expected = BitBoard::from(RankFile::H6).join(RankFile::F6.into());
         assert_eq!(generator.pawn_captures(RankFile::G7.into()), expected);
-    }
-
-    #[snapshot]
-    fn test_generate_white_pawn_moves() -> Vec<String> {
-        let mut boards = vec![];
-
-        let mut board = Board::from(WHITE_PAWN_TEST).unwrap();
-        board.prev_move = Some(WHITE_EN_PASSANT);
-        boards.push(format!("{}", board).to_owned());
-
-        let mut generator = board.generate_moves(Player::White);
-
-        loop {
-            let new_board = match generator.next() {
-                Some(board) => board,
-                None => break,
-            };
-
-            boards.push(format!("{}", new_board).to_owned());
-        }
-        boards
-    }
-
-    #[snapshot]
-    fn test_generate_black_pawn_moves() -> Vec<String> {
-        let mut boards = vec![];
-
-        let mut board = Board::from(BLACK_PAWN_TEST).unwrap();
-        board.prev_move = Some(BLACK_EN_PASSANT);
-        boards.push(format!("{}", board).to_owned());
-
-        let mut generator = board.generate_moves(Player::Black);
-
-        loop {
-            let new_board = match generator.next() {
-                Some(board) => board,
-                None => break,
-            };
-
-            boards.push(format!("{}", new_board).to_owned());
-        }
-
-        boards
     }
 }

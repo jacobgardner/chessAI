@@ -12,7 +12,8 @@ extern crate failure;
 
 define_uncover_macros!(enable_if(cfg!(debug_assertions)));
 
-mod chess;
+pub mod chess;
+pub mod fixtures;
 
 use crate::chess::bitboard::BitBoard;
 use crate::chess::board::Board;
