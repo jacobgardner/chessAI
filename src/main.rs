@@ -15,8 +15,8 @@ define_uncover_macros!(enable_if(cfg!(debug_assertions)));
 pub mod chess;
 pub mod fixtures;
 
-use crate::chess::bitboard::BitBoard;
-use crate::chess::board::Board;
+use crate::chess::BitBoard;
+use crate::chess::Board;
 use crate::chess::DEFAULT_BOARD;
 
 fn main() -> Result<(), failure::Error> {

@@ -1,12 +1,13 @@
 use super::MoveGenerator;
+
 use crate::chess::bitboard::{ENDS, FILE_1, FILE_2, FILE_7, FILE_8};
-use crate::chess::board::Board;
-use crate::chess::chess_move::Move;
-use crate::chess::piece_type::PieceType;
-use crate::chess::player::Player;
+use crate::chess::BitBoard;
+use crate::chess::BitPosition;
+use crate::chess::Board;
+use crate::chess::Move;
+use crate::chess::PieceType;
+use crate::chess::Player;
 use crate::chess::PIECE_COUNT;
-use crate::chess::bitboard::BitBoard;
-use crate::chess::bitposition::BitPosition;
 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
@@ -334,9 +335,8 @@ impl MoveGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chess::rank_file::RankFile;
+    use crate::chess::RankFile;
     use crate::fixtures::*;
-
 
     #[test]
     fn test_en_passant_white() {

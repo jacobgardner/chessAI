@@ -1,4 +1,4 @@
-use crate::chess::rank_file::RankFile;
+use crate::chess::RankFile;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct BitPosition {

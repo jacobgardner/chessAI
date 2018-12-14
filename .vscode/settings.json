@@ -1,0 +1,20 @@
+{
+    "files.watcherExclude": {
+        "target/**": true
+    },
+    "todo-tree.defaultHighlight": {
+        "foreground": "green",
+        "type": "none"
+    },
+    "todo-tree.customHighlight": {
+        "TODO": {},
+        "FIXME": {}
+    },
+    "todo-tree.statusBar": "tags",
+    "todo-tree.tags": [
+        "LOW",
+        "HIGH",
+        "TODO",
+        "FIXME"
+    ],
+}

@@ -1,8 +1,8 @@
-use crate::chess::bitposition::BitPosition;
-use crate::chess::rank_file::RankFile;
-
 use std::num::Wrapping;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
+
+use crate::chess::BitPosition;
+use crate::chess::RankFile;
 
 pub const FILE_8: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
 pub const FILE_7: BitBoard = BitBoard::new(0x00ff_0000_0000_0000);
