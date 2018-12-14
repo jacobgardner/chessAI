@@ -1,0 +1,58 @@
+{
+  "rook_move_generation::test_generate_black_rook_moves":
+  {
+    file:
+    [
+      tests
+      rook_move_generation.rs
+    ]
+    module_path: rook_move_generation
+    test_function: test_generate_black_rook_moves
+    recorded_value:
+    [
+      
+        '''
+               +--------+
+        0x38 8 |r...N...| 63
+        0x30 7 |........| 55
+        0x28 6 |.....r..| 47
+        0x20 5 |........| 39
+        0x18 4 |..r....N| 31
+        0x10 3 |........| 23
+        0x08 2 |....r...| 15
+        0x00 1 |....N.rr| 7
+               +--------+
+                ABCDEFGH
+
+        '''
+    ]
+  }
+  "rook_move_generation::test_generate_white_rook_moves":
+  {
+    file:
+    [
+      tests
+      rook_move_generation.rs
+    ]
+    module_path: rook_move_generation
+    test_function: test_generate_white_rook_moves
+    recorded_value:
+    [
+      
+        '''
+               +--------+
+        0x38 8 |R..n....| 63
+        0x30 7 |......r.| 55
+        0x28 6 |........| 47
+        0x20 5 |...R....| 39
+        0x18 4 |....R..p| 31
+        0x10 3 |........| 23
+        0x08 2 |.r......| 15
+        0x00 1 |...R...R| 7
+               +--------+
+                ABCDEFGH
+
+        '''
+    ]
+  }
+}

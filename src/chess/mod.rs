@@ -27,12 +27,12 @@ pub const PIECE_COUNT: usize = 6;
 pub const PLAYER_COUNT: usize = 2;
 
 pub const DEFAULT_BOARD: &str = "
-rnbkqbnr
-pppppppp
-xxxxxxxx
-xxxxxxxx
-xxxxxxxx
-xxxxxxxx
-PPPPPPPP
-RNBKQBNR
+    rnbkqbnr
+    pppppppp
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    PPPPPPPP
+    RNBKQBNR
 ";

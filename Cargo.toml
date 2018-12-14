@@ -32,3 +32,7 @@ criterion = "^0.2.5"
 [[bench]]
 name = "pawn_generation"
 harness = false
+
+[[bench]]
+name = "rook_generation"
+harness = false
