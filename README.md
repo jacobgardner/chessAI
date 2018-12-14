@@ -1,6 +1,12 @@
 Chess AI
 ========
 
+To benchmark, run:
+
+    cargo bench
+
+
+
 A new attempt at a Chess AI in Rust.  This attempt will try to achieve the following goals:
 
 - [ ] Using proper bitboards for move generation
@@ -10,6 +16,8 @@ A new attempt at a Chess AI in Rust.  This attempt will try to achieve the follo
         - [x] Normal Captures
         - [x] En Passant
     - [ ] Rook
+        - [ ] Horizontal Moves
+        - [ ] Vertical Moves
     - [ ] Knight
     - [ ] Bishop
     - [ ] Queen
