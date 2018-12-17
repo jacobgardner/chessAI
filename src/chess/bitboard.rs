@@ -200,11 +200,11 @@ impl BitBoard {
         println!("{:064b}", self.board);
         println!("{}", position.right_index);
 
-        let left_shifted_board = (self.board) << (65 - position.right_index) as usize;
-        let right_shifted_board = self.board >> position.right_index;
+        let left_shifted_board = (self.board) << (64 - position.right_index) as usize;
+        let right_shifted_board = self.board >> (position.right_index + 1);
 
-        let max_left_shift = (position.right_index + 7) % 8;
-        let max_right_shift = (8 - (position.right_index % 8)) % 8;
+        let max_left_shift = (position.right_index) % 8;
+        let max_right_shift = 7 - (position.right_index % 8);
 
 
         let right_spaces = min(right_shifted_board.trailing_zeros() + 1, max_right_shift);
@@ -218,7 +218,9 @@ impl BitBoard {
         bits <<= 1 + left_spaces;
         bits |= (1 << left_spaces) - 1;
 
-        bits <<= position.right_index - left_spaces - 1;
+        println!("{:064b}", bits);
+
+        bits <<= position.right_index - left_spaces;
 
         println!("{:064b}", bits);
 
@@ -472,42 +474,75 @@ mod tests {
         // let slides = all_pieces.horizontal_slides(BitPosition::from(7));
         // assert_eq!(slides, BitBoard::from(0b111_0_1111));
 
+
+        // 76543210
+
+        // r_index |       | 
+        //   % 8   | max_l | max_r
+        // ========================
+        //    0    |   0   |   7
+        //    1    |   1   |   6
+        //    2    |   2   |   5
+        //    3    |   3   |   4
+        //    4    |   4   |   3
+        //    5    |   5   |   2
+        //    6    |   6   |   1
+        //    7    |   7   |   0
+        // 
+        //    board  | idx | left | right 
+        //  00000001 |  0  |  8   |   1
+        //  00000010 |  1  |  7   |   2
+        //  00000100 |  2  |  6   |   3
+        //  00001000 |  3  |  5   |   4
+        //  00010000 |  4  |  4   |   5
+        //  00100000 |  5  |  3   |   6
+        //  01000000 |  6  |  2   |   7
+        //  10000000 |  7  |  1   |   8
+
+        // << BITS - idx 
+        // >> idx + 1 
+
+
+
+        // right index in a horizontal sense is position from the left side
+        // right only refers to the bit position
+        //                               765 4 3210 
         //                              R    X     L
         let all_pieces = BitBoard::new(0b100_1_0001);
-        let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(4));
         assert_eq!(slides, BitBoard::from(0b111_0_1111));
 
         //                              R    X     L
         let all_pieces = BitBoard::new(0b100_1_0001 << 8 * 7);
-        let slides = all_pieces.horizontal_slides(BitPosition::from(5 + 8 * 7));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(4 + 8 * 7));
         assert_eq!(slides, BitBoard::from(0b111_0_1111 << 8 * 7));
 
         //                              R    X     L
         let all_pieces = BitBoard::new(0b100_1_0010);
-        let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(4));
         assert_eq!(slides, BitBoard::from(0b111_0_1110));
 
         //                              R    X     L
         let all_pieces = BitBoard::new(0b100_1_0010 << 8 * 7);
-        let slides = all_pieces.horizontal_slides(BitPosition::from(5 + 8 * 7));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(4 + 8 * 7));
         assert_eq!(slides, BitBoard::from(0b111_0_1110 << 8 * 7));
 
         //                              R    X     L
         let all_pieces = BitBoard::new(0b000_1_0001);
-        let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(4));
         assert_eq!(slides, BitBoard::from(0b111_0_1111));
 
         //                              R    X     L
         let all_pieces = BitBoard::new(0b000_1_0000 << (2 * 8));
-        let slides = all_pieces.horizontal_slides(BitPosition::from(5 + 2 * 8));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(4 + 2 * 8));
         assert_eq!(slides, BitBoard::from(0b111_0_1111 << (2 * 8)));
 
         let all_pieces = BitBoard::new(0b10000000 << (2 * 8));
-        let slides = all_pieces.horizontal_slides(BitPosition::from(8 + 2 * 8));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(7 + 2 * 8));
         assert_eq!(slides, BitBoard::from(0b01111111 << (2 * 8)));
 
         let all_pieces = BitBoard::new(0b00000001 << (2 * 8));
-        let slides = all_pieces.horizontal_slides(BitPosition::from(1 + 2 * 8));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(0 + 2 * 8));
         assert_eq!(slides, BitBoard::from(0b11111110 << (2 * 8)));
 
 
