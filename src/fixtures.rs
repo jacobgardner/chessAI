@@ -36,16 +36,28 @@ pub const BLACK_EN_PASSANT: Move = Move {
     to: RankFile::D4,
 };
 
+// pub const WHITE_ROOK_TEST: &'static str = "
+//     Rxxnxxxx
+//     xxxxxxrx
+//     xxxxxxxx
+//     xxxRxxxx
+//     xxxxRxxp
+//     xxxxxxxx
+//     xrxxxxxx
+//     xxxRxxxR
+// ";
+
 pub const WHITE_ROOK_TEST: &'static str = "
-    Rxxnxxxx
+    xxxnxxxx
     xxxxxxrx
     xxxxxxxx
-    xxxRxxxx
+    xxxxxxxx
     xxxxRxxp
     xxxxxxxx
     xrxxxxxx
-    xxxRxxxR
+    xxxxxxxx
 ";
+
 
 pub const BLACK_ROOK_TEST: &'static str = "
     rxxxNxxx

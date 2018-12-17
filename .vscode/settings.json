@@ -20,4 +20,5 @@
     "files.exclude": {
         "target/**": true
     },
+    "cSpell.enabled": false,
 }

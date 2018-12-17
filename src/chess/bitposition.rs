@@ -43,6 +43,12 @@ impl BitPosition {
         covered_by!("BitPosition::is_rightmost");
         self.right_index % 8 == 7
     }
+
+    pub fn rotate_90cw(self) -> BitPosition {
+        let rank_file = RankFile::from(self);
+
+        BitPosition::from((rank_file.file(), rank_file.rank()))
+    }
 }
 
 impl From<u32> for BitPosition {

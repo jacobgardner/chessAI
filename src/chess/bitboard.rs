@@ -1,5 +1,6 @@
 use std::num::Wrapping;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::cmp::min;
 
 use crate::chess::BitPosition;
 use crate::chess::RankFile;
@@ -191,6 +192,37 @@ impl BitBoard {
     pub fn count_pieces(self) -> u32 {
         covered_by!("BitBoard::count_pieces");
         self.board.count_ones()
+    }
+
+    // TODO: This is not the clearest of codez and I'm not completely confident it works 100%
+    pub fn horizontal_slides(self, position: BitPosition) -> BitBoard {
+        println!("{:?}", self);
+        println!("{:064b}", self.board);
+        println!("{}", position.right_index);
+
+        let left_shifted_board = (self.board) << (65 - position.right_index) as usize;
+        let right_shifted_board = self.board >> position.right_index;
+
+        let max_left_shift = (position.right_index + 7) % 8;
+        let max_right_shift = (8 - (position.right_index % 8)) % 8;
+
+
+        let right_spaces = min(right_shifted_board.trailing_zeros() + 1, max_right_shift);
+        let left_spaces = min(left_shifted_board.leading_zeros() + 1, max_left_shift);
+
+        println!("Left, Right: {}, {}", left_spaces, right_spaces);
+        println!("Max Left, Right: {}, {}", max_left_shift, max_right_shift);
+
+        // This builds the  slide spaces in the current row
+        let mut bits = (1 << right_spaces) - 1;
+        bits <<= 1 + left_spaces;
+        bits |= (1 << left_spaces) - 1;
+
+        bits <<= position.right_index - left_spaces - 1;
+
+        println!("{:064b}", bits);
+
+        BitBoard::from(bits)
     }
 
     // TODO: Rename.  This sucks
@@ -431,6 +463,64 @@ mod tests {
         covers!("BitBoard::shift_down");
 
         assert_eq!(FILE_4.shift_down(), FILE_3);
+    }
+
+    #[test]
+    fn test_horizontal_slides() {
+        // //                              R    X     L
+        // let all_pieces = BitBoard::new(0b110_0_0001);
+        // let slides = all_pieces.horizontal_slides(BitPosition::from(7));
+        // assert_eq!(slides, BitBoard::from(0b111_0_1111));
+
+        //                              R    X     L
+        let all_pieces = BitBoard::new(0b100_1_0001);
+        let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        assert_eq!(slides, BitBoard::from(0b111_0_1111));
+
+        //                              R    X     L
+        let all_pieces = BitBoard::new(0b100_1_0001 << 8 * 7);
+        let slides = all_pieces.horizontal_slides(BitPosition::from(5 + 8 * 7));
+        assert_eq!(slides, BitBoard::from(0b111_0_1111 << 8 * 7));
+
+        //                              R    X     L
+        let all_pieces = BitBoard::new(0b100_1_0010);
+        let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        assert_eq!(slides, BitBoard::from(0b111_0_1110));
+
+        //                              R    X     L
+        let all_pieces = BitBoard::new(0b100_1_0010 << 8 * 7);
+        let slides = all_pieces.horizontal_slides(BitPosition::from(5 + 8 * 7));
+        assert_eq!(slides, BitBoard::from(0b111_0_1110 << 8 * 7));
+
+        //                              R    X     L
+        let all_pieces = BitBoard::new(0b000_1_0001);
+        let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        assert_eq!(slides, BitBoard::from(0b111_0_1111));
+
+        //                              R    X     L
+        let all_pieces = BitBoard::new(0b000_1_0000 << (2 * 8));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(5 + 2 * 8));
+        assert_eq!(slides, BitBoard::from(0b111_0_1111 << (2 * 8)));
+
+        let all_pieces = BitBoard::new(0b10000000 << (2 * 8));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(8 + 2 * 8));
+        assert_eq!(slides, BitBoard::from(0b01111111 << (2 * 8)));
+
+        let all_pieces = BitBoard::new(0b00000001 << (2 * 8));
+        let slides = all_pieces.horizontal_slides(BitPosition::from(1 + 2 * 8));
+        assert_eq!(slides, BitBoard::from(0b11111110 << (2 * 8)));
+
+
+
+
+
+        // //                              R    X     L
+        // let all_pieces = BitBoard::new(0b000_1_0001);
+        // let slides = all_pieces.horizontal_slides(BitPosition::from(5));
+        // assert_eq!(slides, BitBoard::from(0b111_0_1111));
+
+
+
     }
 
     #[test]
