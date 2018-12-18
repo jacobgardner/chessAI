@@ -327,6 +327,7 @@ impl BitBoard {
         self.flip_vertical().flip_diagonal()
     }
 
+    // TODO: Test
     pub fn rotate_45cw(self) -> Rotated45BitBoard {
         covered_by!("BitBoard::rotate_45cw");
         let mut board = self.board;
@@ -338,6 +339,7 @@ impl BitBoard {
         Rotated45BitBoard::from(board)
     }
 
+    // TODO: Is this even needed?
     pub fn rotate_45ccw(self) -> Rotated45BitBoard {
         let mut board = self.board;
         board ^= ROTATE_45CCW_K1.board & (board ^ board.rotate_right(8));
