@@ -37,7 +37,6 @@ impl MoveGenerator {
     fn available_rook_moves(&self, current_position: BitPosition) -> BitBoard {
         let slides = self.all_pieces.horizontal_slides(current_position);
         let rf = RankFile::from(current_position);
-        println!("{:?} => {:?}", rf, RankFile::from(current_position.rotate_90cw()));
 
         slides.join(
             self.all_pieces
@@ -45,7 +44,5 @@ impl MoveGenerator {
                 .horizontal_slides(current_position.rotate_90cw())
                 .rotate_90ccw(),
         ) - self.player_mask
-
-        // slides
     }
 }

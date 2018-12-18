@@ -1,6 +1,6 @@
 use std::cmp::min;
 use std::num::Wrapping;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{BitOr, BitOrAssign, Sub, SubAssign};
 
 use crate::chess::BitPosition;
 use crate::chess::RankFile;
@@ -78,15 +78,6 @@ impl Rotated45BitBoard {
             bits += "\n";
         }
 
-        // println!("{:064b}", bitrange(RankFile::B1 as u64, 0));
-        // println!("{:064b}", bitrange(RankFile::D1 as u64, RankFile::B1 as u64));
-
-        // bits += &to_bitstring(1 << RankFile::A1 as u64 & self, 1);
-        // bits += "\n";
-        // bits += &to_bitstring(1 << RankFile::C1 as u64 & self, 2);
-        // bits += "\n";
-        // // String::from("")
-
         bits
     }
 }
@@ -122,6 +113,7 @@ impl From<RankFile> for BitBoard {
     }
 }
 
+// TODO: Add docs so that it is explicitly clear what these operators do
 impl Sub for BitBoard {
     type Output = BitBoard;
 
@@ -136,16 +128,16 @@ impl SubAssign for BitBoard {
     }
 }
 
-impl Add for BitBoard {
+impl BitOr for BitBoard {
     type Output = BitBoard;
 
-    fn add(self, rhs: BitBoard) -> Self::Output {
+    fn bitor(self, rhs: BitBoard) -> Self::Output {
         self.join(rhs)
     }
 }
 
-impl AddAssign for BitBoard {
-    fn add_assign(&mut self, rhs: BitBoard) {
+impl BitOrAssign for BitBoard {
+    fn bitor_assign(&mut self, rhs: BitBoard) {
         *self = self.join(rhs);
     }
 }
@@ -194,6 +186,7 @@ impl BitBoard {
         self.board.count_ones()
     }
 
+    // TODO: Needs tests
     fn count_left_spaces_inclusive(self, position: BitPosition) -> u32 {
         let shifted_board = if position.right_index > 0 {
             self.board << (64 - position.right_index)
@@ -205,6 +198,7 @@ impl BitBoard {
         min(shifted_board.leading_zeros() + 1, max_left_spaces)
     }
 
+    // TODO: Needs tests
     fn count_right_spaces_inclusive(self, position: BitPosition) -> u32 {
         let shifted_board = if position.right_index < 63 {
             self.board >> (position.right_index + 1)
@@ -215,7 +209,7 @@ impl BitBoard {
         min(shifted_board.trailing_zeros() + 1, max_right_spaces)
     }
 
-    // This doesn't need to be on bitboard
+    // TODO: Needs tests
     pub fn fill_spaces(self, start: u32, end: u32) -> BitBoard {
         let bits = if start < 64 {
             ((1 << (end - start)) - 1) << start
@@ -397,13 +391,13 @@ mod tests {
 
     #[test]
     fn test_add() {
-        assert_eq!(BitBoard::new(A) + BitBoard::new(B), BitBoard::new(A_JOIN_B));
+        assert_eq!(BitBoard::new(A) | BitBoard::new(B), BitBoard::new(A_JOIN_B));
     }
 
     #[test]
     fn test_addassign() {
         let mut c_a = BitBoard::new(A);
-        c_a += BitBoard::new(B);
+        c_a |= BitBoard::new(B);
 
         assert_eq!(c_a, BitBoard::new(A_JOIN_B));
     }

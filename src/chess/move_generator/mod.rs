@@ -72,6 +72,7 @@ impl MoveGenerator {
         board.pieces[piece_index] -= current_position_mask;
         board.players[player_index] -= current_position_mask;
 
+        // TODO: Add sanity checks back
         if capture_mask.is_empty() {
             // self.slide_move_sanity_check(&board, next_position_mask);
         } else {
@@ -79,9 +80,8 @@ impl MoveGenerator {
             self.remove_piece(&mut board, capture_mask);
         }
 
-        board.players[player_index] += next_position_mask;
+        board.players[player_index] |= next_position_mask;
 
-        // NOTE: When making this function generic we'll need a PAWN check
         let next_piece = if piece == PieceType::Pawn {
             if next_position_mask.intersect(ENDS).is_empty() {
                 PieceType::Pawn
@@ -92,7 +92,7 @@ impl MoveGenerator {
             piece
         };
 
-        board.pieces[next_piece as usize] += next_position_mask;
+        board.pieces[next_piece as usize] |= next_position_mask;
 
         board.prev_move = Some(Move {
             piece_type: piece,

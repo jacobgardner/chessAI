@@ -13,9 +13,9 @@ A new attempt at a Chess AI in Rust.  This attempt will try to achieve the follo
         - [x] Double Move
         - [x] Normal Captures
         - [x] En Passant
-    - [ ] Rook
+    - [x] Rook
         - [x] Horizontal Moves
-        - [ ] Vertical Moves
+        - [x] Vertical Moves
     - [ ] Knight
     - [ ] Bishop
     - [ ] Queen
