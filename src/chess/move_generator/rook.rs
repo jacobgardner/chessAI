@@ -10,7 +10,6 @@ impl MoveGenerator {
     ) -> Option<Board> {
         if self.is_first_move {
             self.available_moves = self.available_rook_moves(current_position);
-            println!("{:?}", self.available_moves);
             self.is_first_move = false;
         }
 
@@ -38,15 +37,15 @@ impl MoveGenerator {
     fn available_rook_moves(&self, current_position: BitPosition) -> BitBoard {
         let slides = self.all_pieces.horizontal_slides(current_position);
         let rf = RankFile::from(current_position);
-        println!("{:?}", rf);
+        println!("{:?} => {:?}", rf, RankFile::from(current_position.rotate_90cw()));
 
-        // slides.join(
-        //     self.all_pieces
-        //         .rotate_90cw()
-        //         .horizontal_slides(current_position.rotate_90cw())
-        //         .rotate_90ccw(),
-        // ) - self.player_mask
+        slides.join(
+            self.all_pieces
+                .rotate_90cw()
+                .horizontal_slides(current_position.rotate_90cw())
+                .rotate_90ccw(),
+        ) - self.player_mask
 
-        slides
+        // slides
     }
 }

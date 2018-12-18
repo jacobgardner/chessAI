@@ -5,8 +5,6 @@ To benchmark, run:
 
     cargo bench
 
-
-
 A new attempt at a Chess AI in Rust.  This attempt will try to achieve the following goals:
 
 - [ ] Using proper bitboards for move generation
@@ -16,12 +14,13 @@ A new attempt at a Chess AI in Rust.  This attempt will try to achieve the follo
         - [x] Normal Captures
         - [x] En Passant
     - [ ] Rook
-        - [ ] Horizontal Moves
+        - [x] Horizontal Moves
         - [ ] Vertical Moves
     - [ ] Knight
     - [ ] Bishop
     - [ ] Queen
     - [ ] King
+    - [ ] Castling
 - [ ] Using some sort of Arena for the tree
 - [ ] Minimax w/ alpha-beta pruning
 - [ ] Iterative depth first search

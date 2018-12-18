@@ -260,10 +260,10 @@ impl MoveGenerator {
         // The previous move MUST be a pawn double move
         if let Some(prev_move) = self.root_board.prev_move.as_ref() {
             if prev_move.piece_type == PieceType::Pawn {
-                if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
+                if prev_move.from.rank() == 1 && prev_move.to.rank() == 3 {
                     covered_by!("Pawn::en_passant -> Black");
                     return prev_move.to.into();
-                } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
+                } else if prev_move.from.rank() == 6 && prev_move.to.rank() == 4 {
                     covered_by!("Pawn::en_passant -> White");
                     return prev_move.to.into();
                 }
