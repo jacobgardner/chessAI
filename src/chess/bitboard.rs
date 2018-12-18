@@ -206,26 +206,26 @@ impl BitBoard {
         min(shifted_board.trailing_zeros() + 1, max_right_spaces)
     }
 
+    // This doesn't need to be on bitboard
+    pub fn fill_spaces(self, start: u32, end: u32) -> BitBoard {
+        let bits = ((1 << (end - start)) - 1) << start;
+
+        self.join(BitBoard::new(bits))
+    }
+
+    // The returned bitboard includes up to a single collision
     pub fn horizontal_slides(self, position: BitPosition) -> BitBoard {
         covered_by!("BitBoard::horizontal_slides");
 
         let left_spaces = self.count_left_spaces_inclusive(position);
         let right_spaces = self.count_right_spaces_inclusive(position);
 
-        // Fill in the right spaces with 1s
-        let mut bits = (1 << right_spaces) - 1;
-
-        // Right side is on the high end of the bits so we push 
-        //  those on first and shift them to the correct spot
-        bits <<= 1 + left_spaces;
-
-        // Fill in te left spaces with 1s
-        bits |= (1 << left_spaces) - 1;
-
-        // We have to then shift it to the correct row 
-        bits <<= position.right_index - left_spaces;
-
-        BitBoard::from(bits)
+        BitBoard::empty()
+            .fill_spaces(
+                position.right_index + 1,
+                position.right_index + right_spaces + 1,
+            )
+            .fill_spaces(position.right_index - left_spaces, position.right_index)
     }
 
     // TODO: Rename.  This sucks
@@ -471,41 +471,7 @@ mod tests {
     #[test]
     fn test_horizontal_slides() {
         covers!("BitBoard::horizontal_slides");
-        // //                              R    X     L
-        // let all_pieces = BitBoard::new(0b110_0_0001);
-        // let slides = all_pieces.horizontal_slides(BitPosition::from(7));
-        // assert_eq!(slides, BitBoard::from(0b111_0_1111));
 
-        // 76543210
-
-        // r_index |       |
-        //   % 8   | max_l | max_r
-        // ========================
-        //    0    |   0   |   7
-        //    1    |   1   |   6
-        //    2    |   2   |   5
-        //    3    |   3   |   4
-        //    4    |   4   |   3
-        //    5    |   5   |   2
-        //    6    |   6   |   1
-        //    7    |   7   |   0
-        //
-        //    board  | idx | left | right
-        //  00000001 |  0  |  8   |   1
-        //  00000010 |  1  |  7   |   2
-        //  00000100 |  2  |  6   |   3
-        //  00001000 |  3  |  5   |   4
-        //  00010000 |  4  |  4   |   5
-        //  00100000 |  5  |  3   |   6
-        //  01000000 |  6  |  2   |   7
-        //  10000000 |  7  |  1   |   8
-
-        // << BITS - idx
-        // >> idx + 1
-
-        // right index in a horizontal sense is position from the left side
-        // right only refers to the bit position
-        //                               765 4 3210
         //                              R    X     L
         let all_pieces = BitBoard::new(0b100_1_0001);
         let slides = all_pieces.horizontal_slides(BitPosition::from(4));
