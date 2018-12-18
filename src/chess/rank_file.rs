@@ -2,7 +2,7 @@ use num;
 
 use crate::chess::BitPosition;
 
-#[cfg_attr( rustfmt, rustfmt_skip)]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 #[derive(PartialEq, Clone, Copy, Debug, FromPrimitive)]
 pub enum RankFile {
     A1, B1, C1, D1, E1, F1, G1, H1,

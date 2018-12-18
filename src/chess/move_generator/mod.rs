@@ -1,5 +1,6 @@
 mod pawn;
 mod rook;
+mod knight;
 
 use crate::chess::bitboard::ENDS;
 
@@ -149,7 +150,10 @@ impl Iterator for MoveGenerator {
             let board = match piece_type {
                 PieceType::Pawn => self.generate_next_pawn_move(rightmost_position, piece_mask),
                 PieceType::Rook => self.generate_next_rook_move(rightmost_position, piece_mask),
-                _ => None,
+                PieceType::Knight => self.generate_next_knight_move(rightmost_position, piece_mask),
+                PieceType::Bishop => unimplemented!(),
+                PieceType::Queen => unimplemented!(),
+                PieceType::King => unimplemented!(),
             };
 
             match board {

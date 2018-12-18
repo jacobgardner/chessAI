@@ -84,7 +84,7 @@ impl Rotated45BitBoard {
 
 #[derive(PartialEq, Clone, Copy)]
 pub struct BitBoard {
-    board: u64,
+    pub board: u64,
 }
 
 impl std::fmt::Debug for BitBoard {
@@ -181,6 +181,18 @@ impl BitBoard {
         BitBoard::from(self.board << 8)
     }
 
+    // TODO: Allow shifting n times?
+    pub fn shift_left_1(self) -> Self {
+        println!("{:?}\n{:?}", self, RANK_H);
+        
+        BitBoard::from(self.board << 1) - RANK_A
+    }
+
+    pub fn shift_right_1(self) -> Self {
+        BitBoard::from(self.board >> 1) - RANK_H
+    }
+
+
     pub fn count_pieces(self) -> u32 {
         covered_by!("BitBoard::count_pieces");
         self.board.count_ones()
@@ -205,6 +217,7 @@ impl BitBoard {
         } else {
             0
         };
+
         let max_right_spaces = 7 - (position.right_index % 8);
         min(shifted_board.trailing_zeros() + 1, max_right_spaces)
     }
@@ -220,7 +233,7 @@ impl BitBoard {
         self.join(BitBoard::new(bits))
     }
 
-    // The returned bitboard includes up to a single collision
+    // The returned bitboard includes up to a single collision per side
     pub fn horizontal_slides(self, position: BitPosition) -> BitBoard {
         covered_by!("BitBoard::horizontal_slides");
 

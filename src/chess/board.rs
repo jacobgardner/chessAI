@@ -113,9 +113,7 @@ impl Board {
     }
 
     pub fn generate_moves(&self, player: Player) -> MoveGenerator {
-        let root_board = self.clone();
-
-        MoveGenerator::new(root_board, player)
+        MoveGenerator::new(self.clone(), player)
     }
 }
 
@@ -145,6 +143,7 @@ impl Display for Board {
                 // });
 
                 let chr = if let Some(piece) = piece {
+                    // TODO: Use unicode chess pieces -> https://en.wikipedia.org/wiki/Chess_symbols_in_Unicode
                     let piece_chr = match piece.piece_type {
                         PieceType::Pawn => 'p',
                         PieceType::Rook => 'r',

@@ -7,6 +7,7 @@ use crate::chess::Board;
 use crate::chess::PieceType;
 use crate::chess::Player;
 
+// TODO: Double check to make sure pawns can't capture allies 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
         &mut self,
