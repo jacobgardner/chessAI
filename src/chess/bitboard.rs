@@ -183,13 +183,11 @@ impl BitBoard {
 
     // TODO: Allow shifting n times?
     pub fn shift_left_1(self) -> Self {
-        println!("{:?}\n{:?}", self, RANK_H);
-        
-        BitBoard::from(self.board << 1) - RANK_A
+        BitBoard::from(self.board >> 1) - RANK_H
     }
 
     pub fn shift_right_1(self) -> Self {
-        BitBoard::from(self.board >> 1) - RANK_H
+        BitBoard::from(self.board << 1) - RANK_A
     }
 
 

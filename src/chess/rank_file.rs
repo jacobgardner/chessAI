@@ -2,6 +2,8 @@ use num;
 
 use crate::chess::BitPosition;
 
+// TODO: I don't know if this needs to be separate from BitPosition
+
 #[cfg_attr(rustfmt, rustfmt_skip)]
 #[derive(PartialEq, Clone, Copy, Debug, FromPrimitive)]
 pub enum RankFile {
