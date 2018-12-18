@@ -195,20 +195,33 @@ impl BitBoard {
     }
 
     fn count_left_spaces_inclusive(self, position: BitPosition) -> u32 {
-        let shifted_board = self.board << (64 - position.right_index);
+        let shifted_board = if position.right_index > 0 {
+            self.board << (64 - position.right_index)
+        } else {
+            0
+        };
+
         let max_left_spaces = (position.right_index) % 8;
         min(shifted_board.leading_zeros() + 1, max_left_spaces)
     }
 
     fn count_right_spaces_inclusive(self, position: BitPosition) -> u32 {
-        let shifted_board = self.board >> (position.right_index + 1);
+        let shifted_board = if position.right_index < 63 {
+            self.board >> (position.right_index + 1)
+        } else {
+            0
+        };
         let max_right_spaces = 7 - (position.right_index % 8);
         min(shifted_board.trailing_zeros() + 1, max_right_spaces)
     }
 
     // This doesn't need to be on bitboard
     pub fn fill_spaces(self, start: u32, end: u32) -> BitBoard {
-        let bits = ((1 << (end - start)) - 1) << start;
+        let bits = if start < 64 {
+            ((1 << (end - start)) - 1) << start
+        } else {
+            0
+        };
 
         self.join(BitBoard::new(bits))
     }

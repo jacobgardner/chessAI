@@ -48,7 +48,7 @@ impl BitPosition {
         covered_by!("BitPosition::rotate_90cw");
         let rank_file = RankFile::from(self);
 
-        BitPosition::from((rank_file.file(), rank_file.rank()))
+        BitPosition::from((7 - rank_file.file(), rank_file.rank()))
     }
 }
 
@@ -194,8 +194,6 @@ mod tests {
         assert_eq!(RankFile::from(BitPosition::from(RankFile::D5).rotate_90cw()), RankFile::E5);
         assert_eq!(RankFile::from(BitPosition::from(RankFile::E5).rotate_90cw()), RankFile::E4);
         assert_eq!(RankFile::from(BitPosition::from(RankFile::E4).rotate_90cw()), RankFile::D4);
-
-
 
     }
 
