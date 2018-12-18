@@ -16,7 +16,8 @@ impl MoveGenerator {
         let mut en_passant_mask = BitBoard::empty();
 
         if self.is_first_move {
-            self.available_moves = self.available_pawn_moves(current_position, current_position_mask);
+            self.available_moves =
+                self.available_pawn_moves(current_position, current_position_mask);
             self.available_captures = self.pawn_captures(current_position);
             en_passant_mask = self.check_en_passant();
 

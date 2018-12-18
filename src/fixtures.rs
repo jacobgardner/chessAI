@@ -58,7 +58,6 @@ pub const WHITE_ROOK_TEST: &'static str = "
     xxxxxxxx
 ";
 
-
 pub const BLACK_ROOK_TEST: &'static str = "
     rxxxNxxx
     xxxxxxxx

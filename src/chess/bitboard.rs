@@ -1,6 +1,6 @@
+use std::cmp::min;
 use std::num::Wrapping;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
-use std::cmp::min;
 
 use crate::chess::BitPosition;
 use crate::chess::RankFile;
@@ -194,35 +194,36 @@ impl BitBoard {
         self.board.count_ones()
     }
 
-    // TODO: This is not the clearest of codez and I'm not completely confident it works 100%
+    fn count_left_spaces_inclusive(self, position: BitPosition) -> u32 {
+        let shifted_board = self.board << (64 - position.right_index);
+        let max_left_spaces = (position.right_index) % 8;
+        min(shifted_board.leading_zeros() + 1, max_left_spaces)
+    }
+
+    fn count_right_spaces_inclusive(self, position: BitPosition) -> u32 {
+        let shifted_board = self.board >> (position.right_index + 1);
+        let max_right_spaces = 7 - (position.right_index % 8);
+        min(shifted_board.trailing_zeros() + 1, max_right_spaces)
+    }
+
     pub fn horizontal_slides(self, position: BitPosition) -> BitBoard {
-        println!("{:?}", self);
-        println!("{:064b}", self.board);
-        println!("{}", position.right_index);
+        covered_by!("BitBoard::horizontal_slides");
 
-        let left_shifted_board = (self.board) << (64 - position.right_index) as usize;
-        let right_shifted_board = self.board >> (position.right_index + 1);
+        let left_spaces = self.count_left_spaces_inclusive(position);
+        let right_spaces = self.count_right_spaces_inclusive(position);
 
-        let max_left_shift = (position.right_index) % 8;
-        let max_right_shift = 7 - (position.right_index % 8);
-
-
-        let right_spaces = min(right_shifted_board.trailing_zeros() + 1, max_right_shift);
-        let left_spaces = min(left_shifted_board.leading_zeros() + 1, max_left_shift);
-
-        println!("Left, Right: {}, {}", left_spaces, right_spaces);
-        println!("Max Left, Right: {}, {}", max_left_shift, max_right_shift);
-
-        // This builds the  slide spaces in the current row
+        // Fill in the right spaces with 1s
         let mut bits = (1 << right_spaces) - 1;
+
+        // Right side is on the high end of the bits so we push 
+        //  those on first and shift them to the correct spot
         bits <<= 1 + left_spaces;
+
+        // Fill in te left spaces with 1s
         bits |= (1 << left_spaces) - 1;
 
-        println!("{:064b}", bits);
-
+        // We have to then shift it to the correct row 
         bits <<= position.right_index - left_spaces;
-
-        println!("{:064b}", bits);
 
         BitBoard::from(bits)
     }
@@ -469,15 +470,15 @@ mod tests {
 
     #[test]
     fn test_horizontal_slides() {
+        covers!("BitBoard::horizontal_slides");
         // //                              R    X     L
         // let all_pieces = BitBoard::new(0b110_0_0001);
         // let slides = all_pieces.horizontal_slides(BitPosition::from(7));
         // assert_eq!(slides, BitBoard::from(0b111_0_1111));
 
-
         // 76543210
 
-        // r_index |       | 
+        // r_index |       |
         //   % 8   | max_l | max_r
         // ========================
         //    0    |   0   |   7
@@ -488,8 +489,8 @@ mod tests {
         //    5    |   5   |   2
         //    6    |   6   |   1
         //    7    |   7   |   0
-        // 
-        //    board  | idx | left | right 
+        //
+        //    board  | idx | left | right
         //  00000001 |  0  |  8   |   1
         //  00000010 |  1  |  7   |   2
         //  00000100 |  2  |  6   |   3
@@ -499,14 +500,12 @@ mod tests {
         //  01000000 |  6  |  2   |   7
         //  10000000 |  7  |  1   |   8
 
-        // << BITS - idx 
-        // >> idx + 1 
-
-
+        // << BITS - idx
+        // >> idx + 1
 
         // right index in a horizontal sense is position from the left side
         // right only refers to the bit position
-        //                               765 4 3210 
+        //                               765 4 3210
         //                              R    X     L
         let all_pieces = BitBoard::new(0b100_1_0001);
         let slides = all_pieces.horizontal_slides(BitPosition::from(4));
@@ -545,17 +544,10 @@ mod tests {
         let slides = all_pieces.horizontal_slides(BitPosition::from(0 + 2 * 8));
         assert_eq!(slides, BitBoard::from(0b11111110 << (2 * 8)));
 
-
-
-
-
         // //                              R    X     L
         // let all_pieces = BitBoard::new(0b000_1_0001);
         // let slides = all_pieces.horizontal_slides(BitPosition::from(5));
         // assert_eq!(slides, BitBoard::from(0b111_0_1111));
-
-
-
     }
 
     #[test]

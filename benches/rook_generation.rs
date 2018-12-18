@@ -22,4 +22,3 @@ fn rook_generation(c: &mut Criterion) {
 
 criterion_group!(benches, rook_generation);
 criterion_main!(benches);
-
