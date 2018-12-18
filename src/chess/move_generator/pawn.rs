@@ -158,65 +158,6 @@ impl MoveGenerator {
         }
     }
 
-    // // NOTE: The ONLY case where capture_mask != next_position_mask is en passant
-    // //  We may be able to optimize stuff so we don't need an extra 64 bits for this
-    // //  function
-    // // NOTE: We may be able to make this mostly work for other pieces as well
-    // fn move_pawn(
-    //     &self,
-    //     current_position: BitPosition,
-    //     current_position_mask: BitBoard,
-    //     next_position: BitPosition,
-    //     next_position_mask: BitBoard,
-    //     capture_mask: BitBoard,
-    // ) -> Board {
-    //     let mut board = self.root_board.clone();
-
-    //     let pawn_index = PieceType::Pawn as usize;
-    //     let player_index = self.player as usize;
-
-    //     // Remove current position from pawn and current player bitboards
-    //     board.pieces[pawn_index] -= current_position_mask;
-    //     board.players[player_index] -= current_position_mask;
-
-    //     if capture_mask.is_empty() {
-    //         self.slide_move_sanity_check(&board, next_position_mask);
-    //     } else {
-    //         self.capture_sanity_check(&board, capture_mask);
-    //         self.remove_piece(&mut board, capture_mask);
-    //     }
-
-    //     board.players[player_index] += next_position_mask;
-
-    //     // NOTE: When making this function generic we'll need a PAWN check
-    //     let next_piece = if next_position_mask.intersect(ENDS).is_empty() {
-    //         PieceType::Pawn
-    //     } else {
-    //         PieceType::Queen
-    //     };
-
-    //     board.pieces[next_piece as usize] += next_position_mask;
-
-    //     board.prev_move = Some(Move {
-    //         piece_type: PieceType::Pawn,
-    //         from: current_position.into(),
-    //         to: next_position.into(),
-    //     });
-
-    //     debug_assert!(self.root_board.prev_move != board.prev_move);
-
-    //     board
-    // }
-
-    // fn remove_piece(&self, board: &mut Board, next_position_mask: BitBoard) {
-    //     for i in 0..PIECE_COUNT {
-    //         board.pieces[i] -= next_position_mask;
-    //     }
-
-    //     // And the previous player
-    //     board.players[1 - (self.player as usize)] -= next_position_mask;
-    // }
-
     fn pawn_direction(&self) -> i32 {
         match self.player {
             Player::White => 1,
