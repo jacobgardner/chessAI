@@ -93,8 +93,8 @@ impl MoveGenerator {
         );
 
         let next_position_mask = en_passant_mask
-            .shift_down()
-            .join(en_passant_mask.shift_up())
+            .shift_down(1)
+            .join(en_passant_mask.shift_up(1))
             .intersect(self.diagonals(current_position_mask.first_bit_position()));
 
         debug_assert!(

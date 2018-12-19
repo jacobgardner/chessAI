@@ -8,20 +8,22 @@ impl MoveGenerator {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
+
+        // TODO: rename to indicate this is the first time we're analyzing this piece
         if self.is_first_move {
             self.available_moves = self.available_rook_moves(current_position);
             self.is_first_move = false;
         }
 
         if !self.available_moves.is_empty() {
-            let new_move = self.available_moves.first_bit_position();
-            let next_position_mask = BitBoard::from(new_move);
+            let next_position = self.available_moves.first_bit_position();
+            let next_position_mask = BitBoard::from(next_position);
 
             let board = self.move_piece(
                 PieceType::Rook,
                 current_position,
                 current_position_mask,
-                new_move,
+                next_position,
                 next_position_mask,
                 next_position_mask.intersect(self.enemy_mask),
             );
