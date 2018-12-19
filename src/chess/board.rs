@@ -120,12 +120,12 @@ impl Display for Board {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let mut board = String::with_capacity(128);
 
-        board += "       +════════+\n";
+        board += "       ╔═════════════════╗\n";
 
         for r in 0..8 {
             // let rank_chr = (65u8 + (7 - r as u8))  as char;
 
-            board += &format!("0x{: <02x} {} ║", (7 - r) * 8, 8 - r);
+            board += &format!("0x{: <02x} {} ║ ", (7 - r) * 8, 8 - r);
 
             for f in 0..8 {
                 let piece = self.piece_at(7 - r, f).map_err(|_| fmt::Error)?;
@@ -146,17 +146,18 @@ impl Display for Board {
                         black_piece
                     }
                 } else {
-                    '.'
+                    '·'
                 };
 
                 board += &chr.to_string();
+                board += " ";
             }
             board += &format!("║ {}\n", (8 - r) * 8 - 1);
 
         }
 
-        board += "       ╚════════+\n";
-        board += "        ABCDEFGH\n";
+        board += "       ╚═════════════════╝\n";
+        board += "         A B C D E F G H\n";
 
         write!(formatter, "{}", board)
     }
