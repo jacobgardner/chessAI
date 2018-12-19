@@ -3,7 +3,6 @@ use super::MoveGenerator;
 use crate::chess::bitboard::{FILE_1, FILE_2, FILE_7, FILE_8};
 use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
-// TODO: Double check to make sure pawns can't capture allies 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
         &mut self,

@@ -35,7 +35,6 @@ lazy_static! {
 
         masks
     };
-
     static ref RIGHT_SHIFT_MASK: [BitBoard; 9] = {
         let mut masks: [BitBoard; 9] = [BitBoard::empty(); 9];
 
@@ -105,7 +104,7 @@ impl Rotated45BitBoard {
 
 #[derive(PartialEq, Clone, Copy)]
 pub struct BitBoard {
-    pub board: u64,
+    board: u64,
 }
 
 impl std::fmt::Debug for BitBoard {
@@ -202,12 +201,19 @@ impl BitBoard {
         BitBoard::from(self.board << (8 * count))
     }
 
-    // TODO: Docs that say pieces pushed across edge are removed
+    /// Shifts all the pieces left on the board by `count` spaces. If a piece is pushed left off the board
+    /// it is removed.
+    /// 
+    /// # Panics
+    /// 
+    /// This function panics if `count` is greater than 8.
     pub fn shift_left(self, count: usize) -> Self {
         covered_by!("BitBoard::shift_left");
         BitBoard::from(self.board >> count) - LEFT_SHIFT_MASK[count]
     }
 
+    // TODO: We could join shift_left/shift_right into shift_horizontal or something...
+    /// See shift_left for details.  This has the same result but to the right and same constraints.
     pub fn shift_right(self, count: usize) -> Self {
         covered_by!("BitBoard::shift_right");
         BitBoard::from(self.board << count) - RIGHT_SHIFT_MASK[count]
@@ -786,14 +792,12 @@ mod tests {
         assert_eq!(RANK_B.shift_left(5), BitBoard::empty());
         assert_eq!(RANK_B.shift_left(8), BitBoard::empty());
 
-
         assert_eq!(RANK_E.shift_left(1), RANK_D);
         assert_eq!(RANK_E.shift_left(2), RANK_C);
         assert_eq!(RANK_E.shift_left(3), RANK_B);
         assert_eq!(RANK_E.shift_left(4), RANK_A);
         assert_eq!(RANK_E.shift_left(8), BitBoard::empty());
         assert_eq!(RANK_E.shift_left(5), BitBoard::empty());
-
 
         assert_eq!(RANK_H.shift_left(1), RANK_G);
         assert_eq!(RANK_H.shift_left(2), RANK_F);
@@ -815,7 +819,6 @@ mod tests {
         assert_eq!(RANK_B.shift_right(5), RANK_G);
         assert_eq!(RANK_B.shift_right(8), BitBoard::empty());
 
-
         assert_eq!(RANK_E.shift_right(1), RANK_F);
         assert_eq!(RANK_E.shift_right(2), RANK_G);
         assert_eq!(RANK_E.shift_right(3), RANK_H);
@@ -823,14 +826,12 @@ mod tests {
         assert_eq!(RANK_E.shift_right(8), BitBoard::empty());
         assert_eq!(RANK_E.shift_right(5), BitBoard::empty());
 
-
         assert_eq!(RANK_G.shift_right(1), RANK_H);
         assert_eq!(RANK_G.shift_right(2), BitBoard::empty());
         assert_eq!(RANK_G.shift_right(3), BitBoard::empty());
         assert_eq!(RANK_G.shift_right(4), BitBoard::empty());
         assert_eq!(RANK_G.shift_right(5), BitBoard::empty());
     }
-
 
     #[test]
     fn test_flip_vertical() {
