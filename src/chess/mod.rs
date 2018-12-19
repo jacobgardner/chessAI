@@ -1,4 +1,3 @@
-// LOW: Some of these may make more sense in a module up a directory
 mod bitboard;
 mod bitposition;
 mod board;

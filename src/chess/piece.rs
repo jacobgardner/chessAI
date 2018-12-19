@@ -1,5 +1,4 @@
-use crate::chess::PieceType;
-use crate::chess::Player;
+use crate::chess::{PieceType, Player};
 
 #[derive(Debug, PartialEq)]
 pub struct Piece {
