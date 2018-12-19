@@ -16,26 +16,25 @@ impl MoveGenerator {
             self.is_first_move = false;
         }
 
-        // TODO: This implemenation is literally the same for everything but pawn.
-        //  We can unify these for all the move generators
         if !self.available_moves.is_empty() {
-            let next_position = self.available_moves.first_bit_position();
-            let next_position_mask = BitBoard::from(next_position);
-
-            let board = self.move_piece(
-                PieceType::Bishop,
-                current_position,
-                current_position_mask,
-                next_position,
-                next_position_mask,
-                next_position_mask.intersect(self.enemy_mask),
-            );
-
-            self.available_moves -= next_position_mask;
-
-            return Some(board);
+            return None;
         }
-        None
+
+        let next_position = self.available_moves.first_bit_position();
+        let next_position_mask = BitBoard::from(next_position);
+
+        let board = self.move_piece(
+            PieceType::Bishop,
+            current_position,
+            current_position_mask,
+            next_position,
+            next_position_mask,
+            next_position_mask.intersect(self.enemy_mask),
+        );
+
+        self.available_moves -= next_position_mask;
+
+        Some(board)
     }
 
     fn available_bishop_moves(
@@ -43,6 +42,8 @@ impl MoveGenerator {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> BitBoard {
+        // NOTE: We would likely get much much better performance
+        //  by using rotated bitboards instead.
         let rf = RankFile::from(current_position);
 
         let left = rf.file();
@@ -54,9 +55,6 @@ impl MoveGenerator {
         let top_right = min(top, right);
         let bot_left = min(bot, left);
         let bot_right = min(bot, right);
-
-        println!("{} {} {} {}", left, bot, right, top);
-        println!("{} {} {} {}", top_left, top_right, bot_left, bot_right);
 
         let everything_else = self.all_pieces - current_position_mask;
 
@@ -86,8 +84,6 @@ impl MoveGenerator {
                 break;
             }
         }
-
-        println!("{:?}", bot_left_positions);
 
         let mut bot_right_positions = current_position_mask.clone();
         for _ in 0..bot_right {
