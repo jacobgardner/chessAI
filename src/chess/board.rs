@@ -2,15 +2,8 @@ use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::chess::errors::{BoardError, InvalidStringReason};
-use crate::chess::BitBoard;
-use crate::chess::BitPosition;
-use crate::chess::Move;
-use crate::chess::MoveGenerator;
-use crate::chess::Piece;
-use crate::chess::PieceType;
-use crate::chess::Player;
-use crate::chess::PIECE_COUNT;
-use crate::chess::PLAYER_COUNT;
+use crate::chess::{BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player};
+use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
 
 #[derive(PartialEq, Clone)]
 pub struct Board {
@@ -127,48 +120,44 @@ impl Display for Board {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let mut board = String::with_capacity(128);
 
-        board += "       +--------+\n";
+        board += "       ╔═════════════════╗\n";
 
         for r in 0..8 {
             // let rank_chr = (65u8 + (7 - r as u8))  as char;
 
-            board += &format!("0x{: <02x} {} |", (7 - r) * 8, 8 - r);
+            board += &format!("0x{: <02x} {} ║ ", (7 - r) * 8, 8 - r);
 
             for f in 0..8 {
                 let piece = self.piece_at(7 - r, f).map_err(|_| fmt::Error)?;
 
-                // let piece = Some(Piece {
-                //     piece_type: PieceType::Pawn,
-                //     player: Player::White
-                // });
-
                 let chr = if let Some(piece) = piece {
-                    // TODO: Use unicode chess pieces -> https://en.wikipedia.org/wiki/Chess_symbols_in_Unicode
-                    let piece_chr = match piece.piece_type {
-                        PieceType::Pawn => 'p',
-                        PieceType::Rook => 'r',
-                        PieceType::Bishop => 'b',
-                        PieceType::Knight => 'n',
-                        PieceType::King => 'k',
-                        PieceType::Queen => 'q',
+                    let (white_piece, black_piece) = match piece.piece_type {
+                        PieceType::Pawn => ( '♙', '♟' ),
+                        PieceType::Rook => ('♖', '♜'),
+                        PieceType::Bishop => ('♗', '♝'),
+                        PieceType::Knight => ('♘', '♞'),
+                        PieceType::King => ('♔', '♚'),
+                        PieceType::Queen => ('♕', '♛'),
                     };
 
                     if piece.player == Player::White {
-                        piece_chr.to_ascii_uppercase()
+                        white_piece
                     } else {
-                        piece_chr
+                        black_piece
                     }
                 } else {
-                    '.'
+                    '·'
                 };
 
                 board += &chr.to_string();
+                board += " ";
             }
-            board += &format!("| {}\n", (8 - r) * 8 - 1);
+            board += &format!("║ {}\n", (8 - r) * 8 - 1);
+
         }
 
-        board += "       +--------+\n";
-        board += "        ABCDEFGH\n";
+        board += "       ╚═════════════════╝\n";
+        board += "         A B C D E F G H\n";
 
         write!(formatter, "{}", board)
     }

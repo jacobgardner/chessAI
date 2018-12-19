@@ -9,6 +9,9 @@ extern crate uncover;
 extern crate num_derive;
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate lazy_static;
+
 
 define_uncover_macros!(enable_if(cfg!(debug_assertions)));
 
@@ -16,9 +19,8 @@ pub mod chess;
 pub mod fixtures;
 pub mod test_moves;
 
-use crate::chess::BitBoard;
-use crate::chess::Board;
 use crate::chess::DEFAULT_BOARD;
+use crate::chess::{BitBoard, Board};
 
 fn main() -> Result<(), failure::Error> {
     let pieces: [BitBoard; 6] = [

@@ -1,13 +1,8 @@
 use super::MoveGenerator;
 
 use crate::chess::bitboard::{FILE_1, FILE_2, FILE_7, FILE_8};
-use crate::chess::BitBoard;
-use crate::chess::BitPosition;
-use crate::chess::Board;
-use crate::chess::PieceType;
-use crate::chess::Player;
+use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
-// TODO: Double check to make sure pawns can't capture allies 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
         &mut self,
@@ -98,8 +93,8 @@ impl MoveGenerator {
         );
 
         let next_position_mask = en_passant_mask
-            .shift_down()
-            .join(en_passant_mask.shift_up())
+            .shift_down(1)
+            .join(en_passant_mask.shift_up(1))
             .intersect(self.diagonals(current_position_mask.first_bit_position()));
 
         debug_assert!(
