@@ -62,7 +62,7 @@ impl MoveGenerator {
 
         let mut top_left_positions = current_position_mask.clone();
         for _ in 0..top_left {
-            top_left_positions |= top_left_positions.shift_up().shift_left_1();
+            top_left_positions |= top_left_positions.shift_up(1).shift_left(1);
 
             if !top_left_positions.intersect(everything_else).is_empty() {
                 break;
@@ -71,7 +71,7 @@ impl MoveGenerator {
 
         let mut top_right_positions = current_position_mask.clone();
         for _ in 0..top_right {
-            top_right_positions |= top_right_positions.shift_up().shift_right_1();
+            top_right_positions |= top_right_positions.shift_up(1).shift_right(1);
 
             if !top_right_positions.intersect(everything_else).is_empty() {
                 break;
@@ -80,7 +80,7 @@ impl MoveGenerator {
 
         let mut bot_left_positions = current_position_mask.clone();
         for _ in 0..bot_left {
-            bot_left_positions |= bot_left_positions.shift_down().shift_left_1();
+            bot_left_positions |= bot_left_positions.shift_down(1).shift_left(1);
 
             if !bot_left_positions.intersect(everything_else).is_empty() {
                 break;
@@ -91,7 +91,7 @@ impl MoveGenerator {
 
         let mut bot_right_positions = current_position_mask.clone();
         for _ in 0..bot_right {
-            bot_right_positions |= bot_right_positions.shift_down().shift_right_1();
+            bot_right_positions |= bot_right_positions.shift_down(1).shift_right(1);
 
             if !bot_right_positions.intersect(everything_else).is_empty() {
                 break;
