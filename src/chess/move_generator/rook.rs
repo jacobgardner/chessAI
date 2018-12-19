@@ -1,6 +1,6 @@
 use super::MoveGenerator;
 
-use crate::chess::{BitBoard, BitPosition, Board, PieceType, RankFile};
+use crate::chess::{BitBoard, BitPosition, Board, PieceType};
 
 impl MoveGenerator {
     pub(crate) fn generate_next_rook_move(
@@ -36,7 +36,6 @@ impl MoveGenerator {
 
     fn available_rook_moves(&self, current_position: BitPosition) -> BitBoard {
         let slides = self.all_pieces.horizontal_slides(current_position);
-        let rf = RankFile::from(current_position);
 
         slides.join(
             self.all_pieces
