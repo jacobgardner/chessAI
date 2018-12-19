@@ -185,16 +185,39 @@ mod tests {
     fn test_rotate_90cw() {
         covers!("BitPosition::rotate_90cw");
 
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::A8).rotate_90cw()), RankFile::H8);
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::H8).rotate_90cw()), RankFile::H1);
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::H1).rotate_90cw()), RankFile::A1);
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::A1).rotate_90cw()), RankFile::A8);
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::A8).rotate_90cw()),
+            RankFile::H8
+        );
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::H8).rotate_90cw()),
+            RankFile::H1
+        );
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::H1).rotate_90cw()),
+            RankFile::A1
+        );
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::A1).rotate_90cw()),
+            RankFile::A8
+        );
 
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::D4).rotate_90cw()), RankFile::D5);
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::D5).rotate_90cw()), RankFile::E5);
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::E5).rotate_90cw()), RankFile::E4);
-        assert_eq!(RankFile::from(BitPosition::from(RankFile::E4).rotate_90cw()), RankFile::D4);
-
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::D4).rotate_90cw()),
+            RankFile::D5
+        );
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::D5).rotate_90cw()),
+            RankFile::E5
+        );
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::E5).rotate_90cw()),
+            RankFile::E4
+        );
+        assert_eq!(
+            RankFile::from(BitPosition::from(RankFile::E4).rotate_90cw()),
+            RankFile::D4
+        );
     }
 
 }

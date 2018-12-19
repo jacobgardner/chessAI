@@ -1,11 +1,7 @@
 use super::MoveGenerator;
 
 use crate::chess::bitboard::{FILE_1, FILE_2, FILE_7, FILE_8};
-use crate::chess::BitBoard;
-use crate::chess::BitPosition;
-use crate::chess::Board;
-use crate::chess::PieceType;
-use crate::chess::Player;
+use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(

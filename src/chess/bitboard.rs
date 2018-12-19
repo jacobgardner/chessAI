@@ -2,8 +2,7 @@ use std::cmp::min;
 use std::num::Wrapping;
 use std::ops::{BitOr, BitOrAssign, Sub, SubAssign};
 
-use crate::chess::BitPosition;
-use crate::chess::RankFile;
+use crate::chess::{BitPosition, RankFile};
 
 pub const FILE_8: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
 pub const FILE_7: BitBoard = BitBoard::new(0x00ff_0000_0000_0000);
@@ -674,7 +673,10 @@ mod tests {
 
         assert_eq!(BitBoard::empty().fill_spaces(4, 8), BitBoard::new(0xF0));
 
-        assert_eq!(WHITE_SQUARES.fill_spaces(56, 64), WHITE_SQUARES.join(FILE_8));
+        assert_eq!(
+            WHITE_SQUARES.fill_spaces(56, 64),
+            WHITE_SQUARES.join(FILE_8)
+        );
     }
 
     #[test]
@@ -725,11 +727,6 @@ mod tests {
         let all_pieces = BitBoard::new(0b00000001 << (2 * 8));
         let slides = all_pieces.horizontal_slides(BitPosition::from(0 + 2 * 8));
         assert_eq!(slides, BitBoard::from(0b11111110 << (2 * 8)));
-
-        // //                              R    X     L
-        // let all_pieces = BitBoard::new(0b000_1_0001);
-        // let slides = all_pieces.horizontal_slides(BitPosition::from(5));
-        // assert_eq!(slides, BitBoard::from(0b111_0_1111));
     }
 
     #[test]

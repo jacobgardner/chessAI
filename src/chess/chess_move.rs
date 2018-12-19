@@ -1,5 +1,4 @@
-use crate::chess::PieceType;
-use crate::chess::RankFile;
+use crate::chess::{PieceType, RankFile};
 
 // NOTE: It is impossible to generate Algebraic Notation (AN) or
 //  Portable Game Notation (PGN) with just the piece and from/to
