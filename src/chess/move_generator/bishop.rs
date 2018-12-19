@@ -16,7 +16,7 @@ impl MoveGenerator {
             self.is_first_move = false;
         }
 
-        if !self.available_moves.is_empty() {
+        if self.available_moves.is_empty() {
             return None;
         }
 

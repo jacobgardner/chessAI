@@ -80,3 +80,25 @@ pub const BLACK_KNIGHT_TEST: &'static str = "
     xxxxNxnn
 ";
 
+pub const WHITE_BISHOP_TEST: &'static str = "
+    Bxxnxxxx
+    xxxxxxrx
+    xxxxxxxx
+    xxxBxxxx
+    xxxxBxxp
+    xrxxxxxx
+    xrxxxxxx
+    xxxBxxxB
+";
+
+pub const BLACK_BISHOP_TEST: &'static str = "
+    bxxxNxxx
+    xxxxxxxx
+    xxxxxbxx
+    xxxxxxxx
+    xxbxxxxN
+    xxxxxRxx
+    xxxxbxxx
+    xxxxNxbb
+";
+
