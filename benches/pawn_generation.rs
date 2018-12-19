@@ -4,7 +4,7 @@ extern crate lib;
 #[macro_use]
 extern crate criterion;
 
-use lib::chess::{Board, Player};
+use lib::chess::Player;
 use lib::fixtures::*;
 use lib::test_moves::generate_moves_for_board;
 

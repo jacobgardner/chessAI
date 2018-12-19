@@ -57,3 +57,26 @@ pub const BLACK_ROOK_TEST: &'static str = "
     xxxxrxxx
     xxxxNxrr
 ";
+
+pub const WHITE_KNIGHT_TEST: &'static str = "
+    Nxxnxxxx
+    xxxxxxrx
+    xxxxxxxx
+    xxxNxxxx
+    xxxxNxxp
+    xxxxxxxx
+    xrxxxxxx
+    xxxNxxxN
+";
+
+pub const BLACK_KNIGHT_TEST: &'static str = "
+    nxxxNxxx
+    xxxxxxxx
+    xxxxxnxx
+    xxxxxxxx
+    xxnxxxxN
+    xxxxxxxx
+    xxxxnxxx
+    xxxxNxnn
+";
+
