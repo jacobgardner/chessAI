@@ -186,8 +186,11 @@ impl BitBoard {
         self.board.count_ones()
     }
 
-    // TODO: Needs tests
     fn count_left_spaces_inclusive(self, position: BitPosition) -> u32 {
+        covered_by!("BitBoard::count_left_spaces_inclusive");
+
+        debug_assert!(position.right_index < 64);
+
         let shifted_board = if position.right_index > 0 {
             self.board << (64 - position.right_index)
         } else {
@@ -198,8 +201,8 @@ impl BitBoard {
         min(shifted_board.leading_zeros() + 1, max_left_spaces)
     }
 
-    // TODO: Needs tests
     fn count_right_spaces_inclusive(self, position: BitPosition) -> u32 {
+        covered_by!("BitBoard::count_right_spaces_inclusive");
         let shifted_board = if position.right_index < 63 {
             self.board >> (position.right_index + 1)
         } else {
@@ -466,6 +469,64 @@ mod tests {
         assert_eq!(FILE_4.count_pieces(), 8);
 
         assert_eq!(BitBoard::new(0x00100).count_pieces(), 1);
+    }
+
+    #[test]
+    fn test_count_left_spaces_inclusive() {
+        covers!("BitBoard::count_left_spaces_inclusive");
+
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(7)), 7);
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(4)), 4);
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(0)), 0);
+
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(8)), 0);
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(11)), 3);
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(15)), 7);
+
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(63)), 7);
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(60)), 4);
+        assert_eq!(BitBoard::new(0).count_left_spaces_inclusive(BitPosition::from(56)), 0);
+
+        assert_eq!(BitBoard::new(1 << 5 | 1 << 7).count_left_spaces_inclusive(BitPosition::from(7)), 2);
+        assert_eq!(BitBoard::new(1).count_left_spaces_inclusive(BitPosition::from(4)), 4);
+        assert_eq!(BitBoard::new(1 << 4).count_left_spaces_inclusive(BitPosition::from(0)), 0);
+
+        assert_eq!(BitBoard::new(1 << 10).count_left_spaces_inclusive(BitPosition::from(8)), 0);
+        assert_eq!(BitBoard::new(1 << 9).count_left_spaces_inclusive(BitPosition::from(11)), 2);
+        assert_eq!(BitBoard::new(1 << 10).count_left_spaces_inclusive(BitPosition::from(15)), 5);
+
+        assert_eq!(BitBoard::new(1 << 60).count_left_spaces_inclusive(BitPosition::from(63)), 3);
+        assert_eq!(BitBoard::new(1 << 56).count_left_spaces_inclusive(BitPosition::from(60)), 4);
+        assert_eq!(BitBoard::new(1 << 60).count_left_spaces_inclusive(BitPosition::from(56)), 0);
+    }
+
+    #[test]
+    fn test_count_right_spaces_inclusive() {
+        covers!("BitBoard::count_right_spaces_inclusive");
+
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(7)), 0);
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(4)), 3);
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(0)), 7);
+
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(8)), 7);
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(11)), 4);
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(15)), 0);
+
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(63)), 0);
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(60)), 3);
+        assert_eq!(BitBoard::new(0).count_right_spaces_inclusive(BitPosition::from(56)), 7);
+
+        assert_eq!(BitBoard::new(1 << 5 | 1 << 7).count_right_spaces_inclusive(BitPosition::from(7)), 0);
+        assert_eq!(BitBoard::new(1).count_right_spaces_inclusive(BitPosition::from(4)), 3);
+        assert_eq!(BitBoard::new(1 << 4).count_right_spaces_inclusive(BitPosition::from(0)), 4);
+
+        assert_eq!(BitBoard::new(1 << 10).count_right_spaces_inclusive(BitPosition::from(8)), 2);
+        assert_eq!(BitBoard::new(1 << 9).count_right_spaces_inclusive(BitPosition::from(11)), 4);
+        assert_eq!(BitBoard::new(1 << 10).count_right_spaces_inclusive(BitPosition::from(15)), 0);
+
+        assert_eq!(BitBoard::new(1 << 60).count_right_spaces_inclusive(BitPosition::from(63)), 0);
+        assert_eq!(BitBoard::new(1 << 56).count_right_spaces_inclusive(BitPosition::from(60)), 3);
+        assert_eq!(BitBoard::new(1 << 60).count_right_spaces_inclusive(BitPosition::from(56)), 4);
     }
 
     #[test]
