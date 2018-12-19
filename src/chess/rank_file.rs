@@ -23,11 +23,11 @@ impl From<BitPosition> for RankFile {
 
 impl RankFile {
     pub fn rank(self) -> u8 {
-        self as u8 % 8
+        self as u8 / 8
     }
 
     pub fn file(self) -> u8 {
-        self as u8 / 8
+        self as u8 % 8
     }
 }
 
@@ -36,24 +36,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rank() {
-        assert_eq!(RankFile::A1.rank(), 0);
-        assert_eq!(RankFile::A3.rank(), 0);
-        assert_eq!(RankFile::A8.rank(), 0);
-        assert_eq!(RankFile::B2.rank(), 1);
-        assert_eq!(RankFile::C8.rank(), 2);
-        assert_eq!(RankFile::D1.rank(), 3);
-        assert_eq!(RankFile::H8.rank(), 7);
+    fn test_file() {
+        assert_eq!(RankFile::A1.file(), 0);
+        assert_eq!(RankFile::A3.file(), 0);
+        assert_eq!(RankFile::A8.file(), 0);
+        assert_eq!(RankFile::B2.file(), 1);
+        assert_eq!(RankFile::C8.file(), 2);
+        assert_eq!(RankFile::D1.file(), 3);
+        assert_eq!(RankFile::H1.file(), 7);
+        assert_eq!(RankFile::H8.file(), 7);
     }
 
     #[test]
-    fn test_file() {
-        assert_eq!(RankFile::A1.file(), 0);
-        assert_eq!(RankFile::A3.file(), 2);
-        assert_eq!(RankFile::A8.file(), 7);
-        assert_eq!(RankFile::B2.file(), 1);
-        assert_eq!(RankFile::C8.file(), 7);
-        assert_eq!(RankFile::D1.file(), 0);
-        assert_eq!(RankFile::H8.file(), 7);
+    fn test_rank() {
+        assert_eq!(RankFile::A1.rank(), 0);
+        assert_eq!(RankFile::A3.rank(), 2);
+        assert_eq!(RankFile::A8.rank(), 7);
+        assert_eq!(RankFile::B2.rank(), 1);
+        assert_eq!(RankFile::C8.rank(), 7);
+        assert_eq!(RankFile::D1.rank(), 0);
+        assert_eq!(RankFile::H8.rank(), 7);
     }
 }

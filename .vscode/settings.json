@@ -17,4 +17,8 @@
         "TODO",
         "FIXME"
     ],
+    "files.exclude": {
+        "target/**": true
+    },
+    "cSpell.enabled": false,
 }

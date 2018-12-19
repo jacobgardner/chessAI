@@ -1,10 +1,10 @@
 mod pawn;
+mod rook;
 
-use crate::chess::BitBoard;
-use crate::chess::Board;
-use crate::chess::PieceType;
-use crate::chess::Player;
+use crate::chess::bitboard::ENDS;
+
 use crate::chess::PIECE_COUNT;
+use crate::chess::{BitBoard, BitPosition, Board, Move, PieceType, Player};
 
 pub struct MoveGenerator {
     root_board: Board,
@@ -53,6 +53,66 @@ impl MoveGenerator {
     fn generate_player_piecetype_mask(&self, piece_index: usize) -> BitBoard {
         self.root_board.pieces[piece_index].intersect(self.player_mask)
     }
+
+    fn move_piece(
+        &self,
+        piece: PieceType,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        next_position: BitPosition,
+        next_position_mask: BitBoard,
+        capture_mask: BitBoard,
+    ) -> Board {
+        let mut board = self.root_board.clone();
+
+        let piece_index = piece as usize;
+        let player_index = self.player as usize;
+
+        // Remove current position from pawn and current player bitboards
+        board.pieces[piece_index] -= current_position_mask;
+        board.players[player_index] -= current_position_mask;
+
+        // TODO: Add sanity checks back
+        if capture_mask.is_empty() {
+            // self.slide_move_sanity_check(&board, next_position_mask);
+        } else {
+            // self.capture_sanity_check(&board, capture_mask);
+            self.remove_piece(&mut board, capture_mask);
+        }
+
+        board.players[player_index] |= next_position_mask;
+
+        let next_piece = if piece == PieceType::Pawn {
+            if next_position_mask.intersect(ENDS).is_empty() {
+                PieceType::Pawn
+            } else {
+                PieceType::Queen
+            }
+        } else {
+            piece
+        };
+
+        board.pieces[next_piece as usize] |= next_position_mask;
+
+        board.prev_move = Some(Move {
+            piece_type: piece,
+            from: current_position.into(),
+            to: next_position.into(),
+        });
+
+        debug_assert!(self.root_board.prev_move != board.prev_move);
+
+        board
+    }
+
+    fn remove_piece(&self, board: &mut Board, next_position_mask: BitBoard) {
+        for i in 0..PIECE_COUNT {
+            board.pieces[i] -= next_position_mask;
+        }
+
+        // And the previous player
+        board.players[1 - (self.player as usize)] -= next_position_mask;
+    }
 }
 
 impl Iterator for MoveGenerator {
@@ -86,24 +146,21 @@ impl Iterator for MoveGenerator {
 
             let piece_type: PieceType = num::FromPrimitive::from_usize(self.piece_index).unwrap();
 
-            match piece_type {
-                PieceType::Pawn => {
-                    match self.generate_next_pawn_move(rightmost_position, piece_mask) {
-                        Some(board) => {
-                            return Some(board);
-                        }
-                        None => {
-                            self.is_first_move = true;
-                            self.player_piecetype_mask -= piece_mask;
-                        }
-                    }
+            let board = match piece_type {
+                PieceType::Pawn => self.generate_next_pawn_move(rightmost_position, piece_mask),
+                PieceType::Rook => self.generate_next_rook_move(rightmost_position, piece_mask),
+                _ => None,
+            };
+
+            match board {
+                Some(board) => {
+                    return Some(board);
                 }
-                _ => {
-                    // NOTE: We'll want to remove the piece from the mask if there are no
-                    //  moves left.
+                None => {
+                    self.is_first_move = true;
                     self.player_piecetype_mask -= piece_mask;
                 }
-            }
+            };
         }
     }
 }

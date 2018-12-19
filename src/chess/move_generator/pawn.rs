@@ -1,13 +1,7 @@
 use super::MoveGenerator;
 
-use crate::chess::bitboard::{ENDS, FILE_1, FILE_2, FILE_7, FILE_8};
-use crate::chess::BitBoard;
-use crate::chess::BitPosition;
-use crate::chess::Board;
-use crate::chess::Move;
-use crate::chess::PieceType;
-use crate::chess::Player;
-use crate::chess::PIECE_COUNT;
+use crate::chess::bitboard::{FILE_1, FILE_2, FILE_7, FILE_8};
+use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
 impl MoveGenerator {
     pub(crate) fn generate_next_pawn_move(
@@ -18,7 +12,8 @@ impl MoveGenerator {
         let mut en_passant_mask = BitBoard::empty();
 
         if self.is_first_move {
-            self.available_moves = self.available_moves(current_position, current_position_mask);
+            self.available_moves =
+                self.available_pawn_moves(current_position, current_position_mask);
             self.available_captures = self.pawn_captures(current_position);
             en_passant_mask = self.check_en_passant();
 
@@ -70,7 +65,8 @@ impl MoveGenerator {
         let new_move = available_moves.first_bit_position();
         let next_position_mask = BitBoard::from(new_move);
 
-        let board = self.move_pawn(
+        let board = self.move_piece(
+            PieceType::Pawn,
             current_position,
             current_position_mask,
             new_move,
@@ -110,7 +106,8 @@ impl MoveGenerator {
         if !next_position_mask.is_empty() {
             let new_move = next_position_mask.first_bit_position();
 
-            let board = self.move_pawn(
+            let board = self.move_piece(
+                PieceType::Pawn,
                 current_position,
                 current_position_mask,
                 new_move,
@@ -157,65 +154,6 @@ impl MoveGenerator {
         }
     }
 
-    // NOTE: The ONLY case where capture_mask != next_position_mask is en passant
-    //  We may be able to optimize stuff so we don't need an extra 64 bits for this
-    //  function
-    // NOTE: We may be able to make this mostly work for other pieces as well
-    fn move_pawn(
-        &self,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-        next_position: BitPosition,
-        next_position_mask: BitBoard,
-        capture_mask: BitBoard,
-    ) -> Board {
-        let mut board = self.root_board.clone();
-
-        let pawn_index = PieceType::Pawn as usize;
-        let player_index = self.player as usize;
-
-        // Remove current position from pawn and current player bitboards
-        board.pieces[pawn_index] -= current_position_mask;
-        board.players[player_index] -= current_position_mask;
-
-        if capture_mask.is_empty() {
-            self.slide_move_sanity_check(&board, next_position_mask);
-        } else {
-            self.capture_sanity_check(&board, capture_mask);
-            self.remove_piece(&mut board, capture_mask);
-        }
-
-        board.players[player_index] += next_position_mask;
-
-        // NOTE: When making this function generic we'll need a PAWN check
-        let next_piece = if next_position_mask.intersect(ENDS).is_empty() {
-            PieceType::Pawn
-        } else {
-            PieceType::Queen
-        };
-
-        board.pieces[next_piece as usize] += next_position_mask;
-
-        board.prev_move = Some(Move {
-            piece_type: PieceType::Pawn,
-            from: current_position.into(),
-            to: next_position.into(),
-        });
-
-        debug_assert!(self.root_board.prev_move != board.prev_move);
-
-        board
-    }
-
-    fn remove_piece(&self, board: &mut Board, next_position_mask: BitBoard) {
-        for i in 0..PIECE_COUNT {
-            board.pieces[i] -= next_position_mask;
-        }
-
-        // And the previous player
-        board.players[1 - (self.player as usize)] -= next_position_mask;
-    }
-
     fn pawn_direction(&self) -> i32 {
         match self.player {
             Player::White => 1,
@@ -258,7 +196,7 @@ impl MoveGenerator {
         possible_double_move - self.all_pieces
     }
 
-    fn available_moves(
+    fn available_pawn_moves(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
@@ -318,10 +256,10 @@ impl MoveGenerator {
         // The previous move MUST be a pawn double move
         if let Some(prev_move) = self.root_board.prev_move.as_ref() {
             if prev_move.piece_type == PieceType::Pawn {
-                if prev_move.from.file() == 1 && prev_move.to.file() == 3 {
+                if prev_move.from.rank() == 1 && prev_move.to.rank() == 3 {
                     covered_by!("Pawn::en_passant -> Black");
                     return prev_move.to.into();
-                } else if prev_move.from.file() == 6 && prev_move.to.file() == 4 {
+                } else if prev_move.from.rank() == 6 && prev_move.to.rank() == 4 {
                     covered_by!("Pawn::en_passant -> White");
                     return prev_move.to.into();
                 }
