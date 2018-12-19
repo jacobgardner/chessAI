@@ -9,6 +9,9 @@ extern crate uncover;
 extern crate num_derive;
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate lazy_static;
+
 
 define_uncover_macros!(enable_if(cfg!(debug_assertions)));
 

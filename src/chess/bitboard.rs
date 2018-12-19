@@ -25,6 +25,28 @@ pub const RANK_H: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
 pub const ENDS: BitBoard = BitBoard::new(FILE_1.board | FILE_8.board);
 pub const SIDES: BitBoard = BitBoard::new(RANK_A.board | RANK_H.board);
 
+lazy_static! {
+    static ref LEFT_SHIFT_MASK: [BitBoard; 9] = {
+        let mut masks: [BitBoard; 9] = [BitBoard::empty(); 9];
+
+        for shift in 1..9 {
+            masks[shift] = BitBoard::new(RANK_H.board >> (shift - 1)).join(masks[shift - 1])
+        }
+
+        masks
+    };
+
+    static ref RIGHT_SHIFT_MASK: [BitBoard; 9] = {
+        let mut masks: [BitBoard; 9] = [BitBoard::empty(); 9];
+
+        for shift in 1..9 {
+            masks[shift] = BitBoard::new(RANK_A.board << (shift - 1)).join(masks[shift - 1])
+        }
+
+        masks
+    };
+}
+
 pub const WHITE_SQUARES: BitBoard = BitBoard::new(
     0b0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010_0101_0101_1010_1010,
 );
@@ -170,27 +192,26 @@ impl BitBoard {
         self.board == 0
     }
 
-    pub fn shift_down(self) -> Self {
+    pub fn shift_down(self, count: usize) -> Self {
         covered_by!("BitBoard::shift_down");
-        BitBoard::from(self.board >> 8)
+        BitBoard::from(self.board >> (8 * count))
     }
 
-    pub fn shift_up(self) -> Self {
+    pub fn shift_up(self, count: usize) -> Self {
         covered_by!("BitBoard::shift_up");
-        BitBoard::from(self.board << 8)
+        BitBoard::from(self.board << (8 * count))
     }
 
-    // TODO: Allow shifting n times?
-    pub fn shift_left_1(self) -> Self {
-        println!("{:?}\n{:?}", self, RANK_H);
-        
-        BitBoard::from(self.board << 1) - RANK_A
+    // TODO: Docs that say pieces pushed across edge are removed
+    pub fn shift_left(self, count: usize) -> Self {
+        covered_by!("BitBoard::shift_left");
+        BitBoard::from(self.board >> count) - LEFT_SHIFT_MASK[count]
     }
 
-    pub fn shift_right_1(self) -> Self {
-        BitBoard::from(self.board >> 1) - RANK_H
+    pub fn shift_right(self, count: usize) -> Self {
+        covered_by!("BitBoard::shift_right");
+        BitBoard::from(self.board << count) - RIGHT_SHIFT_MASK[count]
     }
-
 
     pub fn count_pieces(self) -> u32 {
         covered_by!("BitBoard::count_pieces");
@@ -696,7 +717,10 @@ mod tests {
     fn test_shift_down() {
         covers!("BitBoard::shift_down");
 
-        assert_eq!(FILE_4.shift_down(), FILE_3);
+        assert_eq!(FILE_4.shift_down(1), FILE_3);
+        assert_eq!(FILE_1.shift_down(1), BitBoard::empty());
+        assert_eq!(FILE_6.shift_down(2), FILE_4);
+        assert_eq!(FILE_8.shift_down(7), FILE_1);
     }
 
     #[test]
@@ -746,8 +770,67 @@ mod tests {
     fn test_shift_up() {
         covers!("BitBoard::shift_up");
 
-        assert_eq!(FILE_4.shift_up(), FILE_5);
+        assert_eq!(FILE_4.shift_up(1), FILE_5);
+        assert_eq!(FILE_4.shift_up(3), FILE_7);
+        assert_eq!(FILE_7.shift_up(1), FILE_8);
+        assert_eq!(FILE_7.shift_up(2), BitBoard::empty());
     }
+
+    #[test]
+    fn test_shift_left() {
+        covers!("BitBoard::shift_left");
+
+        assert_eq!(RANK_B.shift_left(1), RANK_A);
+        assert_eq!(RANK_B.shift_left(2), BitBoard::empty());
+        assert_eq!(RANK_B.shift_left(3), BitBoard::empty());
+        assert_eq!(RANK_B.shift_left(5), BitBoard::empty());
+        assert_eq!(RANK_B.shift_left(8), BitBoard::empty());
+
+
+        assert_eq!(RANK_E.shift_left(1), RANK_D);
+        assert_eq!(RANK_E.shift_left(2), RANK_C);
+        assert_eq!(RANK_E.shift_left(3), RANK_B);
+        assert_eq!(RANK_E.shift_left(4), RANK_A);
+        assert_eq!(RANK_E.shift_left(8), BitBoard::empty());
+        assert_eq!(RANK_E.shift_left(5), BitBoard::empty());
+
+
+        assert_eq!(RANK_H.shift_left(1), RANK_G);
+        assert_eq!(RANK_H.shift_left(2), RANK_F);
+        assert_eq!(RANK_H.shift_left(3), RANK_E);
+        assert_eq!(RANK_H.shift_left(4), RANK_D);
+        assert_eq!(RANK_H.shift_left(5), RANK_C);
+        assert_eq!(RANK_H.shift_left(6), RANK_B);
+        assert_eq!(RANK_H.shift_left(7), RANK_A);
+        assert_eq!(RANK_H.shift_left(8), BitBoard::empty());
+    }
+
+    #[test]
+    fn test_shift_right() {
+        covers!("BitBoard::shift_right");
+
+        assert_eq!(RANK_B.shift_right(1), RANK_C);
+        assert_eq!(RANK_B.shift_right(2), RANK_D);
+        assert_eq!(RANK_B.shift_right(3), RANK_E);
+        assert_eq!(RANK_B.shift_right(5), RANK_G);
+        assert_eq!(RANK_B.shift_right(8), BitBoard::empty());
+
+
+        assert_eq!(RANK_E.shift_right(1), RANK_F);
+        assert_eq!(RANK_E.shift_right(2), RANK_G);
+        assert_eq!(RANK_E.shift_right(3), RANK_H);
+        assert_eq!(RANK_E.shift_right(4), BitBoard::empty());
+        assert_eq!(RANK_E.shift_right(8), BitBoard::empty());
+        assert_eq!(RANK_E.shift_right(5), BitBoard::empty());
+
+
+        assert_eq!(RANK_G.shift_right(1), RANK_H);
+        assert_eq!(RANK_G.shift_right(2), BitBoard::empty());
+        assert_eq!(RANK_G.shift_right(3), BitBoard::empty());
+        assert_eq!(RANK_G.shift_right(4), BitBoard::empty());
+        assert_eq!(RANK_G.shift_right(5), BitBoard::empty());
+    }
+
 
     #[test]
     fn test_flip_vertical() {
