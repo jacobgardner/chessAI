@@ -133,7 +133,17 @@ impl From<RankFile> for BitBoard {
     }
 }
 
-// TODO: Add docs so that it is explicitly clear what these operators do
+/// For two boards, `A` and `B` if we perform, `A - B` the result will be
+///    the unsetting of any bits (or spaces) in `A` that exist in `B`.
+/// 
+/// ```
+/// # use lib::chess::BitBoard;
+/// assert_eq!(
+///     BitBoard::new(0b11001100) 
+///   - BitBoard::new(0b01100110),
+///     BitBoard::new(0b10001000)   
+/// );
+/// ```
 impl Sub for BitBoard {
     type Output = BitBoard;
 
@@ -148,6 +158,17 @@ impl SubAssign for BitBoard {
     }
 }
 
+/// For two boards, `A` and `B` if we perform, `A | B` the result will be
+///    the setting of any bits (or spaces) in `A` or exist in `B`.
+/// 
+/// ```
+/// # use lib::chess::BitBoard;
+/// assert_eq!(
+///     BitBoard::new(0b11001100) 
+///   | BitBoard::new(0b01100110),
+///     BitBoard::new(0b11101110)   
+/// );
+/// ```
 impl BitOr for BitBoard {
     type Output = BitBoard;
 
@@ -217,6 +238,21 @@ impl BitBoard {
     pub fn shift_right(self, count: usize) -> Self {
         covered_by!("BitBoard::shift_right");
         BitBoard::from(self.board << count) - RIGHT_SHIFT_MASK[count]
+    }
+
+    pub fn shift(self, rank_count: i32, file_count: i32) -> Self {
+
+        let vert_board = if rank_count >= 0 {
+            self.shift_up(rank_count as usize)
+        } else {
+            self.shift_down(-rank_count as usize)
+        };
+
+        if file_count >= 0 {
+            vert_board.shift_right(file_count as usize)
+        } else {
+            vert_board.shift_left(-file_count as usize)
+        }
     }
 
     pub fn count_pieces(self) -> u32 {
@@ -366,6 +402,7 @@ impl BitBoard {
         self.flip_vertical().flip_diagonal()
     }
 
+    // TODO: Test
     pub fn rotate_45cw(self) -> Rotated45BitBoard {
         covered_by!("BitBoard::rotate_45cw");
         let mut board = self.board;

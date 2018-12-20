@@ -9,7 +9,7 @@ name = "lib"
 path = "src/main.rs"
 
 [[bin]]
-name = "chessAI"
+name = "chess_ai"
 path = "src/main.rs"
 test = false
 bench = false
@@ -36,4 +36,12 @@ harness = false
 
 [[bench]]
 name = "rook_generation"
+harness = false
+
+[[bench]]
+name = "knight_generation"
+harness = false
+
+[[bench]]
+name = "bishop_generation"
 harness = false

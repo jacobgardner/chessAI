@@ -76,7 +76,7 @@ impl Board {
             ));
         }
 
-        // TODO: Make sure this correctly throws an error on non-ascii
+        // LOW: Make sure this correctly throws an error on non-ascii
         for (i, chr) in board.chars().enumerate() {
             if !chr.is_ascii() {
                 return Err(BoardError::InvalidString(
