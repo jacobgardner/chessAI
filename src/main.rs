@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 // #![cfg_attr(feature = "strict", allow(dead_code))]
 // #![cfg_attr(feature = "strict", deny(missing_docs))]
