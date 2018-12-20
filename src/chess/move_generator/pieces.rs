@@ -67,7 +67,7 @@ impl MoveGenerator {
         }) - self.player_mask
     }
 
-    pub(super) fn find_knight_moves(&self, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
+    pub(super) fn find_knight_moves(&self, _: BitPosition, current_position_mask: BitBoard) -> BitBoard {
         // NOTE: We could make this do all knight moves in parallel if we wanted
         // NOTE: My dad could beat up your dad if he wanted
         let single_horiz_shift = current_position_mask
