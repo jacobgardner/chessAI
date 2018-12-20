@@ -18,8 +18,8 @@ A new attempt at a Chess AI in Rust.  This attempt will try to achieve the follo
         - [x] Vertical Moves
     - [x] Knight
     - [x] Bishop
-    - [ ] Queen
-    - [ ] King
+    - [x] Queen
+    - [x] King
     - [ ] Castling
 - [ ] Using some sort of Arena for the tree
 - [ ] Minimax w/ alpha-beta pruning
