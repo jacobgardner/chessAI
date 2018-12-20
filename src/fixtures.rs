@@ -123,3 +123,26 @@ pub const BLACK_QUEEN_TEST: &str = "
     xxxxqxxx
     xxxxNxqq
 ";
+
+pub const WHITE_KING_TEST: &str = "
+    Kxxnxxxx
+    xxxxxxrx
+    xxxxxxxx
+    xxxKxxxx
+    xxxxKxxp
+    xrxxxxxx
+    xrxxxxxx
+    xxxKxxxK
+";
+
+pub const BLACK_KING_TEST: &str = "
+    kxxxNxxx
+    xxxxxxxx
+    xxxxxkxx
+    xxxxxxxx
+    xxkxxxxN
+    xxxxxRxx
+    xxxxkxxx
+    xxxxNxkk
+";
+
