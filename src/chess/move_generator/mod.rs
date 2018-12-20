@@ -180,8 +180,14 @@ impl MoveGenerator {
                 PieceType::King => unimplemented!(),
             };
 
-            // self.find_available_moves(move_gen, current_position, current_position_mask);
             self.is_first_move = false;
+
+            if piece_type == PieceType::Pawn {
+                if let Some(board) = self.generate_en_passant_board(current_position, current_position_mask) {
+                    return Some(board);
+                }
+            }
+
         }
 
         if self.available_moves.is_empty() {

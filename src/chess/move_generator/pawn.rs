@@ -102,8 +102,13 @@ impl MoveGenerator {
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
-        en_passant_mask: BitBoard,
     ) -> Option<Board> {
+        let en_passant_mask = self.check_en_passant();
+
+        if en_passant_mask.is_empty() {
+            return None;
+        }
+
         debug_assert!(
             en_passant_mask.count_pieces() == 1,
             "There can only be a single en passant capture per piece possible."
@@ -193,7 +198,7 @@ impl MoveGenerator {
         moves
     }
 
-    fn check_en_passant(&self) -> BitBoard {
+    pub(super) fn check_en_passant(&self) -> BitBoard {
         // The previous move MUST be a pawn double move
         if let Some(prev_move) = self.root_board.prev_move.as_ref() {
             if prev_move.piece_type == PieceType::Pawn {
