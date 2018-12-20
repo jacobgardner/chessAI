@@ -118,20 +118,21 @@ impl MoveGenerator {
         board.players[1 - (self.player as usize)] -= next_position_mask;
     }
 
-    fn find_available_moves_for_piece(&self, piece_type: PieceType, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
+    fn find_available_moves_for_piece(
+        &self,
+        piece_type: PieceType,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> BitBoard {
         match piece_type {
             PieceType::Rook => self.find_rook_moves(current_position, current_position_mask),
-            PieceType::Bishop => {
-                self.find_bishop_moves(current_position, current_position_mask)
-            }
+            PieceType::Bishop => self.find_bishop_moves(current_position, current_position_mask),
             PieceType::Queen => self.find_queen_moves(current_position, current_position_mask),
-            PieceType::Knight => {
-                self.find_knight_moves(current_position, current_position_mask)
-            }
+            PieceType::Knight => self.find_knight_moves(current_position, current_position_mask),
             PieceType::Pawn => self.find_pawn_moves(current_position, current_position_mask),
             PieceType::King => unimplemented!(),
         }
-    } 
+    }
 
     fn generate_next_move(
         &mut self,
@@ -140,7 +141,11 @@ impl MoveGenerator {
         current_position_mask: BitBoard,
     ) -> Option<Board> {
         if self.is_first_move {
-            self.available_moves = self.find_available_moves_for_piece(piece_type, current_position, current_position_mask);
+            self.available_moves = self.find_available_moves_for_piece(
+                piece_type,
+                current_position,
+                current_position_mask,
+            );
             self.is_first_move = false;
 
             if piece_type == PieceType::Pawn {
