@@ -1,8 +1,8 @@
-mod pawn;
-mod rook;
-mod knight;
 mod bishop;
+mod knight;
+mod pawn;
 mod queen;
+mod rook;
 
 use crate::chess::bitboard::ENDS;
 

@@ -8,10 +8,10 @@ impl MoveGenerator {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
-
         // TODO: rename to indicate this is the first time we're analyzing this piece
         if self.is_first_move {
-            self.available_moves = self.available_rook_moves(current_position, current_position_mask);
+            self.available_moves =
+                self.available_rook_moves(current_position, current_position_mask);
             self.is_first_move = false;
         }
 
@@ -36,7 +36,11 @@ impl MoveGenerator {
         None
     }
 
-    pub(super) fn available_rook_moves(&self, current_position: BitPosition, _: BitBoard) -> BitBoard {
+    pub(super) fn available_rook_moves(
+        &self,
+        current_position: BitPosition,
+        _: BitBoard,
+    ) -> BitBoard {
         let slides = self.all_pieces.horizontal_slides(current_position);
 
         slides.join(

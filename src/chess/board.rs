@@ -132,7 +132,7 @@ impl Display for Board {
 
                 let chr = if let Some(piece) = piece {
                     let (white_piece, black_piece) = match piece.piece_type {
-                        PieceType::Pawn => ( '♙', '♟' ),
+                        PieceType::Pawn => ('♙', '♟'),
                         PieceType::Rook => ('♖', '♜'),
                         PieceType::Bishop => ('♗', '♝'),
                         PieceType::Knight => ('♘', '♞'),
@@ -153,7 +153,6 @@ impl Display for Board {
                 board += " ";
             }
             board += &format!("║ {}\n", (8 - r) * 8 - 1);
-
         }
 
         board += "       ╚═════════════════╝\n";

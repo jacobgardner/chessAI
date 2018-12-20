@@ -22,4 +22,3 @@ fn queen_generation(c: &mut Criterion) {
 
 criterion_group!(benches, queen_generation);
 criterion_main!(benches);
-

@@ -9,7 +9,8 @@ impl MoveGenerator {
         current_position_mask: BitBoard,
     ) -> Option<Board> {
         if self.is_first_move {
-            self.available_moves = self.available_queen_moves(current_position, current_position_mask);
+            self.available_moves =
+                self.available_queen_moves(current_position, current_position_mask);
             self.is_first_move = false;
         }
 
@@ -34,7 +35,12 @@ impl MoveGenerator {
         None
     }
 
-    fn available_queen_moves(&self, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
-        self.available_rook_moves(current_position, current_position_mask).join(self.available_bishop_moves(current_position, current_position_mask))
+    fn available_queen_moves(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> BitBoard {
+        self.available_rook_moves(current_position, current_position_mask)
+            .join(self.available_bishop_moves(current_position, current_position_mask))
     }
 }
