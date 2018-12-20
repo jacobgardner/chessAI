@@ -1,8 +1,5 @@
-mod bishop;
-mod knight;
 mod pawn;
-mod queen;
-mod rook;
+mod pieces;
 mod sanity_checks;
 
 use crate::chess::bitboard::ENDS;
