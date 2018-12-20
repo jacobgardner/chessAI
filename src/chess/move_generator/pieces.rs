@@ -67,10 +67,9 @@ impl MoveGenerator {
         }) - self.player_mask
     }
 
-    pub(super) fn find_knight_moves(&self, current_position: BitPosition, _: BitBoard) -> BitBoard {
+    pub(super) fn find_knight_moves(&self, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
         // NOTE: We could make this do all knight moves in parallel if we wanted
-        let current_position_mask = BitBoard::from(current_position);
-
+        // NOTE: My dad could beat up your dad if he wanted
         let single_horiz_shift = current_position_mask
             .shift_left(1)
             .join(current_position_mask.shift_right(1));
@@ -90,5 +89,13 @@ impl MoveGenerator {
             .join(single_horiz_shift.shift_down(2));
 
         single_vert_shift.join(double_vert_shift) - self.player_mask
+    }
+
+    pub (super) fn find_king_moves(&self, _: BitPosition, current_position_mask: BitBoard) -> BitBoard {
+        let mut mask = current_position_mask.join(current_position_mask.shift_left(1)).join(current_position_mask.shift_right(1));
+
+        mask |= mask.shift_up(1).join(mask.shift_down(1));
+
+        mask - self.player_mask
     }
 }

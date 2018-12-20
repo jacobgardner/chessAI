@@ -127,7 +127,7 @@ impl MoveGenerator {
             PieceType::Queen => self.find_queen_moves(current_position, current_position_mask),
             PieceType::Knight => self.find_knight_moves(current_position, current_position_mask),
             PieceType::Pawn => self.find_pawn_moves(current_position, current_position_mask),
-            PieceType::King => unimplemented!(),
+            PieceType::King => self.find_king_moves(current_position, current_position_mask),
         }
     }
 
