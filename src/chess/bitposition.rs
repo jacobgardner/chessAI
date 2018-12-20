@@ -5,7 +5,7 @@ pub struct BitPosition {
     // This is called right_index because it's the distance from the
     //  right side of the bits.
     // 1 << 10 would have a right index of 10...
-    // TODO: Figure out a better way to word that
+    // LOW: Figure out a better way to word that
     // TODO: Figure out a better name
     pub(crate) right_index: u32,
 }
