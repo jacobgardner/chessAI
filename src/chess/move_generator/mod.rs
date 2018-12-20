@@ -9,6 +9,38 @@ use crate::chess::bitboard::ENDS;
 use crate::chess::PIECE_COUNT;
 use crate::chess::{BitBoard, BitPosition, Board, Move, PieceType, Player};
 
+trait PieceMoveGenerator {
+    fn generate_next_move(&self, move_gen: &mut MoveGenerator, current_position: BitPosition, current_position_mask: BitBoard) -> Option<Board> {
+        if move_gen.is_first_move {
+            move_gen.available_moves = self.find_available_moves(current_position, current_position_mask);
+        }
+
+        if move_gen.available_moves.is_empty() {
+            return None;
+        }
+
+
+        let next_position = move_gen.available_moves.first_bit_position();
+        let next_position_mask = BitBoard::from(next_position);
+
+        let board = move_gen.move_piece(
+            self.piece_type(),
+            current_position,
+            current_position_mask,
+            next_position,
+            next_position_mask,
+            next_position_mask.intersect(move_gen.enemy_mask),
+        );
+
+        move_gen.available_moves -= next_position_mask;
+
+        Some(board)
+    }
+
+    fn find_available_moves(&self, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard;
+    fn piece_type(&self) -> PieceType;
+}
+
 pub struct MoveGenerator {
     root_board: Board,
     player: Player,
