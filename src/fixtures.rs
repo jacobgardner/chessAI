@@ -102,3 +102,24 @@ pub const BLACK_BISHOP_TEST: &'static str = "
     xxxxNxbb
 ";
 
+pub const WHITE_QUEEN_TEST: &'static str = "
+    Qxxnxxxx
+    xxxxxxrx
+    xxxxxxxx
+    xxxQxxxx
+    xxxxQxxp
+    xrxxxxxx
+    xrxxxxxx
+    xxxQxxxQ
+";
+
+pub const BLACK_QUEEN_TEST: &'static str = "
+    qxxxNxxx
+    xxxxxxxx
+    xxxxxqxx
+    xxxxxxxx
+    xxqxxxxN
+    xxxxxRxx
+    xxxxqxxx
+    xxxxNxqq
+";

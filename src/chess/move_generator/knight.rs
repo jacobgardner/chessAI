@@ -49,7 +49,7 @@ impl MoveGenerator {
             .join(current_position_mask.shift_right(2));
 
         // two over, one up
-        let single_vert_shift = double_horiz_shift 
+        let single_vert_shift = double_horiz_shift
             .shift_up(1)
             .join(double_horiz_shift.shift_down(1));
 

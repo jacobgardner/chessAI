@@ -45,3 +45,7 @@ harness = false
 [[bench]]
 name = "bishop_generation"
 harness = false
+
+[[bench]]
+name = "queen_generation"
+harness = false

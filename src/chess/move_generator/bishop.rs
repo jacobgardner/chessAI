@@ -37,7 +37,7 @@ impl MoveGenerator {
         Some(board)
     }
 
-    fn available_bishop_moves(
+    pub(super) fn available_bishop_moves(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
@@ -58,7 +58,14 @@ impl MoveGenerator {
 
         let everything_else = self.all_pieces - current_position_mask;
 
-        [(top_left, 1, -1), (top_right, 1, 1), (bot_left, -1, -1), (bot_right, -1, 1)].iter().fold(BitBoard::empty(), |acc, &(count, rank, file)| {
+        [
+            (top_left, 1, -1),
+            (top_right, 1, 1),
+            (bot_left, -1, -1),
+            (bot_right, -1, 1),
+        ]
+        .iter()
+        .fold(BitBoard::empty(), |acc, &(count, rank, file)| {
             let mut board = current_position_mask.clone();
             for _ in 0..count {
                 board |= board.shift(rank, file);
@@ -71,6 +78,5 @@ impl MoveGenerator {
 
             acc.join(board)
         }) - self.player_mask
-
     }
 }

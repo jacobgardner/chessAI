@@ -135,11 +135,11 @@ impl From<RankFile> for BitBoard {
 
 /// For two boards, `A` and `B` if we perform, `A - B` the result will be
 ///    the unsetting of any bits (or spaces) in `A` that exist in `B`.
-/// 
+///
 /// ```
 /// # use lib::chess::BitBoard;
 /// assert_eq!(
-///     BitBoard::new(0b11001100) 
+///     BitBoard::new(0b11001100)
 ///   - BitBoard::new(0b01100110),
 ///     BitBoard::new(0b10001000)   
 /// );
@@ -160,11 +160,11 @@ impl SubAssign for BitBoard {
 
 /// For two boards, `A` and `B` if we perform, `A | B` the result will be
 ///    the setting of any bits (or spaces) in `A` or exist in `B`.
-/// 
+///
 /// ```
 /// # use lib::chess::BitBoard;
 /// assert_eq!(
-///     BitBoard::new(0b11001100) 
+///     BitBoard::new(0b11001100)
 ///   | BitBoard::new(0b01100110),
 ///     BitBoard::new(0b11101110)   
 /// );
@@ -224,9 +224,9 @@ impl BitBoard {
 
     /// Shifts all the pieces left on the board by `count` spaces. If a piece is pushed left off the board
     /// it is removed.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// This function panics if `count` is greater than 8.
     pub fn shift_left(self, count: usize) -> Self {
         covered_by!("BitBoard::shift_left");
@@ -241,7 +241,6 @@ impl BitBoard {
     }
 
     pub fn shift(self, rank_count: i32, file_count: i32) -> Self {
-
         let vert_board = if rank_count >= 0 {
             self.shift_up(rank_count as usize)
         } else {
