@@ -3,6 +3,7 @@ mod knight;
 mod pawn;
 mod queen;
 mod rook;
+mod sanity_checks;
 
 use crate::chess::bitboard::ENDS;
 
@@ -183,11 +184,12 @@ impl MoveGenerator {
             self.is_first_move = false;
 
             if piece_type == PieceType::Pawn {
-                if let Some(board) = self.generate_en_passant_board(current_position, current_position_mask) {
+                if let Some(board) =
+                    self.generate_en_passant_board(current_position, current_position_mask)
+                {
                     return Some(board);
                 }
             }
-
         }
 
         if self.available_moves.is_empty() {
