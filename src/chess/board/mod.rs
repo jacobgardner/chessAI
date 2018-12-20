@@ -175,7 +175,7 @@ impl Board {
 
         board.next_player = match self.next_player {
             Player::White => Player::Black,
-            Player::Black => Player::White
+            Player::Black => Player::White,
         };
 
         board

@@ -160,7 +160,8 @@ impl Iterator for MoveGenerator {
 
             match self.generate_next_move(piece_type, rightmost_position, piece_mask) {
                 Some(board) => {
-                    // TODO: Test if these moves are actually removed
+                    // LOW: This loop only matters for tests where we have > 1 king.
+                    //  Possibly remove and optimize for release mode?
                     let mut king_mask = board.players[self.player as usize]
                         .intersect(board.pieces[PieceType::King as usize]);
 
