@@ -219,6 +219,21 @@ impl BitBoard {
         BitBoard::from(self.board << count) - RIGHT_SHIFT_MASK[count]
     }
 
+    pub fn shift(self, rank_count: i32, file_count: i32) -> Self {
+
+        let vert_board = if rank_count >= 0 {
+            self.shift_up(rank_count as usize)
+        } else {
+            self.shift_down(-rank_count as usize)
+        };
+
+        if file_count >= 0 {
+            vert_board.shift_right(file_count as usize)
+        } else {
+            vert_board.shift_left(-file_count as usize)
+        }
+    }
+
     pub fn count_pieces(self) -> u32 {
         covered_by!("BitBoard::count_pieces");
         self.board.count_ones()
