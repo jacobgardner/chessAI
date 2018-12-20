@@ -1,17 +1,18 @@
-use super::{MoveGenerator, PieceMoveGenerator};
+use super::MoveGenerator;
 
 use crate::chess::{BitBoard, BitPosition, PieceType};
-use super::{RookMoveGen, BishopMoveGen};
 
-pub(in super) struct QueenMoveGen;
-
-impl PieceMoveGenerator for QueenMoveGen {
+impl MoveGenerator {
     fn piece_type(&self) -> PieceType {
         PieceType::Queen
     }
 
-    fn find_available_moves(&self, move_gen: &MoveGenerator, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
-        BishopMoveGen.find_available_moves(move_gen, current_position, current_position_mask)
-            .join(RookMoveGen.find_available_moves(move_gen, current_position, current_position_mask))
+    pub(super) fn find_queen_moves(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> BitBoard {
+        self.find_bishop_moves(current_position, current_position_mask)
+            .join(self.find_rook_moves(current_position, current_position_mask))
     }
 }

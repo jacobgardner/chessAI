@@ -1,16 +1,14 @@
-use super::{MoveGenerator, PieceMoveGenerator};
+use super::MoveGenerator;
 use std::cmp::min;
 
-use crate::chess::{BitBoard, BitPosition, PieceType, RankFile};
+use crate::chess::{BitBoard, BitPosition, RankFile};
 
-pub(in super) struct BishopMoveGen;
-
-impl PieceMoveGenerator for BishopMoveGen {
-    fn piece_type(&self) -> PieceType {
-        PieceType::Bishop
-    }
-
-    fn find_available_moves(&self, move_gen: &MoveGenerator, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
+impl MoveGenerator {
+    pub(super) fn find_bishop_moves(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> BitBoard {
         // NOTE: We would likely get much much better performance
         //  by using rotated bitboards instead.
         let rf = RankFile::from(current_position);
@@ -25,7 +23,7 @@ impl PieceMoveGenerator for BishopMoveGen {
         let bot_left = min(bot, left);
         let bot_right = min(bot, right);
 
-        let everything_else = move_gen.all_pieces - current_position_mask;
+        let everything_else = self.all_pieces - current_position_mask;
 
         [
             (top_left, 1, -1),
@@ -46,6 +44,6 @@ impl PieceMoveGenerator for BishopMoveGen {
             }
 
             acc.join(board)
-        }) - move_gen.player_mask
+        }) - self.player_mask
     }
 }

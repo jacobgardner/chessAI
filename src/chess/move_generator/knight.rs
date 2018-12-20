@@ -1,15 +1,9 @@
-use super::{MoveGenerator, PieceMoveGenerator};
+use super::MoveGenerator;
 
-use crate::chess::{BitBoard, BitPosition, PieceType};
+use crate::chess::{BitBoard, BitPosition};
 
-pub(in super) struct KnightMoveGen;
-
-impl PieceMoveGenerator for KnightMoveGen {
-    fn piece_type(&self) -> PieceType {
-        PieceType::Knight
-    }
-
-    fn find_available_moves(&self, move_gen: &MoveGenerator, current_position: BitPosition, _: BitBoard) -> BitBoard {
+impl MoveGenerator {
+    pub(super) fn find_knight_moves(&self, current_position: BitPosition, _: BitBoard) -> BitBoard {
         // NOTE: We could make this do all knight moves in parallel if we wanted
         let current_position_mask = BitBoard::from(current_position);
 
@@ -31,6 +25,6 @@ impl PieceMoveGenerator for KnightMoveGen {
             .shift_up(2)
             .join(single_horiz_shift.shift_down(2));
 
-        single_vert_shift.join(double_vert_shift) - move_gen.player_mask
+        single_vert_shift.join(double_vert_shift) - self.player_mask
     }
 }

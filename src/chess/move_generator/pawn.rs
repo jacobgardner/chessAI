@@ -4,154 +4,56 @@ use crate::chess::bitboard::{FILE_1, FILE_2, FILE_7, FILE_8};
 use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
 impl MoveGenerator {
-    pub(crate) fn generate_next_pawn_move(
-        &mut self,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> Option<Board> {
-        let mut en_passant_mask = BitBoard::empty();
-
-        if self.is_first_move {
-            self.available_moves =
-                self.available_pawn_moves(current_position, current_position_mask);
-            self.available_captures = self.pawn_captures(current_position);
-            en_passant_mask = self.check_en_passant();
-
-            self.is_first_move = false;
-        }
-
-        if !en_passant_mask.is_empty() {
-            if let Some(board) = self.generate_en_passant_board(
-                current_position,
-                current_position_mask,
-                en_passant_mask,
-            ) {
-                return Some(board);
-            }
-        }
-
-        if !self.available_moves.is_empty() {
-            let (board, available_moves) = self.generate_pawn_board(
-                current_position,
-                current_position_mask,
-                self.available_moves,
-                false,
-            );
-            self.available_moves = available_moves;
-            return Some(board);
-        }
-
-        if !self.available_captures.is_empty() {
-            let (board, available_captures) = self.generate_pawn_board(
-                current_position,
-                current_position_mask,
-                self.available_captures,
-                true,
-            );
-            self.available_captures = available_captures;
-            return Some(board);
-        }
-
-        None
-    }
-
-    fn generate_pawn_board(
+    pub(super) fn find_pawn_moves(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
-        available_moves: BitBoard,
-        is_capture: bool,
-    ) -> (Board, BitBoard) {
-        let new_move = available_moves.first_bit_position();
-        let next_position_mask = BitBoard::from(new_move);
-
-        let board = self.move_piece(
-            PieceType::Pawn,
-            current_position,
-            current_position_mask,
-            new_move,
-            next_position_mask,
-            if is_capture {
-                next_position_mask
-            } else {
-                BitBoard::empty()
-            },
+    ) -> BitBoard {
+        debug_assert!(
+            current_position_mask
+                .intersect(FILE_1.join(FILE_8))
+                .is_empty(),
+            "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
         );
 
-        (board, available_moves - next_position_mask)
+        let mut moves = self.check_for_single_move(current_position);
+
+        // If we couldn't single-move, we definitely can't double move
+        if !moves.is_empty() {
+            moves = moves.join(self.check_for_double_move(current_position, current_position_mask));
+        }
+
+        covered_by!("Pawn::captures -> White");
+        covered_by!("Pawn::captures -> Black");
+
+        debug_assert!(
+            !(self.root_board.prev_move.is_none() && !self.enemy_mask.is_empty()),
+            "Somehow we can capture on the first move?"
+        );
+
+        moves.join(self.enemy_mask.intersect(self.diagonals(current_position)))
     }
 
-    fn generate_en_passant_board(
-        &self,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-        en_passant_mask: BitBoard,
-    ) -> Option<Board> {
-        debug_assert!(
-            en_passant_mask.count_pieces() == 1,
-            "There can only be a single en passant capture per piece possible."
-        );
+    // NOTE: Functions like this really only need the position and the player
+    //  there's no real reason it needs to be apart of MoveGeneration
+    fn diagonals(&self, current_position: BitPosition) -> BitBoard {
+        covered_by!("Pawn::diagonals -> White");
+        covered_by!("Pawn::diagonals -> Black");
+        let direction = self.pawn_direction();
 
-        let next_position_mask = en_passant_mask
-            .shift_down(1)
-            .join(en_passant_mask.shift_up(1))
-            .intersect(self.diagonals(current_position_mask.first_bit_position()));
-
-        debug_assert!(
-            next_position_mask != en_passant_mask,
-            "The en passant capture mask should be the mask of the \
-             pawn being captured. Not of the position being moved to."
-        );
-
-        if !next_position_mask.is_empty() {
-            let new_move = next_position_mask.first_bit_position();
-
-            let board = self.move_piece(
-                PieceType::Pawn,
-                current_position,
-                current_position_mask,
-                new_move,
-                next_position_mask,
-                en_passant_mask,
-            );
-
-            Some(board)
+        let left_diagonal = if !current_position.is_leftmost() {
+            BitBoard::from(current_position.shift(-1, direction))
         } else {
-            None
-        }
-    }
+            BitBoard::empty()
+        };
 
-    fn slide_move_sanity_check(&self, board: &Board, next_position_mask: BitBoard) {
-        if cfg!(debug_assertions) {
-            debug_assert!(
-                board.players[self.player as usize]
-                    .intersect(next_position_mask)
-                    .is_empty(),
-                "Move Invariant Invalidated: Non-capture move made on space occupied by self"
-            );
+        let right_diagonal = if !current_position.is_rightmost() {
+            BitBoard::from(current_position.shift(1, direction))
+        } else {
+            BitBoard::empty()
+        };
 
-            debug_assert!(
-                board.players[self.player as usize]
-                    .intersect(next_position_mask)
-                    .is_empty(),
-                "Move Invariant Invalidated: Non-capture move made on space occupied by opponent"
-            );
-
-            // TODO: We'll want additional sanity checks for whether the pieces we're moving through
-            //  are empty as well.
-        }
-    }
-
-    fn capture_sanity_check(&self, board: &Board, capture_mask: BitBoard) {
-        if cfg!(debug_assertions) {
-            debug_assert!(
-                !board.players[1 - self.player as usize].intersect(capture_mask).is_empty(),
-                format!("Capture Invariant Invalidated: Capture move made on space not-occupied by opponent:\n{}\n{:?}", board, capture_mask)
-            );
-
-            // TODO: We'll want the same sanity check above for moving through spaces.  Should be
-            //  OK to delay this until we get to a non-pawn piece
-        }
+        left_diagonal.join(right_diagonal)
     }
 
     fn pawn_direction(&self) -> i32 {
@@ -196,6 +98,79 @@ impl MoveGenerator {
         possible_double_move - self.all_pieces
     }
 
+    pub(super) fn generate_en_passant_board(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        en_passant_mask: BitBoard,
+    ) -> Option<Board> {
+        debug_assert!(
+            en_passant_mask.count_pieces() == 1,
+            "There can only be a single en passant capture per piece possible."
+        );
+
+        let next_position_mask = en_passant_mask
+            .shift_down(1)
+            .join(en_passant_mask.shift_up(1))
+            .intersect(self.diagonals(current_position_mask.first_bit_position()));
+
+        debug_assert!(
+            next_position_mask != en_passant_mask,
+            "The en passant capture mask should be the mask of the \
+             pawn being captured. Not of the position being moved to."
+        );
+
+        if !next_position_mask.is_empty() {
+            let new_move = next_position_mask.first_bit_position();
+
+            let board = self.move_piece(
+                PieceType::Pawn,
+                current_position,
+                current_position_mask,
+                new_move,
+                next_position_mask,
+                en_passant_mask,
+            );
+
+            Some(board)
+        } else {
+            None
+        }
+    }
+
+    // fn slide_move_sanity_check(&self, board: &Board, next_position_mask: BitBoard) {
+    //     if cfg!(debug_assertions) {
+    //         debug_assert!(
+    //             board.players[self.player as usize]
+    //                 .intersect(next_position_mask)
+    //                 .is_empty(),
+    //             "Move Invariant Invalidated: Non-capture move made on space occupied by self"
+    //         );
+
+    //         debug_assert!(
+    //             board.players[self.player as usize]
+    //                 .intersect(next_position_mask)
+    //                 .is_empty(),
+    //             "Move Invariant Invalidated: Non-capture move made on space occupied by opponent"
+    //         );
+
+    //         // TODO: We'll want additional sanity checks for whether the pieces we're moving through
+    //         //  are empty as well.
+    //     }
+    // }
+
+    // fn capture_sanity_check(&self, board: &Board, capture_mask: BitBoard) {
+    //     if cfg!(debug_assertions) {
+    //         debug_assert!(
+    //             !board.players[1 - self.player as usize].intersect(capture_mask).is_empty(),
+    //             format!("Capture Invariant Invalidated: Capture move made on space not-occupied by opponent:\n{}\n{:?}", board, capture_mask)
+    //         );
+
+    //         // TODO: We'll want the same sanity check above for moving through spaces.  Should be
+    //         //  OK to delay this until we get to a non-pawn piece
+    //     }
+    // }
+
     fn available_pawn_moves(
         &self,
         current_position: BitPosition,
@@ -216,40 +191,6 @@ impl MoveGenerator {
         }
 
         moves
-    }
-
-    // NOTE: Functions like this really only need the position and the player
-    //  there's no real reason it needs to be apart of MoveGeneration
-    fn diagonals(&self, current_position: BitPosition) -> BitBoard {
-        covered_by!("Pawn::diagonals -> White");
-        covered_by!("Pawn::diagonals -> Black");
-        let direction = self.pawn_direction();
-
-        let left_diagonal = if !current_position.is_leftmost() {
-            BitBoard::from(current_position.shift(-1, direction))
-        } else {
-            BitBoard::empty()
-        };
-
-        let right_diagonal = if !current_position.is_rightmost() {
-            BitBoard::from(current_position.shift(1, direction))
-        } else {
-            BitBoard::empty()
-        };
-
-        left_diagonal.join(right_diagonal)
-    }
-
-    fn pawn_captures(&self, current_position: BitPosition) -> BitBoard {
-        covered_by!("Pawn::captures -> White");
-        covered_by!("Pawn::captures -> Black");
-
-        debug_assert!(
-            !(self.root_board.prev_move.is_none() && !self.enemy_mask.is_empty()),
-            "Somehow we can capture on the first move?"
-        );
-
-        self.enemy_mask.intersect(self.diagonals(current_position))
     }
 
     fn check_en_passant(&self) -> BitBoard {
@@ -428,15 +369,23 @@ mod tests {
         let generator = MoveGenerator::new(board, Player::White);
 
         assert_eq!(
-            generator.pawn_captures(RankFile::F2.into()),
-            BitBoard::empty()
+            generator.find_pawn_moves(RankFile::F2.into(), RankFile::F2.into()),
+            BitBoard::from(RankFile::F3).join(RankFile::F4.into())
         );
 
-        let expected = BitBoard::from(RankFile::A3);
-        assert_eq!(generator.pawn_captures(RankFile::B2.into()), expected);
+        let expected = BitBoard::from(RankFile::A3).join(RankFile::B3.into());
+        assert_eq!(
+            generator.find_pawn_moves(RankFile::B2.into(), RankFile::B2.into()),
+            expected
+        );
 
-        let expected = BitBoard::from(RankFile::B4).join(RankFile::D4.into());
-        assert_eq!(generator.pawn_captures(RankFile::C3.into()), expected);
+        let expected = BitBoard::from(RankFile::B4)
+            .join(RankFile::D4.into())
+            .join(RankFile::C4.into());
+        assert_eq!(
+            generator.find_pawn_moves(RankFile::C3.into(), RankFile::C3.into()),
+            expected
+        );
     }
 
     #[test]
@@ -447,14 +396,23 @@ mod tests {
         let generator = MoveGenerator::new(board, Player::Black);
 
         assert_eq!(
-            generator.pawn_captures(RankFile::A7.into()),
+            generator.find_pawn_moves(RankFile::A7.into(), RankFile::A7.into()),
             BitBoard::empty()
         );
 
-        let expected = BitBoard::from(RankFile::D1);
-        assert_eq!(generator.pawn_captures(RankFile::E2.into()), expected);
+        let expected = BitBoard::from(RankFile::D1).join(RankFile::E1.into());
+        assert_eq!(
+            generator.find_pawn_moves(RankFile::E2.into(), RankFile::E2.into()),
+            expected
+        );
 
-        let expected = BitBoard::from(RankFile::H6).join(RankFile::F6.into());
-        assert_eq!(generator.pawn_captures(RankFile::G7.into()), expected);
+        let expected = BitBoard::from(RankFile::H6)
+            .join(RankFile::F6.into())
+            .join(RankFile::G5.into())
+            .join(RankFile::G6.into());
+        assert_eq!(
+            generator.find_pawn_moves(RankFile::G7.into(), RankFile::G7.into()),
+            expected
+        );
     }
 }
