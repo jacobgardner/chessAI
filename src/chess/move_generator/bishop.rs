@@ -37,7 +37,7 @@ impl MoveGenerator {
         Some(board)
     }
 
-    fn available_bishop_moves(
+    pub(super) fn available_bishop_moves(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
