@@ -123,7 +123,7 @@ impl Display for Board {
         board += "       ╔═════════════════╗\n";
 
         for r in 0..8 {
-            // let rank_chr = (65u8 + (7 - r as u8))  as char;
+            // let RANK_3hr = (65u8 + (7 - r as u8))  as char;
 
             board += &format!("0x{: <02x} {} ║ ", (7 - r) * 8, 8 - r);
 

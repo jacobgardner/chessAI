@@ -4,33 +4,36 @@ use std::ops::{BitOr, BitOrAssign, Sub, SubAssign};
 
 use crate::chess::{BitPosition, RankFile};
 
-pub const FILE_8: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
-pub const FILE_7: BitBoard = BitBoard::new(0x00ff_0000_0000_0000);
-pub const FILE_6: BitBoard = BitBoard::new(0x0000_ff00_0000_0000);
-pub const FILE_5: BitBoard = BitBoard::new(0x0000_00ff_0000_0000);
-pub const FILE_4: BitBoard = BitBoard::new(0x0000_0000_ff00_0000);
-pub const FILE_3: BitBoard = BitBoard::new(0x0000_0000_00ff_0000);
-pub const FILE_2: BitBoard = BitBoard::new(0x0000_0000_0000_ff00);
-pub const FILE_1: BitBoard = BitBoard::new(0x0000_0000_0000_00ff);
+pub const FILE_H: BitBoard = BitBoard::new(0xff00_0000_0000_0000);
+pub const FILE_G: BitBoard = BitBoard::new(0x00ff_0000_0000_0000);
+pub const FILE_F: BitBoard = BitBoard::new(0x0000_ff00_0000_0000);
+pub const FILE_E: BitBoard = BitBoard::new(0x0000_00ff_0000_0000);
+pub const FILE_D: BitBoard = BitBoard::new(0x0000_0000_ff00_0000);
+pub const FILE_C: BitBoard = BitBoard::new(0x0000_0000_00ff_0000);
+pub const FILE_B: BitBoard = BitBoard::new(0x0000_0000_0000_ff00);
+pub const FILE_A: BitBoard = BitBoard::new(0x0000_0000_0000_00ff);
 
-pub const RANK_A: BitBoard = BitBoard::new(0x0101_0101_0101_0101);
-pub const RANK_B: BitBoard = BitBoard::new(0x0202_0202_0202_0202);
-pub const RANK_C: BitBoard = BitBoard::new(0x0404_0404_0404_0404);
-pub const RANK_D: BitBoard = BitBoard::new(0x0808_0808_0808_0808);
-pub const RANK_E: BitBoard = BitBoard::new(0x1010_1010_1010_1010);
-pub const RANK_F: BitBoard = BitBoard::new(0x2020_2020_2020_2020);
-pub const RANK_G: BitBoard = BitBoard::new(0x4040_4040_4040_4040);
-pub const RANK_H: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
+pub const RANK_1: BitBoard = BitBoard::new(0x0101_0101_0101_0101);
+pub const RANK_2: BitBoard = BitBoard::new(0x0202_0202_0202_0202);
+pub const RANK_3: BitBoard = BitBoard::new(0x0404_0404_0404_0404);
+pub const RANK_4: BitBoard = BitBoard::new(0x0808_0808_0808_0808);
+pub const RANK_5: BitBoard = BitBoard::new(0x1010_1010_1010_1010);
+pub const RANK_6: BitBoard = BitBoard::new(0x2020_2020_2020_2020);
+pub const RANK_7: BitBoard = BitBoard::new(0x4040_4040_4040_4040);
+pub const RANK_8: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
 
-pub const ENDS: BitBoard = BitBoard::new(FILE_1.board | FILE_8.board);
-pub const SIDES: BitBoard = BitBoard::new(RANK_A.board | RANK_H.board);
+pub const ENDS: BitBoard = BitBoard::new(FILE_A.board | FILE_H.board);
+pub const SIDES: BitBoard = BitBoard::new(RANK_1.board | RANK_8.board);
+
+pub const RANKS: [BitBoard; 8] = [RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8];
+pub const FILES: [BitBoard; 8] = [FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H];
 
 lazy_static! {
     static ref LEFT_SHIFT_MASK: [BitBoard; 9] = {
         let mut masks: [BitBoard; 9] = [BitBoard::empty(); 9];
 
         for shift in 1..9 {
-            masks[shift] = BitBoard::new(RANK_H.board >> (shift - 1)).join(masks[shift - 1])
+            masks[shift] = BitBoard::new(RANK_8.board >> (shift - 1)).join(masks[shift - 1])
         }
 
         masks
@@ -39,7 +42,7 @@ lazy_static! {
         let mut masks: [BitBoard; 9] = [BitBoard::empty(); 9];
 
         for shift in 1..9 {
-            masks[shift] = BitBoard::new(RANK_A.board << (shift - 1)).join(masks[shift - 1])
+            masks[shift] = BitBoard::new(RANK_1.board << (shift - 1)).join(masks[shift - 1])
         }
 
         masks
@@ -439,10 +442,10 @@ fn bitrange(start: u64, end: u64) -> u64 {
 }
 
 fn to_bitstring(bits: u64, padding: u64) -> String {
-    // format!("{:0padding$b}\n", (bits & FILE_8) >> (64 - 8), padding = padding).chars().rev().collect::<String>()
+    // format!("{:0padding$b}\n", (bits & FILE_H) >> (64 - 8), padding = padding).chars().rev().collect::<String>()
     format!(
         "{:0padding$b}",
-        (bits & FILE_8.board) >> (64 - 8),
+        (bits & FILE_H.board) >> (64 - 8),
         padding = padding as usize
     )
     .chars()
@@ -547,8 +550,8 @@ mod tests {
 
         assert_eq!(WHITE_SQUARES.count_pieces(), 32);
         assert_eq!(BLACK_SQUARES.count_pieces(), 32);
-        assert_eq!(RANK_D.count_pieces(), 8);
-        assert_eq!(FILE_4.count_pieces(), 8);
+        assert_eq!(RANK_4.count_pieces(), 8);
+        assert_eq!(FILE_D.count_pieces(), 8);
 
         assert_eq!(BitBoard::new(0x00100).count_pieces(), 1);
     }
@@ -732,22 +735,22 @@ mod tests {
         assert_eq!(BitBoard::empty().fill_spaces(24, 24), BitBoard::empty());
         assert_eq!(BitBoard::empty().fill_spaces(0, 0), BitBoard::empty());
 
-        // TODO: we could make this const fn and derive FILE_1 through FILE_8
+        // TODO: we could make this const fn and derive FILE_A through FILE_H
         //  using this function instead.  If we do, we can't use FILE for testing
-        assert_eq!(BitBoard::empty().fill_spaces(0, 8), FILE_1);
-        assert_eq!(BitBoard::empty().fill_spaces(8, 16), FILE_2);
-        assert_eq!(BitBoard::empty().fill_spaces(16, 24), FILE_3);
-        assert_eq!(BitBoard::empty().fill_spaces(24, 32), FILE_4);
-        assert_eq!(BitBoard::empty().fill_spaces(32, 40), FILE_5);
-        assert_eq!(BitBoard::empty().fill_spaces(40, 48), FILE_6);
-        assert_eq!(BitBoard::empty().fill_spaces(48, 56), FILE_7);
-        assert_eq!(BitBoard::empty().fill_spaces(56, 64), FILE_8);
+        assert_eq!(BitBoard::empty().fill_spaces(0, 8), FILE_A);
+        assert_eq!(BitBoard::empty().fill_spaces(8, 16), FILE_B);
+        assert_eq!(BitBoard::empty().fill_spaces(16, 24), FILE_C);
+        assert_eq!(BitBoard::empty().fill_spaces(24, 32), FILE_D);
+        assert_eq!(BitBoard::empty().fill_spaces(32, 40), FILE_E);
+        assert_eq!(BitBoard::empty().fill_spaces(40, 48), FILE_F);
+        assert_eq!(BitBoard::empty().fill_spaces(48, 56), FILE_G);
+        assert_eq!(BitBoard::empty().fill_spaces(56, 64), FILE_H);
 
         assert_eq!(BitBoard::empty().fill_spaces(4, 8), BitBoard::new(0xF0));
 
         assert_eq!(
             WHITE_SQUARES.fill_spaces(56, 64),
-            WHITE_SQUARES.join(FILE_8)
+            WHITE_SQUARES.join(FILE_H)
         );
     }
 
@@ -755,10 +758,10 @@ mod tests {
     fn test_shift_down() {
         covers!("BitBoard::shift_down");
 
-        assert_eq!(FILE_4.shift_down(1), FILE_3);
-        assert_eq!(FILE_1.shift_down(1), BitBoard::empty());
-        assert_eq!(FILE_6.shift_down(2), FILE_4);
-        assert_eq!(FILE_8.shift_down(7), FILE_1);
+        assert_eq!(FILE_D.shift_down(1), FILE_C);
+        assert_eq!(FILE_A.shift_down(1), BitBoard::empty());
+        assert_eq!(FILE_F.shift_down(2), FILE_D);
+        assert_eq!(FILE_H.shift_down(7), FILE_A);
     }
 
     #[test]
@@ -808,68 +811,68 @@ mod tests {
     fn test_shift_up() {
         covers!("BitBoard::shift_up");
 
-        assert_eq!(FILE_4.shift_up(1), FILE_5);
-        assert_eq!(FILE_4.shift_up(3), FILE_7);
-        assert_eq!(FILE_7.shift_up(1), FILE_8);
-        assert_eq!(FILE_7.shift_up(2), BitBoard::empty());
+        assert_eq!(FILE_D.shift_up(1), FILE_E);
+        assert_eq!(FILE_D.shift_up(3), FILE_G);
+        assert_eq!(FILE_G.shift_up(1), FILE_H);
+        assert_eq!(FILE_G.shift_up(2), BitBoard::empty());
     }
 
     #[test]
     fn test_shift_left() {
         covers!("BitBoard::shift_left");
 
-        assert_eq!(RANK_B.shift_left(1), RANK_A);
-        assert_eq!(RANK_B.shift_left(2), BitBoard::empty());
-        assert_eq!(RANK_B.shift_left(3), BitBoard::empty());
-        assert_eq!(RANK_B.shift_left(5), BitBoard::empty());
-        assert_eq!(RANK_B.shift_left(8), BitBoard::empty());
+        assert_eq!(RANK_2.shift_left(1), RANK_1);
+        assert_eq!(RANK_2.shift_left(2), BitBoard::empty());
+        assert_eq!(RANK_2.shift_left(3), BitBoard::empty());
+        assert_eq!(RANK_2.shift_left(5), BitBoard::empty());
+        assert_eq!(RANK_2.shift_left(8), BitBoard::empty());
 
-        assert_eq!(RANK_E.shift_left(1), RANK_D);
-        assert_eq!(RANK_E.shift_left(2), RANK_C);
-        assert_eq!(RANK_E.shift_left(3), RANK_B);
-        assert_eq!(RANK_E.shift_left(4), RANK_A);
-        assert_eq!(RANK_E.shift_left(8), BitBoard::empty());
-        assert_eq!(RANK_E.shift_left(5), BitBoard::empty());
+        assert_eq!(RANK_5.shift_left(1), RANK_4);
+        assert_eq!(RANK_5.shift_left(2), RANK_3);
+        assert_eq!(RANK_5.shift_left(3), RANK_2);
+        assert_eq!(RANK_5.shift_left(4), RANK_1);
+        assert_eq!(RANK_5.shift_left(8), BitBoard::empty());
+        assert_eq!(RANK_5.shift_left(5), BitBoard::empty());
 
-        assert_eq!(RANK_H.shift_left(1), RANK_G);
-        assert_eq!(RANK_H.shift_left(2), RANK_F);
-        assert_eq!(RANK_H.shift_left(3), RANK_E);
-        assert_eq!(RANK_H.shift_left(4), RANK_D);
-        assert_eq!(RANK_H.shift_left(5), RANK_C);
-        assert_eq!(RANK_H.shift_left(6), RANK_B);
-        assert_eq!(RANK_H.shift_left(7), RANK_A);
-        assert_eq!(RANK_H.shift_left(8), BitBoard::empty());
+        assert_eq!(RANK_8.shift_left(1), RANK_7);
+        assert_eq!(RANK_8.shift_left(2), RANK_6);
+        assert_eq!(RANK_8.shift_left(3), RANK_5);
+        assert_eq!(RANK_8.shift_left(4), RANK_4);
+        assert_eq!(RANK_8.shift_left(5), RANK_3);
+        assert_eq!(RANK_8.shift_left(6), RANK_2);
+        assert_eq!(RANK_8.shift_left(7), RANK_1);
+        assert_eq!(RANK_8.shift_left(8), BitBoard::empty());
     }
 
     #[test]
     fn test_shift_right() {
         covers!("BitBoard::shift_right");
 
-        assert_eq!(RANK_B.shift_right(1), RANK_C);
-        assert_eq!(RANK_B.shift_right(2), RANK_D);
-        assert_eq!(RANK_B.shift_right(3), RANK_E);
-        assert_eq!(RANK_B.shift_right(5), RANK_G);
-        assert_eq!(RANK_B.shift_right(8), BitBoard::empty());
+        assert_eq!(RANK_2.shift_right(1), RANK_3);
+        assert_eq!(RANK_2.shift_right(2), RANK_4);
+        assert_eq!(RANK_2.shift_right(3), RANK_5);
+        assert_eq!(RANK_2.shift_right(5), RANK_7);
+        assert_eq!(RANK_2.shift_right(8), BitBoard::empty());
 
-        assert_eq!(RANK_E.shift_right(1), RANK_F);
-        assert_eq!(RANK_E.shift_right(2), RANK_G);
-        assert_eq!(RANK_E.shift_right(3), RANK_H);
-        assert_eq!(RANK_E.shift_right(4), BitBoard::empty());
-        assert_eq!(RANK_E.shift_right(8), BitBoard::empty());
-        assert_eq!(RANK_E.shift_right(5), BitBoard::empty());
+        assert_eq!(RANK_5.shift_right(1), RANK_6);
+        assert_eq!(RANK_5.shift_right(2), RANK_7);
+        assert_eq!(RANK_5.shift_right(3), RANK_8);
+        assert_eq!(RANK_5.shift_right(4), BitBoard::empty());
+        assert_eq!(RANK_5.shift_right(8), BitBoard::empty());
+        assert_eq!(RANK_5.shift_right(5), BitBoard::empty());
 
-        assert_eq!(RANK_G.shift_right(1), RANK_H);
-        assert_eq!(RANK_G.shift_right(2), BitBoard::empty());
-        assert_eq!(RANK_G.shift_right(3), BitBoard::empty());
-        assert_eq!(RANK_G.shift_right(4), BitBoard::empty());
-        assert_eq!(RANK_G.shift_right(5), BitBoard::empty());
+        assert_eq!(RANK_7.shift_right(1), RANK_8);
+        assert_eq!(RANK_7.shift_right(2), BitBoard::empty());
+        assert_eq!(RANK_7.shift_right(3), BitBoard::empty());
+        assert_eq!(RANK_7.shift_right(4), BitBoard::empty());
+        assert_eq!(RANK_7.shift_right(5), BitBoard::empty());
     }
 
     #[test]
     fn test_flip_vertical() {
         covers!("BitBoard::flip_vertical");
-        assert_eq!(FILE_1.flip_vertical(), FILE_8);
-        assert_eq!(FILE_8.flip_vertical(), FILE_1);
+        assert_eq!(FILE_A.flip_vertical(), FILE_H);
+        assert_eq!(FILE_H.flip_vertical(), FILE_A);
 
         assert_eq!(WHITE_SQUARES.flip_vertical(), BLACK_SQUARES);
         assert_eq!(BLACK_SQUARES.flip_vertical(), WHITE_SQUARES);

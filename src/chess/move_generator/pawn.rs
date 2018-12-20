@@ -1,6 +1,6 @@
 use super::MoveGenerator;
 
-use crate::chess::bitboard::{FILE_1, FILE_2, FILE_7, FILE_8};
+use crate::chess::bitboard::{FILE_A, FILE_B, FILE_G, FILE_H};
 use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
 impl MoveGenerator {
@@ -11,7 +11,7 @@ impl MoveGenerator {
     ) -> BitBoard {
         debug_assert!(
             current_position_mask
-                .intersect(FILE_1.join(FILE_8))
+                .intersect(FILE_A.join(FILE_H))
                 .is_empty(),
             "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
         );
@@ -82,8 +82,8 @@ impl MoveGenerator {
         covered_by!("Pawn::available_double_moves -> Black");
 
         let (direction, starting_row) = match self.player {
-            Player::White => (2, FILE_2),
-            Player::Black => (-2, FILE_7),
+            Player::White => (2, FILE_B),
+            Player::Black => (-2, FILE_G),
         };
 
         let is_in_starting_row = !current_position_mask.intersect(starting_row).is_empty();
@@ -150,7 +150,7 @@ impl MoveGenerator {
     ) -> BitBoard {
         debug_assert!(
             current_position_mask
-                .intersect(FILE_1.join(FILE_8))
+                .intersect(FILE_A.join(FILE_H))
                 .is_empty(),
             "Pawn Invariant Invalidation: Pawn must never appear in the first or last row"
         );

@@ -4,6 +4,7 @@ use std::cmp::min;
 use crate::chess::{BitBoard, BitPosition, RankFile};
 
 impl MoveGenerator {
+    // TODO: These actually may make more sense on the Board struct
     pub(super) fn find_rook_moves(&self, current_position: BitPosition, _: BitBoard) -> BitBoard {
         let slides = self.all_pieces.horizontal_slides(current_position);
 
@@ -90,7 +91,7 @@ impl MoveGenerator {
 
         single_vert_shift.join(double_vert_shift) - self.player_mask
     }
-
+    
     pub (super) fn find_king_moves(&self, _: BitPosition, current_position_mask: BitBoard) -> BitBoard {
         let mut mask = current_position_mask.join(current_position_mask.shift_left(1)).join(current_position_mask.shift_right(1));
 

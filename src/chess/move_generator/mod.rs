@@ -1,6 +1,7 @@
 mod pawn;
 mod pieces;
 mod sanity_checks;
+mod king_check;
 
 use crate::chess::bitboard::ENDS;
 
