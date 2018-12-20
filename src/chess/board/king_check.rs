@@ -11,7 +11,7 @@ impl Board {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> bool {
-        // TODO: May be clearer to just have player passed in.
+        // TODO: Clean this up
         let enemy_mask = self.players[1 - player as usize];
         let rook_moves = self.find_rook_moves(current_position, current_position_mask);
 
@@ -20,13 +20,6 @@ impl Board {
                 self.pieces[PieceType::Rook as usize].join(self.pieces[PieceType::Queen as usize]),
             )
             .intersect(enemy_mask);
-
-        println!("------------------------------------");
-        println!("Player: {:?}", self.next_player);
-        println!("King:\n{:?}", current_position_mask);
-        println!("{:?}", rook_moves);
-        println!("{:?}", queen_rook_threats);
-        println!("{:?}", enemy_mask);
 
         if !queen_rook_threats.is_empty() {
             covered_by!("MoveGenerator::rook_attacks");

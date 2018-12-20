@@ -446,7 +446,6 @@ fn bitrange(start: u64, end: u64) -> u64 {
 }
 
 fn to_bitstring(bits: u64, padding: u64) -> String {
-    // format!("{:0padding$b}\n", (bits & FILE_H) >> (64 - 8), padding = padding).chars().rev().collect::<String>()
     format!(
         "{:0padding$b}",
         (bits & FILE_H.board) >> (64 - 8),

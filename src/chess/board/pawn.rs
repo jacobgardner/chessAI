@@ -25,7 +25,6 @@ impl Board {
 
         covered_by!("Pawn::captures -> White");
         covered_by!("Pawn::captures -> Black");
-        // TODO: Am I actually setting the prev_move?
 
         debug_assert!(
             !(self.prev_move.is_none() && !self.enemy_mask().is_empty()),
