@@ -5,18 +5,25 @@ use crate::chess::{BitBoard, BitPosition, PieceType, Player, RankFile};
 
 impl MoveGenerator {
     // TODO: King vs King check
-    pub fn is_attacked(
+    pub(super) fn is_attacked(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> bool {
-        let queen_rook_threats = self
-            .find_rook_moves(current_position, current_position_mask)
+
+        let rook_moves =self
+            .find_rook_moves(current_position, current_position_mask);
+
+        let queen_rook_threats =  rook_moves
             .intersect(
                 self.root_board.pieces[PieceType::Rook as usize]
                     .join(self.root_board.pieces[PieceType::Queen as usize]),
             )
             .intersect(self.enemy_mask);
+
+        println!("King:\n{:?}", current_position_mask);
+        println!("King Rook Moves:\n{:?}", rook_moves);
+        println!("{:?}", queen_rook_threats);
 
         if !queen_rook_threats.is_empty() {
             covered_by!("MoveGenerator::rook_attacks");
@@ -99,11 +106,21 @@ mod tests {
         let generator = MoveGenerator::new(board, player);
 
         for &space in attacked_spaces.iter() {
-            assert_eq!(generator.is_attacked(space.into(), space.into()), true, "Expected {:?} to be attacked", space);
+            assert_eq!(
+                generator.is_attacked(space.into(), space.into()),
+                true,
+                "Expected {:?} to be attacked",
+                space
+            );
         }
 
         for &space in safe_spaces.iter() {
-            assert_eq!(generator.is_attacked(space.into(), space.into()), false, "Expected {:?} to be safe", space);
+            assert_eq!(
+                generator.is_attacked(space.into(), space.into()),
+                false,
+                "Expected {:?} to be safe",
+                space
+            );
         }
     }
     // TODO: Test Queen, Pawn, King
@@ -128,7 +145,12 @@ mod tests {
             RankFile::B6,
         ];
 
-        check_spaces(WHITE_ROOK_TEST, Player::Black, &attacked_spaces, &safe_spaces);
+        check_spaces(
+            WHITE_ROOK_TEST,
+            Player::Black,
+            &attacked_spaces,
+            &safe_spaces,
+        );
     }
 
     #[test]
@@ -151,7 +173,12 @@ mod tests {
             RankFile::G7,
         ];
 
-        check_spaces(WHITE_BISHOP_TEST, Player::Black, &attacked_spaces, &safe_spaces);
+        check_spaces(
+            WHITE_BISHOP_TEST,
+            Player::Black,
+            &attacked_spaces,
+            &safe_spaces,
+        );
     }
 
     #[test]
@@ -174,7 +201,12 @@ mod tests {
             RankFile::H5,
         ];
 
-        check_spaces(WHITE_KNIGHT_TEST, Player::Black, &attacked_spaces, &safe_spaces);
+        check_spaces(
+            WHITE_KNIGHT_TEST,
+            Player::Black,
+            &attacked_spaces,
+            &safe_spaces,
+        );
     }
 
     #[test]
@@ -197,7 +229,12 @@ mod tests {
             RankFile::C4,
         ];
 
-        check_spaces(WHITE_PAWN_TEST, Player::Black, &attacked_spaces, &safe_spaces);
+        check_spaces(
+            WHITE_PAWN_TEST,
+            Player::Black,
+            &attacked_spaces,
+            &safe_spaces,
+        );
     }
 
     #[test]
@@ -220,9 +257,12 @@ mod tests {
             RankFile::E1,
         ];
 
-        check_spaces(BLACK_PAWN_TEST, Player::White, &attacked_spaces, &safe_spaces);
+        check_spaces(
+            BLACK_PAWN_TEST,
+            Player::White,
+            &attacked_spaces,
+            &safe_spaces,
+        );
     }
-
-
 
 }

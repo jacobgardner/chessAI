@@ -25,8 +25,12 @@ pub const RANK_8: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
 pub const ENDS: BitBoard = BitBoard::new(FILE_A.board | FILE_H.board);
 pub const SIDES: BitBoard = BitBoard::new(RANK_1.board | RANK_8.board);
 
-pub const RANKS: [BitBoard; 8] = [RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8];
-pub const FILES: [BitBoard; 8] = [FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H];
+pub const RANKS: [BitBoard; 8] = [
+    RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8,
+];
+pub const FILES: [BitBoard; 8] = [
+    FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H,
+];
 
 lazy_static! {
     static ref LEFT_SHIFT_MASK: [BitBoard; 9] = {

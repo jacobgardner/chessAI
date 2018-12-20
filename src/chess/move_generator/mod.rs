@@ -1,7 +1,7 @@
+mod king_check;
 mod pawn;
 mod pieces;
 mod sanity_checks;
-mod king_check;
 
 use crate::chess::bitboard::ENDS;
 
@@ -181,7 +181,7 @@ impl Iterator for MoveGenerator {
     type Item = Board;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
+        'outer: loop {
             if self.player_piecetype_mask.is_empty() {
                 self.piece_index += 1;
                 self.is_first_move = true;
@@ -210,6 +210,21 @@ impl Iterator for MoveGenerator {
 
             match self.generate_next_move(piece_type, rightmost_position, piece_mask) {
                 Some(board) => {
+                    // TODO: Test if these moves are actually removed
+                    let mut king_mask = board.players[self.player as usize]
+                        .intersect(board.pieces[PieceType::King as usize]);
+
+                    while !king_mask.is_empty() {
+                        let first_king_position = king_mask.first_bit_position();
+                        let first_king_mask = BitBoard::from(first_king_position);
+
+                        if self.is_attacked(first_king_position, first_king_mask) {
+                            continue 'outer;
+                        }
+
+                        king_mask -= first_king_mask;
+                    }
+
                     return Some(board);
                 }
                 None => {
