@@ -63,6 +63,7 @@ impl MoveGenerator {
             for _ in 0..count {
                 board |= board.shift(rank, file);
 
+                // Stop this diagonal at the first collision
                 if !board.intersect(everything_else).is_empty() {
                     break;
                 }
