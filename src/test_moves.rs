@@ -11,15 +11,8 @@ pub fn generate_moves_for_board(
     board.prev_move = prev_move;
     boards.push(format!("{}", board).to_owned());
 
-    let mut generator = board.generate_moves(player);
-
-    loop {
-        let new_board = match generator.next() {
-            Some(board) => board,
-            None => break,
-        };
-
-        boards.push(format!("{}", new_board).to_owned());
+    for board in board.generate_moves(player) {
+        boards.push(format!("{}", board).to_owned());
     }
 
     boards

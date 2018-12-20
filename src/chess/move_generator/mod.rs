@@ -9,16 +9,21 @@ use crate::chess::bitboard::ENDS;
 use crate::chess::PIECE_COUNT;
 use crate::chess::{BitBoard, BitPosition, Board, Move, PieceType, Player};
 
+use self::rook::RookMoveGen;
+use self::bishop::BishopMoveGen;
+use self::queen::QueenMoveGen;
+use self::knight::KnightMoveGen;
+
 trait PieceMoveGenerator {
     fn generate_next_move(&self, move_gen: &mut MoveGenerator, current_position: BitPosition, current_position_mask: BitBoard) -> Option<Board> {
         if move_gen.is_first_move {
-            move_gen.available_moves = self.find_available_moves(current_position, current_position_mask);
+            move_gen.available_moves = self.find_available_moves(move_gen, current_position, current_position_mask);
+            move_gen.is_first_move = false;
         }
 
         if move_gen.available_moves.is_empty() {
             return None;
         }
-
 
         let next_position = move_gen.available_moves.first_bit_position();
         let next_position_mask = BitBoard::from(next_position);
@@ -37,7 +42,7 @@ trait PieceMoveGenerator {
         Some(board)
     }
 
-    fn find_available_moves(&self, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard;
+    fn find_available_moves(&self, move_gen: &MoveGenerator, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard;
     fn piece_type(&self) -> PieceType;
 }
 
@@ -183,10 +188,10 @@ impl Iterator for MoveGenerator {
 
             let board = match piece_type {
                 PieceType::Pawn => self.generate_next_pawn_move(rightmost_position, piece_mask),
-                PieceType::Rook => self.generate_next_rook_move(rightmost_position, piece_mask),
-                PieceType::Knight => self.generate_next_knight_move(rightmost_position, piece_mask),
-                PieceType::Bishop => self.generate_next_bishop_move(rightmost_position, piece_mask),
-                PieceType::Queen => self.generate_next_queen_move(rightmost_position, piece_mask),
+                PieceType::Rook => RookMoveGen.generate_next_move(self, rightmost_position, piece_mask),
+                PieceType::Knight => KnightMoveGen.generate_next_move(self, rightmost_position, piece_mask),
+                PieceType::Bishop => BishopMoveGen.generate_next_move(self, rightmost_position, piece_mask),
+                PieceType::Queen => QueenMoveGen.generate_next_move(self, rightmost_position, piece_mask),
                 PieceType::King => unimplemented!(),
             };
 

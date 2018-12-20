@@ -1,42 +1,15 @@
-use super::MoveGenerator;
+use super::{MoveGenerator, PieceMoveGenerator};
 
-use crate::chess::{BitBoard, BitPosition, Board, PieceType};
+use crate::chess::{BitBoard, BitPosition, PieceType};
 
-impl MoveGenerator {
-    pub(crate) fn generate_next_knight_move(
-        &mut self,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> Option<Board> {
-        // NOTE: Think about "lazy" implemenation
-        if self.is_first_move {
-            self.available_moves = self.available_knight_moves(current_position);
+pub(in super) struct KnightMoveGen;
 
-            self.is_first_move = false;
-        }
-
-        if self.available_moves.is_empty() {
-            return None;
-        }
-
-        let next_position = self.available_moves.first_bit_position();
-        let next_position_mask = BitBoard::from(next_position);
-
-        let board = self.move_piece(
-            PieceType::Knight,
-            current_position,
-            current_position_mask,
-            next_position,
-            next_position_mask,
-            next_position_mask.intersect(self.enemy_mask),
-        );
-
-        self.available_moves -= next_position_mask;
-
-        Some(board)
+impl PieceMoveGenerator for KnightMoveGen {
+    fn piece_type(&self) -> PieceType {
+        PieceType::Knight
     }
 
-    fn available_knight_moves(&self, current_position: BitPosition) -> BitBoard {
+    fn find_available_moves(&self, move_gen: &MoveGenerator, current_position: BitPosition, _: BitBoard) -> BitBoard {
         // NOTE: We could make this do all knight moves in parallel if we wanted
         let current_position_mask = BitBoard::from(current_position);
 
@@ -58,6 +31,6 @@ impl MoveGenerator {
             .shift_up(2)
             .join(single_horiz_shift.shift_down(2));
 
-        single_vert_shift.join(double_vert_shift) - self.player_mask
+        single_vert_shift.join(double_vert_shift) - move_gen.player_mask
     }
 }

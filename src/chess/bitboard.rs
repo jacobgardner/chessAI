@@ -148,13 +148,13 @@ impl Sub for BitBoard {
     type Output = BitBoard;
 
     fn sub(self, rhs: BitBoard) -> Self::Output {
-        self.sub(rhs)
+        self.intersect(rhs.inverse())
     }
 }
 
 impl SubAssign for BitBoard {
     fn sub_assign(&mut self, rhs: BitBoard) {
-        *self = self.sub(rhs);
+        *self = *self - rhs;
     }
 }
 
@@ -325,10 +325,6 @@ impl BitBoard {
     // TODO: Rename.  This sucks
     pub fn first_bit_position(self) -> BitPosition {
         BitPosition::from(self.board.trailing_zeros())
-    }
-
-    pub fn sub(self, rhs: BitBoard) -> BitBoard {
-        self.intersect(rhs.inverse())
     }
 
     pub fn flip_vertical(self) -> Self {

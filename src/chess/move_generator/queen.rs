@@ -1,46 +1,17 @@
-use super::MoveGenerator;
+use super::{MoveGenerator, PieceMoveGenerator};
 
-use crate::chess::{BitBoard, BitPosition, Board, PieceType};
+use crate::chess::{BitBoard, BitPosition, PieceType};
+use super::{RookMoveGen, BishopMoveGen};
 
-impl MoveGenerator {
-    pub(crate) fn generate_next_queen_move(
-        &mut self,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> Option<Board> {
-        if self.is_first_move {
-            self.available_moves =
-                self.available_queen_moves(current_position, current_position_mask);
-            self.is_first_move = false;
-        }
+pub(in super) struct QueenMoveGen;
 
-        if !self.available_moves.is_empty() {
-            let next_position = self.available_moves.first_bit_position();
-            let next_position_mask = BitBoard::from(next_position);
-
-            let board = self.move_piece(
-                PieceType::Queen,
-                current_position,
-                current_position_mask,
-                next_position,
-                next_position_mask,
-                next_position_mask.intersect(self.enemy_mask),
-            );
-
-            self.available_moves -= next_position_mask;
-
-            return Some(board);
-        }
-
-        None
+impl PieceMoveGenerator for QueenMoveGen {
+    fn piece_type(&self) -> PieceType {
+        PieceType::Queen
     }
 
-    fn available_queen_moves(
-        &self,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> BitBoard {
-        self.available_rook_moves(current_position, current_position_mask)
-            .join(self.available_bishop_moves(current_position, current_position_mask))
+    fn find_available_moves(&self, move_gen: &MoveGenerator, current_position: BitPosition, current_position_mask: BitBoard) -> BitBoard {
+        BishopMoveGen.find_available_moves(move_gen, current_position, current_position_mask)
+            .join(RookMoveGen.find_available_moves(move_gen, current_position, current_position_mask))
     }
 }
