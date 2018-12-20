@@ -3,6 +3,7 @@ mod knight;
 mod pawn;
 mod queen;
 mod rook;
+mod sanity_checks;
 
 use crate::chess::bitboard::ENDS;
 
@@ -116,6 +117,66 @@ impl MoveGenerator {
         // And the previous player
         board.players[1 - (self.player as usize)] -= next_position_mask;
     }
+
+    fn find_available_moves_for_piece(
+        &self,
+        piece_type: PieceType,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> BitBoard {
+        match piece_type {
+            PieceType::Rook => self.find_rook_moves(current_position, current_position_mask),
+            PieceType::Bishop => self.find_bishop_moves(current_position, current_position_mask),
+            PieceType::Queen => self.find_queen_moves(current_position, current_position_mask),
+            PieceType::Knight => self.find_knight_moves(current_position, current_position_mask),
+            PieceType::Pawn => self.find_pawn_moves(current_position, current_position_mask),
+            PieceType::King => unimplemented!(),
+        }
+    }
+
+    fn generate_next_move(
+        &mut self,
+        piece_type: PieceType,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> Option<Board> {
+        if self.is_first_move {
+            self.available_moves = self.find_available_moves_for_piece(
+                piece_type,
+                current_position,
+                current_position_mask,
+            );
+            self.is_first_move = false;
+
+            if piece_type == PieceType::Pawn {
+                if let Some(board) =
+                    self.generate_en_passant_board(current_position, current_position_mask)
+                {
+                    return Some(board);
+                }
+            }
+        }
+
+        if self.available_moves.is_empty() {
+            return None;
+        }
+
+        let next_position = self.available_moves.first_bit_position();
+        let next_position_mask = BitBoard::from(next_position);
+
+        let board = self.move_piece(
+            piece_type,
+            current_position,
+            current_position_mask,
+            next_position,
+            next_position_mask,
+            next_position_mask.intersect(self.enemy_mask),
+        );
+
+        self.available_moves -= next_position_mask;
+
+        Some(board)
+    }
 }
 
 impl Iterator for MoveGenerator {
@@ -149,16 +210,7 @@ impl Iterator for MoveGenerator {
 
             let piece_type: PieceType = num::FromPrimitive::from_usize(self.piece_index).unwrap();
 
-            let board = match piece_type {
-                PieceType::Pawn => self.generate_next_pawn_move(rightmost_position, piece_mask),
-                PieceType::Rook => self.generate_next_rook_move(rightmost_position, piece_mask),
-                PieceType::Knight => self.generate_next_knight_move(rightmost_position, piece_mask),
-                PieceType::Bishop => self.generate_next_bishop_move(rightmost_position, piece_mask),
-                PieceType::Queen => self.generate_next_queen_move(rightmost_position, piece_mask),
-                PieceType::King => unimplemented!(),
-            };
-
-            match board {
+            match self.generate_next_move(piece_type, rightmost_position, piece_mask) {
                 Some(board) => {
                     return Some(board);
                 }

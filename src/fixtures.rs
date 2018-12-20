@@ -2,7 +2,7 @@ use crate::chess::Move;
 use crate::chess::PieceType;
 use crate::chess::RankFile;
 
-pub const WHITE_PAWN_TEST: &'static str = "
+pub const WHITE_PAWN_TEST: &str = "
     xxxrxxxx
     xxPxxxxx
     xxxxxxxx
@@ -19,7 +19,7 @@ pub const WHITE_EN_PASSANT: Move = Move {
     to: RankFile::F5,
 };
 
-pub const BLACK_PAWN_TEST: &'static str = "
+pub const BLACK_PAWN_TEST: &str = "
     xxxxxxxx
     pxxxxxpx
     NxxxxNxN
@@ -36,7 +36,7 @@ pub const BLACK_EN_PASSANT: Move = Move {
     to: RankFile::D4,
 };
 
-pub const WHITE_ROOK_TEST: &'static str = "
+pub const WHITE_ROOK_TEST: &str = "
     Rxxnxxxx
     xxxxxxrx
     xxxxxxxx
@@ -47,7 +47,7 @@ pub const WHITE_ROOK_TEST: &'static str = "
     xxxRxxxR
 ";
 
-pub const BLACK_ROOK_TEST: &'static str = "
+pub const BLACK_ROOK_TEST: &str = "
     rxxxNxxx
     xxxxxxxx
     xxxxxrxx
@@ -58,7 +58,7 @@ pub const BLACK_ROOK_TEST: &'static str = "
     xxxxNxrr
 ";
 
-pub const WHITE_KNIGHT_TEST: &'static str = "
+pub const WHITE_KNIGHT_TEST: &str = "
     Nxxnxxxx
     xxxxxxrx
     xxxxxxxx
@@ -69,7 +69,7 @@ pub const WHITE_KNIGHT_TEST: &'static str = "
     xxxNxxxN
 ";
 
-pub const BLACK_KNIGHT_TEST: &'static str = "
+pub const BLACK_KNIGHT_TEST: &str = "
     nxxxNxxx
     xxxxxxxx
     xxxxxnxx
@@ -80,7 +80,7 @@ pub const BLACK_KNIGHT_TEST: &'static str = "
     xxxxNxnn
 ";
 
-pub const WHITE_BISHOP_TEST: &'static str = "
+pub const WHITE_BISHOP_TEST: &str = "
     Bxxnxxxx
     xxxxxxrx
     xxxxxxxx
@@ -91,7 +91,7 @@ pub const WHITE_BISHOP_TEST: &'static str = "
     xxxBxxxB
 ";
 
-pub const BLACK_BISHOP_TEST: &'static str = "
+pub const BLACK_BISHOP_TEST: &str = "
     bxxxNxxx
     xxxxxxxx
     xxxxxbxx
@@ -102,7 +102,7 @@ pub const BLACK_BISHOP_TEST: &'static str = "
     xxxxNxbb
 ";
 
-pub const WHITE_QUEEN_TEST: &'static str = "
+pub const WHITE_QUEEN_TEST: &str = "
     Qxxnxxxx
     xxxxxxrx
     xxxxxxxx
@@ -113,7 +113,7 @@ pub const WHITE_QUEEN_TEST: &'static str = "
     xxxQxxxQ
 ";
 
-pub const BLACK_QUEEN_TEST: &'static str = "
+pub const BLACK_QUEEN_TEST: &str = "
     qxxxNxxx
     xxxxxxxx
     xxxxxqxx
