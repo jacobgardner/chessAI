@@ -1,25 +1,22 @@
-use super::MoveGenerator;
+use super::Board;
 
 use crate::chess::bitboard::FILES;
 use crate::chess::{BitBoard, BitPosition, PieceType, Player, RankFile};
 
-impl MoveGenerator {
+impl Board {
     // TODO: King vs King check
-    pub(super) fn is_attacked(
+    pub fn is_attacked(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> bool {
+        let rook_moves = self.find_rook_moves(current_position, current_position_mask);
 
-        let rook_moves =self
-            .find_rook_moves(current_position, current_position_mask);
-
-        let queen_rook_threats =  rook_moves
+        let queen_rook_threats = rook_moves
             .intersect(
-                self.root_board.pieces[PieceType::Rook as usize]
-                    .join(self.root_board.pieces[PieceType::Queen as usize]),
+                self.pieces[PieceType::Rook as usize].join(self.pieces[PieceType::Queen as usize]),
             )
-            .intersect(self.enemy_mask);
+            .intersect(self.enemy_mask());
 
         println!("King:\n{:?}", current_position_mask);
         println!("King Rook Moves:\n{:?}", rook_moves);
@@ -32,8 +29,8 @@ impl MoveGenerator {
 
         let knight_threats = self
             .find_knight_moves(current_position, current_position_mask)
-            .intersect(self.root_board.pieces[PieceType::Knight as usize])
-            .intersect(self.enemy_mask);
+            .intersect(self.pieces[PieceType::Knight as usize])
+            .intersect(self.enemy_mask());
 
         if !knight_threats.is_empty() {
             covered_by!("MoveGenerator::knight_attacks");
@@ -44,43 +41,41 @@ impl MoveGenerator {
 
         let queen_bishop_threats = diagonals
             .intersect(
-                self.root_board.pieces[PieceType::Bishop as usize]
-                    .join(self.root_board.pieces[PieceType::Queen as usize]),
+                self.pieces[PieceType::Bishop as usize]
+                    .join(self.pieces[PieceType::Queen as usize]),
             )
-            .intersect(self.enemy_mask);
+            .intersect(self.enemy_mask());
 
         if !queen_bishop_threats.is_empty() {
             covered_by!("MoveGenerator::bishop_attacks");
             return true;
         }
 
-        let pawn_threats = diagonals
-            .intersect(self.root_board.pieces[PieceType::Pawn as usize].intersect(self.enemy_mask));
+        let pawn_threats =
+            diagonals.intersect(self.pieces[PieceType::Pawn as usize].intersect(self.enemy_mask()));
 
         if !pawn_threats.is_empty() {
             let rank = RankFile::from(current_position).rank();
 
-            match self.player {
+            match self.next_player {
                 Player::White => {
-                    if rank < 7 {
-                        if !FILES[(rank + 1) as usize]
+                    if rank < 7
+                        && !FILES[(rank + 1) as usize]
                             .intersect(pawn_threats)
                             .is_empty()
-                        {
-                            covered_by!("MoveGenerator::black_pawn_attacks");
-                            return true;
-                        }
+                    {
+                        covered_by!("MoveGenerator::black_pawn_attacks");
+                        return true;
                     }
                 }
                 Player::Black => {
-                    if rank > 0 {
-                        if !FILES[(rank - 1) as usize]
+                    if rank > 0
+                        && !FILES[(rank - 1) as usize]
                             .intersect(pawn_threats)
                             .is_empty()
-                        {
-                            covered_by!("MoveGenerator::white_pawn_attacks");
-                            return true;
-                        }
+                    {
+                        covered_by!("MoveGenerator::white_pawn_attacks");
+                        return true;
                     }
                 }
             };
@@ -102,12 +97,11 @@ mod tests {
         attacked_spaces: &[RankFile],
         safe_spaces: &[RankFile],
     ) {
-        let board = Board::from(board).unwrap();
-        let generator = MoveGenerator::new(board, player);
+        let board = Board::from(board, player).unwrap();
 
         for &space in attacked_spaces.iter() {
             assert_eq!(
-                generator.is_attacked(space.into(), space.into()),
+                board.is_attacked(space.into(), space.into()),
                 true,
                 "Expected {:?} to be attacked",
                 space
@@ -116,7 +110,7 @@ mod tests {
 
         for &space in safe_spaces.iter() {
             assert_eq!(
-                generator.is_attacked(space.into(), space.into()),
+                board.is_attacked(space.into(), space.into()),
                 false,
                 "Expected {:?} to be safe",
                 space

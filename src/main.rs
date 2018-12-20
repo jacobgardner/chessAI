@@ -20,7 +20,7 @@ pub mod fixtures;
 pub mod test_moves;
 
 use crate::chess::DEFAULT_BOARD;
-use crate::chess::{BitBoard, Board};
+use crate::chess::{BitBoard, Board, Player};
 
 fn main() -> Result<(), failure::Error> {
     let pieces: [BitBoard; 6] = [
@@ -39,10 +39,11 @@ fn main() -> Result<(), failure::Error> {
         ],
         pieces,
         prev_move: None,
+        next_player: Player::White,
     };
     println!("{}", board);
 
-    let board = Board::from(DEFAULT_BOARD)?;
+    let board = Board::from(DEFAULT_BOARD, Player::White)?;
     println!("{}", board);
 
     // println!("{:064b}", 0xf0f8af8fu64);

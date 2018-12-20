@@ -1,6 +1,11 @@
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
+mod king_check;
+mod pawn;
+mod pieces;
+
+use crate::chess::bitboard::ENDS;
 use crate::chess::errors::{BoardError, InvalidStringReason};
 use crate::chess::{BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player};
 use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
@@ -10,6 +15,7 @@ pub struct Board {
     pub pieces: [BitBoard; PIECE_COUNT],
     pub players: [BitBoard; PLAYER_COUNT],
     pub prev_move: Option<Move>,
+    pub next_player: Player,
 }
 
 impl Board {
@@ -18,7 +24,16 @@ impl Board {
             pieces: [BitBoard::empty(); PIECE_COUNT],
             players: [BitBoard::empty(); PLAYER_COUNT],
             prev_move: None,
+            next_player: Player::White,
         }
+    }
+
+    pub fn all_pieces(&self) -> BitBoard {
+        self.players[Player::White as usize].join(self.players[Player::Black as usize])
+    }
+
+    pub fn enemy_mask(&self) -> BitBoard {
+        self.players[1 - (self.next_player as usize)]
     }
 
     pub fn piece_at(&self, rank: u8, file: u8) -> Result<Option<Piece>, BoardError> {
@@ -64,7 +79,7 @@ impl Board {
         }
     }
 
-    pub fn from(board: &str) -> Result<Board, BoardError> {
+    pub fn from(board: &str, player: Player) -> Result<Board, BoardError> {
         let mut pieces = [BitBoard::empty(); PIECE_COUNT];
         let mut players = [BitBoard::empty(); PLAYER_COUNT];
 
@@ -102,11 +117,72 @@ impl Board {
             pieces,
             players,
             prev_move: None,
+            next_player: player,
         })
     }
 
-    pub fn generate_moves(&self, player: Player) -> MoveGenerator {
-        MoveGenerator::new(self.clone(), player)
+    pub fn generate_moves(&self) -> MoveGenerator {
+        MoveGenerator::new(self.clone(), self.next_player)
+    }
+
+    pub fn move_piece(
+        &self,
+        piece: PieceType,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        next_position: BitPosition,
+        next_position_mask: BitBoard,
+        capture_mask: BitBoard,
+    ) -> Board {
+        let mut board = self.clone();
+
+        let piece_index = piece as usize;
+        let player_index = self.next_player as usize;
+
+        // Remove current position from pawn and current player bitboards
+        board.pieces[piece_index] -= current_position_mask;
+        board.players[player_index] -= current_position_mask;
+
+        // TODO: Add sanity checks back
+        if capture_mask.is_empty() {
+            // self.slide_move_sanity_check(&board, next_position_mask);
+        } else {
+            // self.capture_sanity_check(&board, capture_mask);
+            board.remove_piece(capture_mask);
+        }
+
+        board.players[player_index] |= next_position_mask;
+
+        let next_piece = if piece == PieceType::Pawn {
+            if next_position_mask.intersect(ENDS).is_empty() {
+                PieceType::Pawn
+            } else {
+                PieceType::Queen
+            }
+        } else {
+            piece
+        };
+
+        board.pieces[next_piece as usize] |= next_position_mask;
+
+        board.prev_move = Some(Move {
+            piece_type: piece,
+            from: current_position.into(),
+            to: next_position.into(),
+        });
+
+        debug_assert!(self.prev_move != board.prev_move);
+
+        board
+    }
+
+    fn remove_piece(&mut self, next_position_mask: BitBoard) {
+        for i in 0..PIECE_COUNT {
+            self.pieces[i] -= next_position_mask;
+        }
+
+        // And the previous player
+        self.players[1 - (self.next_player as usize)] -= next_position_mask;
     }
 }
 
@@ -180,11 +256,12 @@ mod tests {
             xxxxxxxx
             xxxxxxxx
             ",
+            Player::White,
         )
         .unwrap();
 
         assert_eq!(
-            Board::from(""),
+            Board::from("", Player::White),
             Err(BoardError::InvalidString(
                 InvalidStringReason::IncorrectLength
             ))
@@ -202,6 +279,7 @@ mod tests {
             .Q...P..
             ..P.....
             ",
+            Player::White,
         )
         .unwrap();
 
@@ -235,6 +313,7 @@ mod tests {
             .Q...P..
             ..P.....
             ",
+            Player::White,
         );
 
         assert_eq!(
@@ -266,6 +345,7 @@ mod tests {
             ],
             pieces,
             prev_move: None,
+            next_player: Player::White,
         };
 
         assert_eq!(

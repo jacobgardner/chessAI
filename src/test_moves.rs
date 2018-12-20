@@ -7,11 +7,11 @@ pub fn generate_moves_for_board(
 ) -> Vec<String> {
     let mut boards = vec![];
 
-    let mut board = Board::from(board).unwrap();
+    let mut board = Board::from(board, player).unwrap();
     board.prev_move = prev_move;
     boards.push(format!("{}", board).to_owned());
 
-    for board in board.generate_moves(player) {
+    for board in board.generate_moves() {
         boards.push(format!("{}", board).to_owned());
     }
 

@@ -1,22 +1,21 @@
-use super::MoveGenerator;
+use super::Board;
 use std::cmp::min;
 
 use crate::chess::{BitBoard, BitPosition, RankFile};
 
-impl MoveGenerator {
-    // TODO: These actually may make more sense on the Board struct
-    pub(super) fn find_rook_moves(&self, current_position: BitPosition, _: BitBoard) -> BitBoard {
-        let slides = self.all_pieces.horizontal_slides(current_position);
+impl Board {
+    pub fn find_rook_moves(&self, current_position: BitPosition, _: BitBoard) -> BitBoard {
+        let slides = self.all_pieces().horizontal_slides(current_position);
 
         slides.join(
-            self.all_pieces
+            self.all_pieces()
                 .rotate_90cw()
                 .horizontal_slides(current_position.rotate_90cw())
                 .rotate_90ccw(),
-        ) - self.player_mask
+        )
     }
 
-    pub(super) fn find_queen_moves(
+    pub fn find_queen_moves(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
@@ -25,7 +24,7 @@ impl MoveGenerator {
             .join(self.find_rook_moves(current_position, current_position_mask))
     }
 
-    pub(super) fn find_bishop_moves(
+    pub fn find_bishop_moves(
         &self,
         current_position: BitPosition,
         current_position_mask: BitBoard,
@@ -44,7 +43,7 @@ impl MoveGenerator {
         let bot_left = min(bot, left);
         let bot_right = min(bot, right);
 
-        let everything_else = self.all_pieces - current_position_mask;
+        let everything_else = self.all_pieces() - current_position_mask;
 
         [
             (top_left, 1, -1),
@@ -65,14 +64,10 @@ impl MoveGenerator {
             }
 
             acc.join(board)
-        }) - self.player_mask
+        })
     }
 
-    pub(super) fn find_knight_moves(
-        &self,
-        _: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> BitBoard {
+    pub fn find_knight_moves(&self, _: BitPosition, current_position_mask: BitBoard) -> BitBoard {
         // NOTE: We could make this do all knight moves in parallel if we wanted
         // NOTE: My dad could beat up your dad if he wanted
         let single_horiz_shift = current_position_mask
@@ -93,20 +88,14 @@ impl MoveGenerator {
             .shift_up(2)
             .join(single_horiz_shift.shift_down(2));
 
-        single_vert_shift.join(double_vert_shift) - self.player_mask
+        single_vert_shift.join(double_vert_shift)
     }
 
-    pub(super) fn find_king_moves(
-        &self,
-        _: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> BitBoard {
-        let mut mask = current_position_mask
+    pub fn find_king_moves(&self, _: BitPosition, current_position_mask: BitBoard) -> BitBoard {
+        let mask = current_position_mask
             .join(current_position_mask.shift_left(1))
             .join(current_position_mask.shift_right(1));
 
-        mask |= mask.shift_up(1).join(mask.shift_down(1));
-
-        mask - self.player_mask
+        mask.join(mask.shift_up(1).join(mask.shift_down(1)))
     }
 }
