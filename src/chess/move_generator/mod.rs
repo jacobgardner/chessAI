@@ -243,18 +243,7 @@ impl Iterator for MoveGenerator {
 
             let piece_type: PieceType = num::FromPrimitive::from_usize(self.piece_index).unwrap();
 
-            let board = self.generate_next_move(piece_type, rightmost_position, piece_mask);
-
-            // let board = match piece_type {
-            //     PieceType::Pawn => self.generate_next_pawn_move(rightmost_position, piece_mask),
-            //     PieceType::Rook => RookMoveGen.generate_next_move(self, rightmost_position, piece_mask),
-            //     PieceType::Knight => KnightMoveGen.generate_next_move(self, rightmost_position, piece_mask),
-            //     PieceType::Bishop => BishopMoveGen.generate_next_move(self, rightmost_position, piece_mask),
-            //     PieceType::Queen => QueenMoveGen.generate_next_move(self, rightmost_position, piece_mask),
-            //     PieceType::King => unimplemented!(),
-            // };
-
-            match board {
+            match self.generate_next_move(piece_type, rightmost_position, piece_mask) {
                 Some(board) => {
                     return Some(board);
                 }
