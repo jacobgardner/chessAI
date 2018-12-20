@@ -168,7 +168,7 @@ impl Iterator for MoveGenerator {
                         let first_king_position = king_mask.first_bit_position();
                         let first_king_mask = BitBoard::from(first_king_position);
 
-                        if board.is_attacked(first_king_position, first_king_mask) {
+                        if board.is_attacked(self.player, first_king_position, first_king_mask) {
                             continue 'outer;
                         }
 

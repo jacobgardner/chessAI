@@ -7,20 +7,26 @@ impl Board {
     // TODO: King vs King check
     pub fn is_attacked(
         &self,
+        player: Player,
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> bool {
+        // TODO: May be clearer to just have player passed in.
+        let enemy_mask = self.players[1 - player as usize];
         let rook_moves = self.find_rook_moves(current_position, current_position_mask);
 
         let queen_rook_threats = rook_moves
             .intersect(
                 self.pieces[PieceType::Rook as usize].join(self.pieces[PieceType::Queen as usize]),
             )
-            .intersect(self.enemy_mask());
+            .intersect(enemy_mask);
 
+        println!("------------------------------------");
+        println!("Player: {:?}", self.next_player);
         println!("King:\n{:?}", current_position_mask);
-        println!("King Rook Moves:\n{:?}", rook_moves);
+        println!("{:?}", rook_moves);
         println!("{:?}", queen_rook_threats);
+        println!("{:?}", enemy_mask);
 
         if !queen_rook_threats.is_empty() {
             covered_by!("MoveGenerator::rook_attacks");
@@ -30,7 +36,7 @@ impl Board {
         let knight_threats = self
             .find_knight_moves(current_position, current_position_mask)
             .intersect(self.pieces[PieceType::Knight as usize])
-            .intersect(self.enemy_mask());
+            .intersect(enemy_mask);
 
         if !knight_threats.is_empty() {
             covered_by!("MoveGenerator::knight_attacks");
@@ -44,7 +50,7 @@ impl Board {
                 self.pieces[PieceType::Bishop as usize]
                     .join(self.pieces[PieceType::Queen as usize]),
             )
-            .intersect(self.enemy_mask());
+            .intersect(enemy_mask);
 
         if !queen_bishop_threats.is_empty() {
             covered_by!("MoveGenerator::bishop_attacks");
@@ -52,7 +58,7 @@ impl Board {
         }
 
         let pawn_threats =
-            diagonals.intersect(self.pieces[PieceType::Pawn as usize].intersect(self.enemy_mask()));
+            diagonals.intersect(self.pieces[PieceType::Pawn as usize].intersect(enemy_mask));
 
         if !pawn_threats.is_empty() {
             let rank = RankFile::from(current_position).rank();
@@ -101,7 +107,7 @@ mod tests {
 
         for &space in attacked_spaces.iter() {
             assert_eq!(
-                board.is_attacked(space.into(), space.into()),
+                board.is_attacked(player, space.into(), space.into()),
                 true,
                 "Expected {:?} to be attacked",
                 space
@@ -110,7 +116,7 @@ mod tests {
 
         for &space in safe_spaces.iter() {
             assert_eq!(
-                board.is_attacked(space.into(), space.into()),
+                board.is_attacked(player, space.into(), space.into()),
                 false,
                 "Expected {:?} to be safe",
                 space
