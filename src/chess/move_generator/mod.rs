@@ -57,7 +57,7 @@ impl MoveGenerator {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> BitBoard {
-        match piece_type {
+        let moves = match piece_type {
             PieceType::Rook => self
                 .root_board
                 .find_rook_moves(current_position, current_position_mask),
@@ -76,7 +76,9 @@ impl MoveGenerator {
             PieceType::King => self
                 .root_board
                 .find_king_moves(current_position, current_position_mask),
-        }
+        };
+
+        moves - self.player_mask
     }
 
     fn generate_next_move(
