@@ -46,11 +46,6 @@ fn main() -> Result<(), failure::Error> {
     let board = Board::from(DEFAULT_BOARD, Player::White)?;
     println!("{}", board);
 
-    // println!("{:064b}", 0xf0f8af8fu64);
-    // println!("{}", bitboard::BLACK_SQUARES.to_bitboard());
-    // println!("{}", bitboard::WHITE_SQUARES.to_bitboard());
-    // println!("{}", bitboard::FILE_A.to_bitboard());
-
     println!(
         "{}",
         BitBoard::from(0b0000_1111).rotate_45cw().to_bitboard()
