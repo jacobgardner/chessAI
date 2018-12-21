@@ -1,7 +1,8 @@
 mod sanity_checks;
 
+use crate::chess::bitboard::{CASTLE_CHECK, KINGSIDE_CASTLE, QUEENSIDE_CASTLE};
 use crate::chess::PIECE_COUNT;
-use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
+use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player, RankFile};
 
 pub struct MoveGenerator {
     root_board: Board,
@@ -14,7 +15,7 @@ pub struct MoveGenerator {
 
     is_first_move: bool,
     available_moves: BitBoard,
-    available_captures: BitBoard,
+    possible_castle: BitBoard,
 
     piece_index: usize,
 }
@@ -37,7 +38,7 @@ impl MoveGenerator {
 
             is_first_move: true,
             available_moves: BitBoard::empty(),
-            available_captures: BitBoard::empty(),
+            possible_castle: BitBoard::empty(),
 
             piece_index: 0,
         };
@@ -102,6 +103,104 @@ impl MoveGenerator {
                 {
                     return Some(board);
                 }
+            } else if piece_type == PieceType::King
+                && !self
+                    .root_board
+                    .unmoved_pieces
+                    .intersect(current_position_mask)
+                    .is_empty()
+            {
+                self.possible_castle = self.root_board.pieces[PieceType::Rook as usize]
+                    .intersect(self.player_mask)
+                    .intersect(self.root_board.unmoved_pieces);
+
+                if !self.possible_castle.is_empty() {
+                    if self.root_board.is_attacked(
+                        self.player,
+                        current_position,
+                        current_position_mask,
+                    ) {
+                        self.possible_castle = BitBoard::empty();
+                    }
+                }
+            }
+        }
+
+        'castle_loop: while piece_type == PieceType::King && !self.possible_castle.is_empty() {
+            let rook_position = self.possible_castle.first_bit_position();
+            self.possible_castle -= rook_position.into();
+            let rf = RankFile::from(rook_position);
+
+            let mut spaces = if rf.file() == 0 {
+                QUEENSIDE_CASTLE
+            } else {
+                KINGSIDE_CASTLE
+            };
+
+            if self.player == Player::Black {
+                spaces = spaces.shift_up(7);
+            }
+
+            if spaces.intersect(self.all_pieces).is_empty() {
+                let mut check_spaces = spaces.intersect(CASTLE_CHECK);
+
+                while !check_spaces.is_empty() {
+                    let check_space = check_spaces.first_bit_position();
+                    let check_space_mask = BitBoard::from(check_space);
+
+                    if self
+                        .root_board
+                        .is_attacked(self.player, check_space, check_space_mask)
+                    {
+                        continue 'castle_loop;
+                    }
+
+                    check_spaces -= check_space_mask;
+                }
+
+                let (next_rook_mask, next_king_mask) = if rf.file() == 0 {
+                    (
+                        BitBoard::from(rook_position).shift_right(3),
+                        current_position_mask.shift_left(2),
+                    )
+                } else {
+                    (
+                        BitBoard::from(rook_position).shift_left(2),
+                        current_position_mask.shift_right(2),
+                    )
+                };
+
+                let next_rook_position = next_rook_mask.first_bit_position();
+                let next_king_position = next_king_mask.first_bit_position();
+
+                println!(
+                    "Board:\n{:?}\n{:?}\n{:?}",
+                    self.player_mask,
+                    BitBoard::from(rook_position),
+                    next_rook_mask
+                );
+                let mut board = self.root_board.move_piece(
+                    PieceType::Rook,
+                    rook_position,
+                    rook_position.into(),
+                    next_rook_position,
+                    next_rook_mask,
+                    BitBoard::empty(),
+                );
+                board.next_player = self.player;
+
+                println!("Done!");
+
+                return Some(board.move_piece(
+                    PieceType::King,
+                    current_position,
+                    current_position_mask,
+                    next_king_position,
+                    next_king_mask,
+                    BitBoard::empty(),
+                ));
+
+                println!("Done x2!");
             }
         }
 

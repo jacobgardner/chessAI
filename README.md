@@ -7,7 +7,7 @@ To benchmark, run:
 
 A new attempt at a Chess AI in Rust.  This attempt will try to achieve the following goals:
 
-- [ ] Using proper bitboards for move generation
+- [x] Using proper bitboards for move generation
     - [x] Pawn
         - [x] Single Move
         - [x] Double Move
@@ -20,7 +20,7 @@ A new attempt at a Chess AI in Rust.  This attempt will try to achieve the follo
     - [x] Bishop
     - [x] Queen
     - [x] King
-    - [ ] Castling
+    - [x] Castling
 - [ ] Using some sort of Arena for the tree
 - [ ] Minimax w/ alpha-beta pruning
 - [ ] Iterative depth first search
@@ -34,3 +34,15 @@ Stretch Goals:
 - [ ] Uisng an evolutionary algorithm to tune parameters
   - [ ] Piece Values
   - [ ] How deep to search at any given time
+
+
+Possible Optimizations: 
+- [ ] Using premade boards for a lot of masks.
+
+    NOTE: This actually may end up slower because the frequent lookups may thrash the cache
+
+  - [ ] 64 knight move pattern boards
+  - [ ] 64 bishop move pattern boards
+  - [ ] 64 rook move pattern boards
+  - [ ] 65 king move pattern boards
+- [ ] Use opening move database for initial moves

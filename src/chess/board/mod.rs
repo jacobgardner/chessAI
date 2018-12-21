@@ -14,18 +14,26 @@ use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
 pub struct Board {
     pub pieces: [BitBoard; PIECE_COUNT],
     pub players: [BitBoard; PLAYER_COUNT],
+    pub unmoved_pieces: BitBoard,
     pub prev_move: Option<Move>,
     pub next_player: Player,
 }
 
-impl Board {
-    pub fn empty_board() -> Board {
+impl Default for Board {
+    fn default() -> Self {
         Board {
             pieces: [BitBoard::empty(); PIECE_COUNT],
             players: [BitBoard::empty(); PLAYER_COUNT],
             prev_move: None,
             next_player: Player::White,
+            unmoved_pieces: BitBoard::empty().inverse(),
         }
+    }
+}
+
+impl Board {
+    pub fn empty_board() -> Board {
+        Board::default()
     }
 
     pub fn all_pieces(&self) -> BitBoard {
@@ -116,8 +124,8 @@ impl Board {
         Ok(Board {
             pieces,
             players,
-            prev_move: None,
             next_player: player,
+            ..Default::default()
         })
     }
 
@@ -139,7 +147,25 @@ impl Board {
         let piece_index = piece as usize;
         let player_index = self.next_player as usize;
 
-        // Remove current position from pawn and current player bitboards
+        board.unmoved_pieces -= current_position_mask.join(next_position_mask);
+
+        debug_assert!(
+            !board.pieces[piece_index]
+                .intersect(current_position_mask)
+                .is_empty(),
+            "Expected to move piece, {:?}, but that piece wasn't in that space.",
+            piece
+        );
+        debug_assert!(
+            !board.players[player_index]
+                .intersect(current_position_mask)
+                .is_empty(),
+            "Expected to move piece, {:?} {:?}, but they weren't in that space.",
+            self.next_player,
+            piece
+        );
+
+        // Remove current position from piece and current player bitboards
         board.pieces[piece_index] -= current_position_mask;
         board.players[player_index] -= current_position_mask;
 
@@ -347,8 +373,8 @@ mod tests {
                 pieces[1].join(pieces[3]).join(pieces[5]),
             ],
             pieces,
-            prev_move: None,
             next_player: Player::White,
+            ..Default::default()
         };
 
         assert_eq!(

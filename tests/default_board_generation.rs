@@ -3,7 +3,6 @@ extern crate lib;
 use snapshot::snapshot;
 
 use lib::chess::{Player, DEFAULT_BOARD};
-use lib::fixtures::*;
 use lib::test_moves::generate_moves_for_board;
 
 #[snapshot]

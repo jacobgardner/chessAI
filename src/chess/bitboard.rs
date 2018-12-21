@@ -25,6 +25,10 @@ pub const RANK_8: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
 pub const ENDS: BitBoard = BitBoard::new(FILE_A.board | FILE_H.board);
 pub const SIDES: BitBoard = BitBoard::new(RANK_1.board | RANK_8.board);
 
+pub const QUEENSIDE_CASTLE: BitBoard = BitBoard::new(0b0110_0000);
+pub const KINGSIDE_CASTLE: BitBoard = BitBoard::new(0b0000_1110);
+pub const CASTLE_CHECK: BitBoard = BitBoard::new(0b01101100 << 56 | 0b01101100);
+
 pub const RANKS: [BitBoard; 8] = [
     RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8,
 ];
