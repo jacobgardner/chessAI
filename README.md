@@ -21,6 +21,7 @@ A new attempt at a Chess AI in Rust.  This attempt will try to achieve the follo
     - [x] Queen
     - [x] King
     - [x] Castling
+- [ ] Web frontend for seeing chess boards
 - [ ] Using some sort of Arena for the tree
 - [ ] Minimax w/ alpha-beta pruning
 - [ ] Iterative depth first search

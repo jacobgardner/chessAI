@@ -82,50 +82,22 @@ impl MoveGenerator {
         moves - self.player_mask
     }
 
-    fn generate_next_move(
-        &mut self,
-        piece_type: PieceType,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-    ) -> Option<Board> {
-        if self.is_first_move {
-            self.available_moves = self.find_available_moves_for_piece(
-                piece_type,
-                current_position,
-                current_position_mask,
-            );
-            self.is_first_move = false;
+    fn check_for_castling(&mut self, current_position: BitPosition, current_position_mask: BitBoard) {
+        self.possible_castle = self.root_board.pieces[PieceType::Rook as usize]
+            .intersect(self.player_mask)
+            .intersect(self.root_board.unmoved_pieces);
 
-            if piece_type == PieceType::Pawn {
-                if let Some(board) = self
-                    .root_board
-                    .generate_en_passant_board(current_position, current_position_mask)
-                {
-                    return Some(board);
-                }
-            } else if piece_type == PieceType::King
-                && !self
-                    .root_board
-                    .unmoved_pieces
-                    .intersect(current_position_mask)
-                    .is_empty()
+        if !self.possible_castle.is_empty() {
+            if self
+                .root_board
+                .is_attacked(self.player, current_position, current_position_mask)
             {
-                self.possible_castle = self.root_board.pieces[PieceType::Rook as usize]
-                    .intersect(self.player_mask)
-                    .intersect(self.root_board.unmoved_pieces);
-
-                if !self.possible_castle.is_empty() {
-                    if self.root_board.is_attacked(
-                        self.player,
-                        current_position,
-                        current_position_mask,
-                    ) {
-                        self.possible_castle = BitBoard::empty();
-                    }
-                }
+                self.possible_castle = BitBoard::empty();
             }
         }
+    }
 
+    fn generate_next_castling_board(&mut self, piece_type: PieceType, current_position: BitPosition, current_position_mask: BitBoard) -> Option<Board> {
         'castle_loop: while piece_type == PieceType::King && !self.possible_castle.is_empty() {
             let rook_position = self.possible_castle.first_bit_position();
             self.possible_castle -= rook_position.into();
@@ -173,12 +145,6 @@ impl MoveGenerator {
                 let next_rook_position = next_rook_mask.first_bit_position();
                 let next_king_position = next_king_mask.first_bit_position();
 
-                println!(
-                    "Board:\n{:?}\n{:?}\n{:?}",
-                    self.player_mask,
-                    BitBoard::from(rook_position),
-                    next_rook_mask
-                );
                 let mut board = self.root_board.move_piece(
                     PieceType::Rook,
                     rook_position,
@@ -189,8 +155,6 @@ impl MoveGenerator {
                 );
                 board.next_player = self.player;
 
-                println!("Done!");
-
                 return Some(board.move_piece(
                     PieceType::King,
                     current_position,
@@ -199,9 +163,46 @@ impl MoveGenerator {
                     next_king_mask,
                     BitBoard::empty(),
                 ));
-
-                println!("Done x2!");
             }
+        }
+
+        None
+    }
+
+    fn generate_next_move(
+        &mut self,
+        piece_type: PieceType,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> Option<Board> {
+        if self.is_first_move {
+            self.available_moves = self.find_available_moves_for_piece(
+                piece_type,
+                current_position,
+                current_position_mask,
+            );
+            self.is_first_move = false;
+
+            if piece_type == PieceType::Pawn {
+                if let Some(board) = self
+                    .root_board
+                    .generate_en_passant_board(current_position, current_position_mask)
+                {
+                    return Some(board);
+                }
+            } else if piece_type == PieceType::King
+                && !self
+                    .root_board
+                    .unmoved_pieces
+                    .intersect(current_position_mask)
+                    .is_empty()
+            {
+                self.check_for_castling(current_position, current_position_mask);
+            }
+        }
+
+        if let Some(board) = self.generate_next_castling_board(piece_type, current_position, current_position_mask) {
+            return Some(board);
         }
 
         if self.available_moves.is_empty() {
