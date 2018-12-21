@@ -82,28 +82,33 @@ impl MoveGenerator {
         moves - self.player_mask
     }
 
-    fn check_for_castling(&mut self, current_position: BitPosition, current_position_mask: BitBoard) {
+    fn check_for_castling(
+        &mut self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) {
         self.possible_castle = self.root_board.pieces[PieceType::Rook as usize]
             .intersect(self.player_mask)
             .intersect(self.root_board.unmoved_pieces);
 
-        if !self.possible_castle.is_empty() {
-            if self
+        if !self.possible_castle.is_empty()
+            && self
                 .root_board
                 .is_attacked(self.player, current_position, current_position_mask)
-            {
-                self.possible_castle = BitBoard::empty();
-            }
+        {
+            self.possible_castle = BitBoard::empty();
         }
     }
 
-    fn generate_next_castling_board(&mut self, piece_type: PieceType, current_position: BitPosition, current_position_mask: BitBoard) -> Option<Board> {
-        'castle_loop: while piece_type == PieceType::King && !self.possible_castle.is_empty() {
+    fn generate_next_castling_board(&mut self) -> Option<Board> {
+        'castle_loop: while !self.possible_castle.is_empty() {
             let rook_position = self.possible_castle.first_bit_position();
             self.possible_castle -= rook_position.into();
             let rf = RankFile::from(rook_position);
 
-            let mut spaces = if rf.file() == 0 {
+            let is_queenside = rf.file() == 0;
+
+            let mut spaces = if is_queenside {
                 QUEENSIDE_CASTLE
             } else {
                 KINGSIDE_CASTLE
@@ -130,39 +135,7 @@ impl MoveGenerator {
                     check_spaces -= check_space_mask;
                 }
 
-                let (next_rook_mask, next_king_mask) = if rf.file() == 0 {
-                    (
-                        BitBoard::from(rook_position).shift_right(3),
-                        current_position_mask.shift_left(2),
-                    )
-                } else {
-                    (
-                        BitBoard::from(rook_position).shift_left(2),
-                        current_position_mask.shift_right(2),
-                    )
-                };
-
-                let next_rook_position = next_rook_mask.first_bit_position();
-                let next_king_position = next_king_mask.first_bit_position();
-
-                let mut board = self.root_board.move_piece(
-                    PieceType::Rook,
-                    rook_position,
-                    rook_position.into(),
-                    next_rook_position,
-                    next_rook_mask,
-                    BitBoard::empty(),
-                );
-                board.next_player = self.player;
-
-                return Some(board.move_piece(
-                    PieceType::King,
-                    current_position,
-                    current_position_mask,
-                    next_king_position,
-                    next_king_mask,
-                    BitBoard::empty(),
-                ));
+                return Some(self.root_board.perform_castle(is_queenside));
             }
         }
 
@@ -201,8 +174,10 @@ impl MoveGenerator {
             }
         }
 
-        if let Some(board) = self.generate_next_castling_board(piece_type, current_position, current_position_mask) {
-            return Some(board);
+        if piece_type == PieceType::King {
+            if let Some(board) = self.generate_next_castling_board() {
+                return Some(board);
+            }
         }
 
         if self.available_moves.is_empty() {

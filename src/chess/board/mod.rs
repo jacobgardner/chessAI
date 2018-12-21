@@ -7,7 +7,7 @@ mod pieces;
 
 use crate::chess::bitboard::ENDS;
 use crate::chess::errors::{BoardError, InvalidStringReason};
-use crate::chess::{BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player};
+use crate::chess::{BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player, RankFile};
 use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
 
 #[derive(PartialEq, Clone)]
@@ -205,6 +205,53 @@ impl Board {
         };
 
         board
+    }
+
+    pub fn perform_castle(&mut self, is_queenside: bool) -> Board {
+        let king_position: BitPosition = match self.next_player {
+            Player::White => RankFile::E1,
+            Player::Black => RankFile::E8,
+        }.into();
+        let king_position_mask = BitBoard::from(king_position);
+
+        let rook_position: BitPosition = match self.next_player {
+            Player::White => if is_queenside { RankFile::A1 } else { RankFile::H1 },
+            Player::Black => if is_queenside { RankFile::A8 } else { RankFile::H8 },
+        }.into();
+
+        let (next_rook_mask, next_king_mask) = if is_queenside {
+            (
+                BitBoard::from(rook_position).shift_right(3),
+                king_position_mask.shift_left(2),
+            )
+        } else {
+            (
+                BitBoard::from(rook_position).shift_left(2),
+                king_position_mask.shift_right(2),
+            )
+        };
+
+        let next_rook_position = next_rook_mask.first_bit_position();
+        let next_king_position = next_king_mask.first_bit_position();
+
+        let mut board = self.move_piece(
+            PieceType::Rook,
+            rook_position,
+            rook_position.into(),
+            next_rook_position,
+            next_rook_mask,
+            BitBoard::empty(),
+        );
+        board.next_player = self.next_player;
+
+        board.move_piece(
+            PieceType::King,
+            king_position,
+            king_position_mask,
+            next_king_position,
+            next_king_mask,
+            BitBoard::empty(),
+        )
     }
 
     fn remove_piece(&mut self, next_position_mask: BitBoard) {
