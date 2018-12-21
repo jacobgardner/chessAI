@@ -1,11 +1,7 @@
-mod pawn;
-mod pieces;
 mod sanity_checks;
 
-use crate::chess::bitboard::ENDS;
-
 use crate::chess::PIECE_COUNT;
-use crate::chess::{BitBoard, BitPosition, Board, Move, PieceType, Player};
+use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
 
 pub struct MoveGenerator {
     root_board: Board,
@@ -55,80 +51,34 @@ impl MoveGenerator {
         self.root_board.pieces[piece_index].intersect(self.player_mask)
     }
 
-    fn move_piece(
-        &self,
-        piece: PieceType,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-        next_position: BitPosition,
-        next_position_mask: BitBoard,
-        capture_mask: BitBoard,
-    ) -> Board {
-        let mut board = self.root_board.clone();
-
-        let piece_index = piece as usize;
-        let player_index = self.player as usize;
-
-        // Remove current position from pawn and current player bitboards
-        board.pieces[piece_index] -= current_position_mask;
-        board.players[player_index] -= current_position_mask;
-
-        // TODO: Add sanity checks back
-        if capture_mask.is_empty() {
-            // self.slide_move_sanity_check(&board, next_position_mask);
-        } else {
-            // self.capture_sanity_check(&board, capture_mask);
-            self.remove_piece(&mut board, capture_mask);
-        }
-
-        board.players[player_index] |= next_position_mask;
-
-        let next_piece = if piece == PieceType::Pawn {
-            if next_position_mask.intersect(ENDS).is_empty() {
-                PieceType::Pawn
-            } else {
-                PieceType::Queen
-            }
-        } else {
-            piece
-        };
-
-        board.pieces[next_piece as usize] |= next_position_mask;
-
-        board.prev_move = Some(Move {
-            piece_type: piece,
-            from: current_position.into(),
-            to: next_position.into(),
-        });
-
-        debug_assert!(self.root_board.prev_move != board.prev_move);
-
-        board
-    }
-
-    fn remove_piece(&self, board: &mut Board, next_position_mask: BitBoard) {
-        for i in 0..PIECE_COUNT {
-            board.pieces[i] -= next_position_mask;
-        }
-
-        // And the previous player
-        board.players[1 - (self.player as usize)] -= next_position_mask;
-    }
-
     fn find_available_moves_for_piece(
         &self,
         piece_type: PieceType,
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> BitBoard {
-        match piece_type {
-            PieceType::Rook => self.find_rook_moves(current_position, current_position_mask),
-            PieceType::Bishop => self.find_bishop_moves(current_position, current_position_mask),
-            PieceType::Queen => self.find_queen_moves(current_position, current_position_mask),
-            PieceType::Knight => self.find_knight_moves(current_position, current_position_mask),
-            PieceType::Pawn => self.find_pawn_moves(current_position, current_position_mask),
-            PieceType::King => self.find_king_moves(current_position, current_position_mask),
-        }
+        let moves = match piece_type {
+            PieceType::Rook => self
+                .root_board
+                .find_rook_moves(current_position, current_position_mask),
+            PieceType::Bishop => self
+                .root_board
+                .find_bishop_moves(current_position, current_position_mask),
+            PieceType::Queen => self
+                .root_board
+                .find_queen_moves(current_position, current_position_mask),
+            PieceType::Knight => self
+                .root_board
+                .find_knight_moves(current_position, current_position_mask),
+            PieceType::Pawn => self
+                .root_board
+                .find_pawn_moves(current_position, current_position_mask),
+            PieceType::King => self
+                .root_board
+                .find_king_moves(current_position, current_position_mask),
+        };
+
+        moves - self.player_mask
     }
 
     fn generate_next_move(
@@ -146,8 +96,9 @@ impl MoveGenerator {
             self.is_first_move = false;
 
             if piece_type == PieceType::Pawn {
-                if let Some(board) =
-                    self.generate_en_passant_board(current_position, current_position_mask)
+                if let Some(board) = self
+                    .root_board
+                    .generate_en_passant_board(current_position, current_position_mask)
                 {
                     return Some(board);
                 }
@@ -161,7 +112,7 @@ impl MoveGenerator {
         let next_position = self.available_moves.first_bit_position();
         let next_position_mask = BitBoard::from(next_position);
 
-        let board = self.move_piece(
+        let board = self.root_board.move_piece(
             piece_type,
             current_position,
             current_position_mask,
@@ -180,7 +131,7 @@ impl Iterator for MoveGenerator {
     type Item = Board;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
+        'outer: loop {
             if self.player_piecetype_mask.is_empty() {
                 self.piece_index += 1;
                 self.is_first_move = true;
@@ -209,6 +160,22 @@ impl Iterator for MoveGenerator {
 
             match self.generate_next_move(piece_type, rightmost_position, piece_mask) {
                 Some(board) => {
+                    // LOW: This loop only matters for tests where we have > 1 king.
+                    //  Possibly remove and optimize for release mode?
+                    let mut king_mask = board.players[self.player as usize]
+                        .intersect(board.pieces[PieceType::King as usize]);
+
+                    while !king_mask.is_empty() {
+                        let first_king_position = king_mask.first_bit_position();
+                        let first_king_mask = BitBoard::from(first_king_position);
+
+                        if board.is_attacked(self.player, first_king_position, first_king_mask) {
+                            continue 'outer;
+                        }
+
+                        king_mask -= first_king_mask;
+                    }
+
                     return Some(board);
                 }
                 None => {

@@ -136,13 +136,12 @@ pub const WHITE_KING_TEST: &str = "
 ";
 
 pub const BLACK_KING_TEST: &str = "
-    kxxxNxxx
+    xxxxNxxx
     xxxxxxxx
     xxxxxkxx
     xxxxxxxx
-    xxkxxxxN
+    xxxxxxxN
     xxxxxRxx
-    xxxxkxxx
-    xxxxNxkk
+    xxxxxxxx
+    xxxxNxxx
 ";
-
