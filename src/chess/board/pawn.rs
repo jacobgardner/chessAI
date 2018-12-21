@@ -26,10 +26,12 @@ impl Board {
         covered_by!("Pawn::captures -> White");
         covered_by!("Pawn::captures -> Black");
 
-        debug_assert!(
-            !(self.prev_move.is_none() && !self.enemy_mask().is_empty()),
-            "Somehow we can capture on the first move?"
-        );
+        // LOW: This assert doesn't... make any sense.  Must've screwed something up
+        //  in the refactor.
+        // debug_assert!(
+        //     !(self.prev_move.is_none() && !self.enemy_mask().is_empty()),
+        //     "Somehow we can capture on the first move?"
+        // );
 
         moves.join(
             self.enemy_mask()
