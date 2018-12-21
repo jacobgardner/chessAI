@@ -84,9 +84,20 @@ impl MoveGenerator {
 
     fn check_for_castling(
         &mut self,
+        piece_type: PieceType,
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) {
+        if piece_type != PieceType::King
+            || self
+                .root_board
+                .unmoved_pieces
+                .intersect(current_position_mask)
+                .is_empty()
+        {
+            return;
+        }
+
         self.possible_castle = self.root_board.pieces[PieceType::Rook as usize]
             .intersect(self.player_mask)
             .intersect(self.root_board.unmoved_pieces);
@@ -154,6 +165,7 @@ impl MoveGenerator {
                 current_position,
                 current_position_mask,
             );
+
             self.is_first_move = false;
 
             if piece_type == PieceType::Pawn {
@@ -163,15 +175,9 @@ impl MoveGenerator {
                 {
                     return Some(board);
                 }
-            } else if piece_type == PieceType::King
-                && !self
-                    .root_board
-                    .unmoved_pieces
-                    .intersect(current_position_mask)
-                    .is_empty()
-            {
-                self.check_for_castling(current_position, current_position_mask);
             }
+
+            self.check_for_castling(piece_type, current_position, current_position_mask);
         }
 
         if piece_type == PieceType::King {

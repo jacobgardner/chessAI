@@ -232,7 +232,6 @@ impl Board {
         };
 
         let next_rook_position = next_rook_mask.first_bit_position();
-        let next_king_position = next_king_mask.first_bit_position();
 
         let mut board = self.move_piece(
             PieceType::Rook,
@@ -244,6 +243,7 @@ impl Board {
         );
         board.next_player = self.next_player;
 
+        let next_king_position = next_king_mask.first_bit_position();
         board.move_piece(
             PieceType::King,
             king_position,
