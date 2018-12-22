@@ -450,10 +450,10 @@ impl BitBoard {
 
 impl Iterator for BitBoard {
     type Item = BitPosition;
-    
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.is_empty() {
-            return None
+            return None;
         }
 
         let position = self.first_bit_position();

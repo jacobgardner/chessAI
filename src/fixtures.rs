@@ -191,4 +191,3 @@ pub const CASTLING_TEST_THROUGH_CHECK: &str = "
     RxxxKxxR
 ";
 //#endregion
-

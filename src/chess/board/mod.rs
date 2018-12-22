@@ -7,7 +7,9 @@ mod pieces;
 
 use crate::chess::bitboard::ENDS;
 use crate::chess::errors::{BoardError, InvalidStringReason};
-use crate::chess::{BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player, RankFile};
+use crate::chess::{
+    BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player, RankFile,
+};
 use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
 
 #[derive(PartialEq, Clone)]
@@ -211,13 +213,27 @@ impl Board {
         let king_position: BitPosition = match self.next_player {
             Player::White => RankFile::E1,
             Player::Black => RankFile::E8,
-        }.into();
+        }
+        .into();
         let king_position_mask = BitBoard::from(king_position);
 
         let rook_position: BitPosition = match self.next_player {
-            Player::White => if is_queenside { RankFile::A1 } else { RankFile::H1 },
-            Player::Black => if is_queenside { RankFile::A8 } else { RankFile::H8 },
-        }.into();
+            Player::White => {
+                if is_queenside {
+                    RankFile::A1
+                } else {
+                    RankFile::H1
+                }
+            }
+            Player::Black => {
+                if is_queenside {
+                    RankFile::A8
+                } else {
+                    RankFile::H8
+                }
+            }
+        }
+        .into();
 
         let (next_rook_mask, next_king_mask) = if is_queenside {
             (
