@@ -107,9 +107,7 @@ impl MoveGenerator {
     }
 
     fn generate_next_castling_board(&mut self) -> Option<Board> {
-        while !self.possible_castle.is_empty() {
-            let rook_position = self.possible_castle.first_bit_position();
-            self.possible_castle -= rook_position.into();
+        for rook_position in self.possible_castle.by_ref() {
             let rf = RankFile::from(rook_position);
 
             let is_queenside = rf.file() == 0;
@@ -226,18 +224,15 @@ impl Iterator for MoveGenerator {
                 Some(board) => {
                     // LOW: This loop only matters for tests where we have > 1 king.
                     //  Possibly remove and optimize for release mode?
-                    let mut king_mask = board.players[self.player as usize]
+                    let king_mask = board.players[self.player as usize]
                         .intersect(board.pieces[PieceType::King as usize]);
 
-                    while !king_mask.is_empty() {
-                        let first_king_position = king_mask.first_bit_position();
+                    for first_king_position in king_mask {
                         let first_king_mask = BitBoard::from(first_king_position);
 
                         if board.is_attacked(self.player, first_king_mask) {
                             continue 'outer;
                         }
-
-                        king_mask -= first_king_mask;
                     }
 
                     return Some(board);

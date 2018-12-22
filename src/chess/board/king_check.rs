@@ -10,6 +10,7 @@ impl Board {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> bool {
+        // TODO: King vs King check
         // TODO: Clean this up
         let enemy_mask = self.players[1 - player as usize];
         let rook_moves = self.find_rook_moves(current_position, current_position_mask);
@@ -82,12 +83,8 @@ impl Board {
         false
     }
 
-    // TODO: King vs King check
     pub fn is_attacked(&self, player: Player, mut space_mask: BitBoard) -> bool {
-        // TODO: This is a pretty common pattern... we should probably turn the bitboard
-        //  into an iterator
-        while !space_mask.is_empty() {
-            let current_position = space_mask.first_bit_position();
+        for current_position in space_mask {
             let current_position_mask = BitBoard::from(current_position);
 
             if self.single_check(player, current_position, current_position_mask) {

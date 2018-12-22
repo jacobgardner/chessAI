@@ -333,6 +333,8 @@ impl BitBoard {
             .fill_spaces(position.right_index - left_spaces, position.right_index)
     }
 
+    // TODO: Test
+    // TODO: This should probably be an option... for when it's empty
     // TODO: Rename.  This sucks
     pub fn first_bit_position(self) -> BitPosition {
         BitPosition::from(self.board.trailing_zeros())
@@ -442,6 +444,22 @@ impl BitBoard {
         }
 
         bits
+    }
+}
+
+impl Iterator for BitBoard {
+    type Item = BitPosition;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.is_empty() {
+            return None
+        }
+
+        let position = self.first_bit_position();
+
+        *self -= position.into();
+
+        Some(position)
     }
 }
 
