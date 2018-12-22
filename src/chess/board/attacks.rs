@@ -1,7 +1,6 @@
 use super::Board;
 
-use crate::chess::bitboard::FILES;
-use crate::chess::{BitBoard, BitPosition, PieceType, Player, RankFile};
+use crate::chess::{BitBoard, BitPosition, PieceType, Player};
 
 impl Board {
     fn rook_queen_threats(
@@ -11,13 +10,12 @@ impl Board {
         enemy_mask: BitBoard,
     ) -> bool {
         let rook_moves = self.find_rook_moves(current_position, current_position_mask);
-        let queen_rook_threats = rook_moves
+        !rook_moves
             .intersect(
                 self.pieces[PieceType::Rook as usize].join(self.pieces[PieceType::Queen as usize]),
             )
-            .intersect(enemy_mask);
-
-        !queen_rook_threats.is_empty()
+            .intersect(enemy_mask)
+            .is_empty()
     }
 
     fn bishop_queen_threats(
@@ -28,14 +26,13 @@ impl Board {
     ) -> bool {
         let diagonals = self.find_bishop_moves(current_position, current_position_mask);
 
-        let queen_bishop_threats = diagonals
+        !diagonals
             .intersect(
                 self.pieces[PieceType::Bishop as usize]
                     .join(self.pieces[PieceType::Queen as usize]),
             )
-            .intersect(enemy_mask);
-
-        !queen_bishop_threats.is_empty()
+            .intersect(enemy_mask)
+            .is_empty()
     }
 
     fn knight_threats(
@@ -44,12 +41,11 @@ impl Board {
         current_position_mask: BitBoard,
         enemy_mask: BitBoard,
     ) -> bool {
-        let knight_threats = self
+        !self
             .find_knight_moves(current_position, current_position_mask)
             .intersect(self.pieces[PieceType::Knight as usize])
-            .intersect(enemy_mask);
-
-        !knight_threats.is_empty()
+            .intersect(enemy_mask)
+            .is_empty()
     }
 
     fn pawn_threats(
@@ -58,17 +54,32 @@ impl Board {
         current_position_mask: BitBoard,
         enemy_mask: BitBoard,
     ) -> bool {
-        // let pawn_threats =
-        //     diagonals.intersect(self.pieces[PieceType::Pawn as usize].intersect(enemy_mask));
-
         let pawn_aoe = match player {
-            Player::White => current_position_mask.shift(1, 1).join(current_position_mask.shift(1, -1)),
-            Player::Black => current_position_mask.shift(-1, 1).join(current_position_mask.shift(-1, -1)),
+            Player::White => current_position_mask
+                .shift(1, 1)
+                .join(current_position_mask.shift(1, -1)),
+            Player::Black => current_position_mask
+                .shift(-1, 1)
+                .join(current_position_mask.shift(-1, -1)),
         };
 
         !pawn_aoe
             .intersect(enemy_mask)
             .intersect(self.pieces[PieceType::Pawn as usize])
+            .is_empty()
+    }
+
+    // TODO: Test
+    fn king_threats(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        enemy_mask: BitBoard,
+    ) -> bool {
+        !self
+            .find_king_moves(current_position, current_position_mask)
+            .intersect(self.pieces[PieceType::King as usize])
+            .intersect(enemy_mask)
             .is_empty()
     }
 
@@ -78,7 +89,7 @@ impl Board {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> bool {
-        // TODO: King vs King check
+        // TODO: Sort by complexity
         let enemy_mask = self.players[1 - player as usize];
 
         if self.rook_queen_threats(current_position, current_position_mask, enemy_mask) {
@@ -101,6 +112,10 @@ impl Board {
             return true;
         }
 
+        if self.king_threats(current_position, current_position_mask, enemy_mask) {
+            return true;
+        }
+
         false
     }
 
@@ -116,7 +131,7 @@ impl Board {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chess::Board;
+    use crate::chess::{Board, RankFile};
     use crate::fixtures::*;
 
     fn check_spaces(
