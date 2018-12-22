@@ -25,6 +25,10 @@ pub const RANK_8: BitBoard = BitBoard::new(0x8080_8080_8080_8080);
 pub const ENDS: BitBoard = BitBoard::new(FILE_A.board | FILE_H.board);
 pub const SIDES: BitBoard = BitBoard::new(RANK_1.board | RANK_8.board);
 
+pub const QUEENSIDE_CASTLE: BitBoard = BitBoard::new(0b0110_0000);
+pub const KINGSIDE_CASTLE: BitBoard = BitBoard::new(0b0000_1110);
+pub const CASTLE_CHECK: BitBoard = BitBoard::new(0b0110_1100 << 56 | 0b0110_1100);
+
 pub const RANKS: [BitBoard; 8] = [
     RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8,
 ];
@@ -329,8 +333,11 @@ impl BitBoard {
             .fill_spaces(position.right_index - left_spaces, position.right_index)
     }
 
+    // TODO: Test
+    // TODO: This should probably be an option... for when it's empty
     // TODO: Rename.  This sucks
     pub fn first_bit_position(self) -> BitPosition {
+        debug_assert!(!self.is_empty());
         BitPosition::from(self.board.trailing_zeros())
     }
 
@@ -438,6 +445,22 @@ impl BitBoard {
         }
 
         bits
+    }
+}
+
+impl Iterator for BitBoard {
+    type Item = BitPosition;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.is_empty() {
+            return None;
+        }
+
+        let position = self.first_bit_position();
+
+        *self -= position.into();
+
+        Some(position)
     }
 }
 

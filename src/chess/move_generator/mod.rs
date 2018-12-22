@@ -1,7 +1,8 @@
 mod sanity_checks;
 
+use crate::chess::bitboard::{CASTLE_CHECK, KINGSIDE_CASTLE, QUEENSIDE_CASTLE};
 use crate::chess::PIECE_COUNT;
-use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player};
+use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player, RankFile};
 
 pub struct MoveGenerator {
     root_board: Board,
@@ -14,7 +15,7 @@ pub struct MoveGenerator {
 
     is_first_move: bool,
     available_moves: BitBoard,
-    available_captures: BitBoard,
+    possible_castle: BitBoard,
 
     piece_index: usize,
 }
@@ -37,7 +38,7 @@ impl MoveGenerator {
 
             is_first_move: true,
             available_moves: BitBoard::empty(),
-            available_captures: BitBoard::empty(),
+            possible_castle: BitBoard::empty(),
 
             piece_index: 0,
         };
@@ -81,6 +82,58 @@ impl MoveGenerator {
         moves - self.player_mask
     }
 
+    fn check_for_castling(&mut self, piece_type: PieceType, current_position_mask: BitBoard) {
+        if piece_type != PieceType::King
+            || self
+                .root_board
+                .unmoved_pieces
+                .intersect(current_position_mask)
+                .is_empty()
+        {
+            return;
+        }
+
+        self.possible_castle = self.root_board.pieces[PieceType::Rook as usize]
+            .intersect(self.player_mask)
+            .intersect(self.root_board.unmoved_pieces);
+
+        if !self.possible_castle.is_empty()
+            && self
+                .root_board
+                .is_attacked(self.player, current_position_mask)
+        {
+            self.possible_castle = BitBoard::empty();
+        }
+    }
+
+    fn generate_next_castling_board(&mut self) -> Option<Board> {
+        for rook_position in self.possible_castle.by_ref() {
+            let rf = RankFile::from(rook_position);
+
+            let is_queenside = rf.file() == 0;
+
+            let mut spaces = if is_queenside {
+                QUEENSIDE_CASTLE
+            } else {
+                KINGSIDE_CASTLE
+            };
+
+            if self.player == Player::Black {
+                spaces = spaces.shift_up(7);
+            }
+
+            if spaces.intersect(self.all_pieces).is_empty()
+                && !self
+                    .root_board
+                    .is_attacked(self.player, spaces.intersect(CASTLE_CHECK))
+            {
+                return Some(self.root_board.perform_castle(is_queenside));
+            }
+        }
+
+        None
+    }
+
     fn generate_next_move(
         &mut self,
         piece_type: PieceType,
@@ -93,6 +146,7 @@ impl MoveGenerator {
                 current_position,
                 current_position_mask,
             );
+
             self.is_first_move = false;
 
             if piece_type == PieceType::Pawn {
@@ -102,6 +156,14 @@ impl MoveGenerator {
                 {
                     return Some(board);
                 }
+            }
+
+            self.check_for_castling(piece_type, current_position_mask);
+        }
+
+        if piece_type == PieceType::King {
+            if let Some(board) = self.generate_next_castling_board() {
+                return Some(board);
             }
         }
 
@@ -162,18 +224,15 @@ impl Iterator for MoveGenerator {
                 Some(board) => {
                     // LOW: This loop only matters for tests where we have > 1 king.
                     //  Possibly remove and optimize for release mode?
-                    let mut king_mask = board.players[self.player as usize]
+                    let king_mask = board.players[self.player as usize]
                         .intersect(board.pieces[PieceType::King as usize]);
 
-                    while !king_mask.is_empty() {
-                        let first_king_position = king_mask.first_bit_position();
+                    for first_king_position in king_mask {
                         let first_king_mask = BitBoard::from(first_king_position);
 
-                        if board.is_attacked(self.player, first_king_position, first_king_mask) {
+                        if board.is_attacked(self.player, first_king_mask) {
                             continue 'outer;
                         }
-
-                        king_mask -= first_king_mask;
                     }
 
                     return Some(board);

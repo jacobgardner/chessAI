@@ -145,3 +145,49 @@ pub const BLACK_KING_TEST: &str = "
     xxxxxxxx
     xxxxNxxx
 ";
+
+//#region Castling Fixtures
+pub const CASTLING_TEST_UNOBSTRUCTED: &str = "
+    rxxxkxxr
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    RxxxKxxR
+";
+
+pub const CASTLING_TEST_OBSTRUCTED: &str = "
+    rxxqkxnr
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    xxxxxxxx
+    RxBxKBxR
+";
+
+pub const CASTLING_TEST_FROM_CHECK: &str = "
+    rxxxkxxr
+    xxxxxxxx
+    xxxxxxxx
+    xBxxxxxx
+    xxxxxxxx
+    xxxxrxxx
+    xxxxxxxx
+    RxxxKxxR
+";
+
+pub const CASTLING_TEST_THROUGH_CHECK: &str = "
+    rxxxkxxr
+    xxxxxxxx
+    xxxxBxxx
+    xxxxxRxx
+    xxxxxxxx
+    xxxxbrxx
+    xxxxxxxx
+    RxxxKxxR
+";
+//#endregion

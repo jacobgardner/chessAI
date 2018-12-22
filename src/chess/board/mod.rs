@@ -1,31 +1,41 @@
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
-mod king_check;
+mod attacks;
 mod pawn;
 mod pieces;
 
 use crate::chess::bitboard::ENDS;
 use crate::chess::errors::{BoardError, InvalidStringReason};
-use crate::chess::{BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player};
+use crate::chess::{
+    BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player, RankFile,
+};
 use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
 
 #[derive(PartialEq, Clone)]
 pub struct Board {
     pub pieces: [BitBoard; PIECE_COUNT],
     pub players: [BitBoard; PLAYER_COUNT],
+    pub unmoved_pieces: BitBoard,
     pub prev_move: Option<Move>,
     pub next_player: Player,
 }
 
-impl Board {
-    pub fn empty_board() -> Board {
+impl Default for Board {
+    fn default() -> Self {
         Board {
             pieces: [BitBoard::empty(); PIECE_COUNT],
             players: [BitBoard::empty(); PLAYER_COUNT],
             prev_move: None,
             next_player: Player::White,
+            unmoved_pieces: BitBoard::empty().inverse(),
         }
+    }
+}
+
+impl Board {
+    pub fn empty_board() -> Board {
+        Board::default()
     }
 
     pub fn all_pieces(&self) -> BitBoard {
@@ -116,8 +126,8 @@ impl Board {
         Ok(Board {
             pieces,
             players,
-            prev_move: None,
             next_player: player,
+            ..Default::default()
         })
     }
 
@@ -139,7 +149,25 @@ impl Board {
         let piece_index = piece as usize;
         let player_index = self.next_player as usize;
 
-        // Remove current position from pawn and current player bitboards
+        board.unmoved_pieces -= current_position_mask.join(next_position_mask);
+
+        debug_assert!(
+            !board.pieces[piece_index]
+                .intersect(current_position_mask)
+                .is_empty(),
+            "Expected to move piece, {:?}, but that piece wasn't in that space.",
+            piece
+        );
+        debug_assert!(
+            !board.players[player_index]
+                .intersect(current_position_mask)
+                .is_empty(),
+            "Expected to move piece, {:?} {:?}, but they weren't in that space.",
+            self.next_player,
+            piece
+        );
+
+        // Remove current position from piece and current player bitboards
         board.pieces[piece_index] -= current_position_mask;
         board.players[player_index] -= current_position_mask;
 
@@ -179,6 +207,67 @@ impl Board {
         };
 
         board
+    }
+
+    pub fn perform_castle(&mut self, is_queenside: bool) -> Board {
+        let king_position: BitPosition = match self.next_player {
+            Player::White => RankFile::E1,
+            Player::Black => RankFile::E8,
+        }
+        .into();
+        let king_position_mask = BitBoard::from(king_position);
+
+        let rook_position: BitPosition = match self.next_player {
+            Player::White => {
+                if is_queenside {
+                    RankFile::A1
+                } else {
+                    RankFile::H1
+                }
+            }
+            Player::Black => {
+                if is_queenside {
+                    RankFile::A8
+                } else {
+                    RankFile::H8
+                }
+            }
+        }
+        .into();
+
+        let (next_rook_mask, next_king_mask) = if is_queenside {
+            (
+                BitBoard::from(rook_position).shift_right(3),
+                king_position_mask.shift_left(2),
+            )
+        } else {
+            (
+                BitBoard::from(rook_position).shift_left(2),
+                king_position_mask.shift_right(2),
+            )
+        };
+
+        let next_rook_position = next_rook_mask.first_bit_position();
+
+        let mut board = self.move_piece(
+            PieceType::Rook,
+            rook_position,
+            rook_position.into(),
+            next_rook_position,
+            next_rook_mask,
+            BitBoard::empty(),
+        );
+        board.next_player = self.next_player;
+
+        let next_king_position = next_king_mask.first_bit_position();
+        board.move_piece(
+            PieceType::King,
+            king_position,
+            king_position_mask,
+            next_king_position,
+            next_king_mask,
+            BitBoard::empty(),
+        )
     }
 
     fn remove_piece(&mut self, next_position_mask: BitBoard) {
@@ -347,8 +436,8 @@ mod tests {
                 pieces[1].join(pieces[3]).join(pieces[5]),
             ],
             pieces,
-            prev_move: None,
             next_player: Player::White,
+            ..Default::default()
         };
 
         assert_eq!(

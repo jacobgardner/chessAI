@@ -122,7 +122,7 @@ impl Board {
         let next_position_mask = en_passant_mask
             .shift_down(1)
             .join(en_passant_mask.shift_up(1))
-            .intersect(self.diagonals(current_position_mask.first_bit_position()));
+            .intersect(self.diagonals(current_position));
 
         debug_assert!(
             next_position_mask != en_passant_mask,

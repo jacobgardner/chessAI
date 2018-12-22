@@ -38,8 +38,8 @@ fn main() -> Result<(), failure::Error> {
             pieces[1].join(pieces[3]).join(pieces[5]),
         ],
         pieces,
-        prev_move: None,
         next_player: Player::White,
+        ..Default::default()
     };
     println!("{}", board);
 
