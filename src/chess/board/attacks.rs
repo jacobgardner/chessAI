@@ -9,8 +9,8 @@ impl Board {
         current_position_mask: BitBoard,
         enemy_mask: BitBoard,
     ) -> bool {
-        let rook_moves = self.find_rook_moves(current_position, current_position_mask);
-        !rook_moves
+        !self
+            .find_rook_moves(current_position, current_position_mask)
             .intersect(
                 self.pieces[PieceType::Rook as usize].join(self.pieces[PieceType::Queen as usize]),
             )
@@ -24,9 +24,8 @@ impl Board {
         current_position_mask: BitBoard,
         enemy_mask: BitBoard,
     ) -> bool {
-        let diagonals = self.find_bishop_moves(current_position, current_position_mask);
-
-        !diagonals
+        !self
+            .find_bishop_moves(current_position, current_position_mask)
             .intersect(
                 self.pieces[PieceType::Bishop as usize]
                     .join(self.pieces[PieceType::Queen as usize]),
@@ -54,6 +53,8 @@ impl Board {
         current_position_mask: BitBoard,
         enemy_mask: BitBoard,
     ) -> bool {
+        // We don't use normal pawn generation because there's a lot of stuff
+        //  pawns do that doesn't include capturing
         let pawn_aoe = match player {
             Player::White => current_position_mask
                 .shift(1, 1)
