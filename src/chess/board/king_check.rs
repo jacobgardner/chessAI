@@ -4,8 +4,7 @@ use crate::chess::bitboard::FILES;
 use crate::chess::{BitBoard, BitPosition, PieceType, Player, RankFile};
 
 impl Board {
-    // TODO: King vs King check
-    pub fn is_attacked(
+    fn single_check(
         &self,
         player: Player,
         current_position: BitPosition,
@@ -82,6 +81,24 @@ impl Board {
 
         false
     }
+
+    // TODO: King vs King check
+    pub fn is_attacked(&self, player: Player, mut space_mask: BitBoard) -> bool {
+        // TODO: This is a pretty common pattern... we should probably turn the bitboard
+        //  into an iterator
+        while !space_mask.is_empty() {
+            let current_position = space_mask.first_bit_position();
+            let current_position_mask = BitBoard::from(current_position);
+
+            if self.single_check(player, current_position, current_position_mask) {
+                return true;
+            }
+
+            space_mask -= current_position_mask;
+        }
+
+        false
+    }
 }
 
 #[cfg(test)]
@@ -100,7 +117,7 @@ mod tests {
 
         for &space in attacked_spaces.iter() {
             assert_eq!(
-                board.is_attacked(player, space.into(), space.into()),
+                board.single_check(player, space.into(), space.into()),
                 true,
                 "Expected {:?} to be attacked",
                 space
@@ -109,7 +126,7 @@ mod tests {
 
         for &space in safe_spaces.iter() {
             assert_eq!(
-                board.is_attacked(player, space.into(), space.into()),
+                board.single_check(player, space.into(), space.into()),
                 false,
                 "Expected {:?} to be safe",
                 space

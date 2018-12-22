@@ -82,12 +82,7 @@ impl MoveGenerator {
         moves - self.player_mask
     }
 
-    fn check_for_castling(
-        &mut self,
-        piece_type: PieceType,
-        current_position: BitPosition,
-        current_position_mask: BitBoard,
-    ) {
+    fn check_for_castling(&mut self, piece_type: PieceType, current_position_mask: BitBoard) {
         if piece_type != PieceType::King
             || self
                 .root_board
@@ -105,14 +100,14 @@ impl MoveGenerator {
         if !self.possible_castle.is_empty()
             && self
                 .root_board
-                .is_attacked(self.player, current_position, current_position_mask)
+                .is_attacked(self.player, current_position_mask)
         {
             self.possible_castle = BitBoard::empty();
         }
     }
 
     fn generate_next_castling_board(&mut self) -> Option<Board> {
-        'castle_loop: while !self.possible_castle.is_empty() {
+        while !self.possible_castle.is_empty() {
             let rook_position = self.possible_castle.first_bit_position();
             self.possible_castle -= rook_position.into();
             let rf = RankFile::from(rook_position);
@@ -129,23 +124,11 @@ impl MoveGenerator {
                 spaces = spaces.shift_up(7);
             }
 
-            if spaces.intersect(self.all_pieces).is_empty() {
-                let mut check_spaces = spaces.intersect(CASTLE_CHECK);
-
-                while !check_spaces.is_empty() {
-                    let check_space = check_spaces.first_bit_position();
-                    let check_space_mask = BitBoard::from(check_space);
-
-                    if self
-                        .root_board
-                        .is_attacked(self.player, check_space, check_space_mask)
-                    {
-                        continue 'castle_loop;
-                    }
-
-                    check_spaces -= check_space_mask;
-                }
-
+            if spaces.intersect(self.all_pieces).is_empty()
+                && !self
+                    .root_board
+                    .is_attacked(self.player, spaces.intersect(CASTLE_CHECK))
+            {
                 return Some(self.root_board.perform_castle(is_queenside));
             }
         }
@@ -177,7 +160,7 @@ impl MoveGenerator {
                 }
             }
 
-            self.check_for_castling(piece_type, current_position, current_position_mask);
+            self.check_for_castling(piece_type, current_position_mask);
         }
 
         if piece_type == PieceType::King {
@@ -250,7 +233,7 @@ impl Iterator for MoveGenerator {
                         let first_king_position = king_mask.first_bit_position();
                         let first_king_mask = BitBoard::from(first_king_position);
 
-                        if board.is_attacked(self.player, first_king_position, first_king_mask) {
+                        if board.is_attacked(self.player, first_king_mask) {
                             continue 'outer;
                         }
 
