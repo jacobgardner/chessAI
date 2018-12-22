@@ -337,6 +337,7 @@ impl BitBoard {
     // TODO: This should probably be an option... for when it's empty
     // TODO: Rename.  This sucks
     pub fn first_bit_position(self) -> BitPosition {
+        debug_assert!(!self.is_empty());
         BitPosition::from(self.board.trailing_zeros())
     }
 

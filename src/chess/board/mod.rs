@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
-mod king_check;
+mod attacks;
 mod pawn;
 mod pieces;
 

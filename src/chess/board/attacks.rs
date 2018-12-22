@@ -4,38 +4,28 @@ use crate::chess::bitboard::FILES;
 use crate::chess::{BitBoard, BitPosition, PieceType, Player, RankFile};
 
 impl Board {
-    fn single_check(
+    fn rook_queen_threats(
         &self,
-        player: Player,
         current_position: BitPosition,
         current_position_mask: BitBoard,
+        enemy_mask: BitBoard,
     ) -> bool {
-        // TODO: King vs King check
-        // TODO: Clean this up
-        let enemy_mask = self.players[1 - player as usize];
         let rook_moves = self.find_rook_moves(current_position, current_position_mask);
-
         let queen_rook_threats = rook_moves
             .intersect(
                 self.pieces[PieceType::Rook as usize].join(self.pieces[PieceType::Queen as usize]),
             )
             .intersect(enemy_mask);
 
-        if !queen_rook_threats.is_empty() {
-            covered_by!("MoveGenerator::rook_attacks");
-            return true;
-        }
+        !queen_rook_threats.is_empty()
+    }
 
-        let knight_threats = self
-            .find_knight_moves(current_position, current_position_mask)
-            .intersect(self.pieces[PieceType::Knight as usize])
-            .intersect(enemy_mask);
-
-        if !knight_threats.is_empty() {
-            covered_by!("MoveGenerator::knight_attacks");
-            return true;
-        }
-
+    fn bishop_queen_threats(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        enemy_mask: BitBoard,
+    ) -> bool {
         let diagonals = self.find_bishop_moves(current_position, current_position_mask);
 
         let queen_bishop_threats = diagonals
@@ -45,39 +35,70 @@ impl Board {
             )
             .intersect(enemy_mask);
 
-        if !queen_bishop_threats.is_empty() {
+        !queen_bishop_threats.is_empty()
+    }
+
+    fn knight_threats(
+        &self,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+        enemy_mask: BitBoard,
+    ) -> bool {
+        let knight_threats = self
+            .find_knight_moves(current_position, current_position_mask)
+            .intersect(self.pieces[PieceType::Knight as usize])
+            .intersect(enemy_mask);
+
+        !knight_threats.is_empty()
+    }
+
+    fn pawn_threats(
+        &self,
+        player: Player,
+        current_position_mask: BitBoard,
+        enemy_mask: BitBoard,
+    ) -> bool {
+        // let pawn_threats =
+        //     diagonals.intersect(self.pieces[PieceType::Pawn as usize].intersect(enemy_mask));
+
+        let pawn_aoe = match player {
+            Player::White => current_position_mask.shift(1, 1).join(current_position_mask.shift(1, -1)),
+            Player::Black => current_position_mask.shift(-1, 1).join(current_position_mask.shift(-1, -1)),
+        };
+
+        !pawn_aoe
+            .intersect(enemy_mask)
+            .intersect(self.pieces[PieceType::Pawn as usize])
+            .is_empty()
+    }
+
+    fn single_check(
+        &self,
+        player: Player,
+        current_position: BitPosition,
+        current_position_mask: BitBoard,
+    ) -> bool {
+        // TODO: King vs King check
+        let enemy_mask = self.players[1 - player as usize];
+
+        if self.rook_queen_threats(current_position, current_position_mask, enemy_mask) {
+            covered_by!("MoveGenerator::rook_attacks");
+            return true;
+        }
+
+        if self.knight_threats(current_position, current_position_mask, enemy_mask) {
+            covered_by!("MoveGenerator::knight_attacks");
+            return true;
+        }
+
+        if self.bishop_queen_threats(current_position, current_position_mask, enemy_mask) {
             covered_by!("MoveGenerator::bishop_attacks");
             return true;
         }
 
-        let pawn_threats =
-            diagonals.intersect(self.pieces[PieceType::Pawn as usize].intersect(enemy_mask));
-
-        if !pawn_threats.is_empty() {
-            let rank = RankFile::from(current_position).rank();
-
-            match self.next_player {
-                Player::White => {
-                    if rank < 7
-                        && !FILES[(rank + 1) as usize]
-                            .intersect(pawn_threats)
-                            .is_empty()
-                    {
-                        covered_by!("MoveGenerator::black_pawn_attacks");
-                        return true;
-                    }
-                }
-                Player::Black => {
-                    if rank > 0
-                        && !FILES[(rank - 1) as usize]
-                            .intersect(pawn_threats)
-                            .is_empty()
-                    {
-                        covered_by!("MoveGenerator::white_pawn_attacks");
-                        return true;
-                    }
-                }
-            };
+        if self.pawn_threats(player, current_position_mask, enemy_mask) {
+            covered_by!("MoveGenerator::pawn_attacks");
+            return true;
         }
 
         false
@@ -212,7 +233,7 @@ mod tests {
 
     #[test]
     fn test_white_pawn_attacks() {
-        covers!("MoveGenerator::white_pawn_attacks");
+        covers!("MoveGenerator::pawn_attacks");
 
         let attacked_spaces = [
             RankFile::G3,
@@ -240,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_black_pawn_attacks() {
-        covers!("MoveGenerator::black_pawn_attacks");
+        covers!("MoveGenerator::pawn_attacks");
 
         let attacked_spaces = [
             RankFile::B6,
