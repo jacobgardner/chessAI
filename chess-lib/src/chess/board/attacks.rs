@@ -121,10 +121,9 @@ impl Board {
     }
 
     pub fn is_attacked(&self, player: Player, mut space_mask: BitBoard) -> bool {
-        space_mask
-            .any(|current_position| {
-                self.single_check(player, current_position, current_position.into())
-            })
+        space_mask.any(|current_position| {
+            self.single_check(player, current_position, current_position.into())
+        })
     }
 }
 

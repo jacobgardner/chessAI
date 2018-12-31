@@ -6,14 +6,7 @@ edition = "2018"
 
 [lib]
 name = "lib"
-path = "src/main.rs"
-
-[[bin]]
-name = "chess_ai"
-path = "src/main.rs"
-test = false
-bench = false
-doctest = false
+path = "src/lib.rs"
 
 [features]
 strict = []

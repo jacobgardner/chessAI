@@ -193,11 +193,12 @@ impl Board {
             if next_position_mask.intersect(ENDS).is_empty() {
                 PieceType::Pawn
             } else {
-                board.prev_move.as_mut().map(|m| {
+                if let Some(m) = board.prev_move.as_mut() {
                     m.move_type = MoveType::Promotion {
                         promoted_to: PieceType::Queen,
                     }
-                });
+                }
+
                 PieceType::Queen
             }
         } else {
@@ -276,10 +277,10 @@ impl Board {
             BitBoard::empty(),
         );
 
-        board.prev_move.as_mut().map(|m| {
+        if let Some(m) = board.prev_move.as_mut() {
             m.is_capture = true;
             m.move_type = MoveType::Castling { is_queenside };
-        });
+        }
 
         board
     }

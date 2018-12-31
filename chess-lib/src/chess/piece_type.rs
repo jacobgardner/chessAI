@@ -11,7 +11,6 @@ pub enum PieceType {
 use self::PieceType::*;
 
 impl PieceType {
-
     pub fn from(chr: char) -> Option<PieceType> {
         let piece_type = match chr.to_lowercase().next().unwrap_or('x') {
             'p' => Pawn,
@@ -26,14 +25,14 @@ impl PieceType {
         Some(piece_type)
     }
 
-    pub fn to_char(&self) -> char {
-        match *self {
+    pub fn to_char(self) -> char {
+        match self {
             Pawn => 'P',
             Rook => 'R',
             Knight => 'N',
             Bishop => 'B',
             Queen => 'Q',
-            King => 'K'
+            King => 'K',
         }
     }
 }
