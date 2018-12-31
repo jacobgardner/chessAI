@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       default_board_generation.rs
     ]
@@ -373,6 +374,7 @@
   {
     file:
     [
+      chess-lib
       tests
       default_board_generation.rs
     ]

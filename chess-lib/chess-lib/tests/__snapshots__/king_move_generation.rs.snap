@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       king_move_generation.rs
     ]
@@ -101,6 +102,7 @@
   {
     file:
     [
+      chess-lib
       tests
       king_move_generation.rs
     ]

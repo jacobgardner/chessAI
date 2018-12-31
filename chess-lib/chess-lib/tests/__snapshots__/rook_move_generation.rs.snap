@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       rook_move_generation.rs
     ]
@@ -1138,6 +1139,7 @@
   {
     file:
     [
+      chess-lib
       tests
       rook_move_generation.rs
     ]

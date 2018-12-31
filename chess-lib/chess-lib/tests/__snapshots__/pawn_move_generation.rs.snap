@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       pawn_move_generation.rs
     ]
@@ -203,6 +204,7 @@
   {
     file:
     [
+      chess-lib
       tests
       pawn_move_generation.rs
     ]

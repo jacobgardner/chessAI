@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       queen_move_generation.rs
     ]
@@ -1750,6 +1751,7 @@
   {
     file:
     [
+      chess-lib
       tests
       queen_move_generation.rs
     ]

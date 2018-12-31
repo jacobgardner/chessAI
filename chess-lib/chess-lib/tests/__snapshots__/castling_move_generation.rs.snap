@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -101,6 +102,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -216,6 +218,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -909,6 +912,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -1483,6 +1487,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -2159,6 +2164,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -2886,6 +2892,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]
@@ -3358,6 +3365,7 @@
   {
     file:
     [
+      chess-lib
       tests
       castling_move_generation.rs
     ]

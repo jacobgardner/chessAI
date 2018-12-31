@@ -3,6 +3,7 @@
   {
     file:
     [
+      chess-lib
       tests
       knight_move_generation.rs
     ]
@@ -492,6 +493,7 @@
   {
     file:
     [
+      chess-lib
       tests
       knight_move_generation.rs
     ]
