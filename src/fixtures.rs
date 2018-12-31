@@ -1,6 +1,4 @@
-use crate::chess::Move;
-use crate::chess::PieceType;
-use crate::chess::RankFile;
+use crate::chess::{Move, MoveType, PieceType, RankFile};
 
 pub const WHITE_PAWN_TEST: &str = "
     xxxrxxxx
@@ -17,6 +15,9 @@ pub const WHITE_EN_PASSANT: Move = Move {
     piece_type: PieceType::Pawn,
     from: RankFile::F7,
     to: RankFile::F5,
+    move_type: MoveType::Standard,
+    is_capture: false,
+    threatens_king: false,
 };
 
 pub const BLACK_PAWN_TEST: &str = "
@@ -34,6 +35,9 @@ pub const BLACK_EN_PASSANT: Move = Move {
     piece_type: PieceType::Pawn,
     from: RankFile::D2,
     to: RankFile::D4,
+    move_type: MoveType::Standard,
+    is_capture: false,
+    threatens_king: false,
 };
 
 pub const WHITE_ROOK_TEST: &str = "

@@ -1,7 +1,7 @@
 use super::Board;
 
 use crate::chess::bitboard::{FILE_A, FILE_B, FILE_G, FILE_H};
-use crate::chess::{BitBoard, BitPosition, PieceType, Player};
+use crate::chess::{BitBoard, BitPosition, PieceType, Player, MoveType};
 
 impl Board {
     pub fn find_pawn_moves(
@@ -133,7 +133,7 @@ impl Board {
         if !next_position_mask.is_empty() {
             let new_move = next_position_mask.first_bit_position();
 
-            let board = self.move_piece(
+            let mut board = self.move_piece(
                 PieceType::Pawn,
                 current_position,
                 current_position_mask,
@@ -141,6 +141,11 @@ impl Board {
                 next_position_mask,
                 en_passant_mask,
             );
+
+            board
+                .prev_move
+                .as_mut()
+                .map(|m| m.move_type = MoveType::EnPassant);
 
             Some(board)
         } else {

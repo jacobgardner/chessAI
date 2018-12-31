@@ -14,7 +14,7 @@ mod rank_file;
 pub use crate::chess::bitboard::BitBoard;
 pub use crate::chess::bitposition::BitPosition;
 pub use crate::chess::board::Board;
-pub use crate::chess::chess_move::Move;
+pub use crate::chess::chess_move::{Move, MoveType};
 pub use crate::chess::move_generator::MoveGenerator;
 pub use crate::chess::piece::Piece;
 pub use crate::chess::piece_type::PieceType;
