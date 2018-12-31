@@ -8,7 +8,7 @@ mod pieces;
 use crate::chess::bitboard::ENDS;
 use crate::chess::errors::{BoardError, InvalidStringReason};
 use crate::chess::{
-    BitBoard, BitPosition, Move, MoveGenerator, Piece, PieceType, Player, RankFile,
+    BitBoard, BitPosition, Move, MoveGenerator, MoveType, Piece, PieceType, Player, RankFile,
 };
 use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
 
@@ -181,6 +181,14 @@ impl Board {
 
         board.players[player_index] |= next_position_mask;
 
+        board.prev_move = Some(Move {
+            piece_type: piece,
+            from: current_position.into(),
+            to: next_position.into(),
+            is_capture: !capture_mask.is_empty(),
+            ..Default::default()
+        });
+
         let next_piece = if piece == PieceType::Pawn {
             if next_position_mask.intersect(ENDS).is_empty() {
                 PieceType::Pawn
@@ -192,12 +200,6 @@ impl Board {
         };
 
         board.pieces[next_piece as usize] |= next_position_mask;
-
-        board.prev_move = Some(Move {
-            piece_type: piece,
-            from: current_position.into(),
-            to: next_position.into(),
-        });
 
         debug_assert!(self.prev_move != board.prev_move);
 
@@ -260,14 +262,23 @@ impl Board {
         board.next_player = self.next_player;
 
         let next_king_position = next_king_mask.first_bit_position();
-        board.move_piece(
+        let mut board = board.move_piece(
             PieceType::King,
             king_position,
             king_position_mask,
             next_king_position,
             next_king_mask,
             BitBoard::empty(),
-        )
+        );
+
+        let mut prev_move = board.prev_move.unwrap();
+
+        prev_move.is_capture = true;
+        prev_move.move_type = MoveType::Castling { is_queenside };
+
+        board.prev_move = Some(prev_move);
+
+        board
     }
 
     fn remove_piece(&mut self, next_position_mask: BitBoard) {
@@ -290,6 +301,9 @@ impl Display for Board {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let mut board = String::with_capacity(128);
 
+        board += &self.prev_move.as_ref().map_or("First Move".to_owned(), |m| format!("{}", m));
+
+        board += "\n\n";
         board += "       ╔═════════════════╗\n";
 
         for r in 0..8 {
