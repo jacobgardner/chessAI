@@ -193,6 +193,11 @@ impl Board {
             if next_position_mask.intersect(ENDS).is_empty() {
                 PieceType::Pawn
             } else {
+                board.prev_move.as_mut().map(|m| {
+                    m.move_type = MoveType::Promotion {
+                        promoted_to: PieceType::Queen,
+                    }
+                });
                 PieceType::Queen
             }
         } else {
