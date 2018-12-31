@@ -1,0 +1,41 @@
+Dec 31 15:43:04.349 ERRO crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+Dec 31 15:44:44.475 ERRO Running the wasm-bindgen CLI
+Dec 31 15:45:51.647 ERRO Running the wasm-bindgen CLI
+Dec 31 15:46:12.306 ERRO Running the wasm-bindgen CLI
+Dec 31 15:46:53.448 ERRO Running the wasm-bindgen CLI
+Dec 31 15:48:07.531 INFO Running build command...
+Dec 31 15:48:07.533 INFO Checking rustc version...
+Dec 31 15:48:07.577 INFO rustc version is 31.
+Dec 31 15:48:07.578 INFO Checking crate configuration...
+Dec 31 15:48:07.578 INFO Crate is correctly configured.
+Dec 31 15:48:07.578 INFO Adding wasm-target...
+Dec 31 15:48:07.578 INFO Running "rustup" "target" "add" "wasm32-unknown-unknown"
+Dec 31 15:48:07.653 INFO rustup (stderr): info: component 'rust-std' for target 'wasm32-unknown-unknown' is up to date
+Dec 31 15:48:07.656 INFO Adding wasm-target was successful.
+Dec 31 15:48:07.656 INFO Building wasm...
+Dec 31 15:48:07.656 INFO Running "cargo" "build" "--lib" "--release" "--target" "wasm32-unknown-unknown"
+Dec 31 15:48:07.822 INFO cargo build (stderr):     Finished release [optimized] target(s) in 0.13s
+Dec 31 15:48:07.828 INFO wasm built at "/Users/jgardner/chessAI/chess-web/target/wasm32-unknown-unknown/release".
+Dec 31 15:48:07.828 INFO Creating a pkg directory...
+Dec 31 15:48:07.828 INFO Created a pkg directory at "/Users/jgardner/chessAI/chess-web".
+Dec 31 15:48:07.828 INFO Writing a package.json...
+Dec 31 15:48:07.829 INFO Wrote a package.json at "/Users/jgardner/chessAI/chess-web/pkg/package.json".
+Dec 31 15:48:07.829 INFO Copying readme from crate...
+Dec 31 15:48:07.829 INFO Copied readme from crate to "/Users/jgardner/chessAI/chess-web/pkg".
+Dec 31 15:48:07.830 INFO Identifying wasm-bindgen dependency...
+Dec 31 15:48:07.872 INFO Installing wasm-bindgen-cli...
+Dec 31 15:48:07.872 INFO Running "/Users/jgardner/chessAI/chess-web/bin/wasm-bindgen" "--version"
+Dec 31 15:48:07.886 INFO wasm-bindgen (stdout): wasm-bindgen 0.2.29 (5665a0e6c)
+Dec 31 15:48:07.887 INFO Checking installed `wasm-bindgen` version == expected version: 0.2.29 == 0.2.29
+Dec 31 15:48:07.887 INFO Installing wasm-bindgen-cli was successful.
+Dec 31 15:48:07.887 INFO Getting the crate name from the manifest...
+Dec 31 15:48:07.887 INFO Got crate name "chess-web" from the manifest at "/Users/jgardner/chessAI/chess-web/Cargo.toml".
+Dec 31 15:48:07.888 INFO Building the wasm bindings...
+Dec 31 15:48:07.888 INFO Running "/Users/jgardner/chessAI/chess-web/bin/wasm-bindgen" "target/wasm32-unknown-unknown/release/chess_web.wasm" "--out-dir" "/Users/jgardner/chessAI/chess-web/pkg" "--typescript" "--browser"
+Dec 31 15:48:07.903 INFO wasm-bindgen (stderr): error: failed to read `target/wasm32-unknown-unknown/release/chess_web.wasm`
+Dec 31 15:48:07.903 INFO wasm-bindgen (stderr): 	caused by: No such file or directory (os error 2)
+Dec 31 15:48:07.904 ERRO Running the wasm-bindgen CLI
+Dec 31 16:15:24.102 ERRO Running the wasm-bindgen CLI

@@ -1,4 +1,5 @@
 [workspace]
 members = [
-    "chess-lib"
+    "chess-lib",
+    "chess-web"
 ]
