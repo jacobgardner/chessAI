@@ -271,12 +271,10 @@ impl Board {
             BitBoard::empty(),
         );
 
-        let mut prev_move = board.prev_move.unwrap();
-
-        prev_move.is_capture = true;
-        prev_move.move_type = MoveType::Castling { is_queenside };
-
-        board.prev_move = Some(prev_move);
+        board.prev_move.as_mut().map(|m| {
+            m.is_capture = true;
+            m.move_type = MoveType::Castling { is_queenside };
+        });
 
         board
     }
@@ -301,7 +299,10 @@ impl Display for Board {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let mut board = String::with_capacity(128);
 
-        board += &self.prev_move.as_ref().map_or("First Move".to_owned(), |m| format!("{}", m));
+        board += &self
+            .prev_move
+            .as_ref()
+            .map_or("First Move".to_owned(), |m| format!("{}", m));
 
         board += "\n\n";
         board += "       ╔═════════════════╗\n";
