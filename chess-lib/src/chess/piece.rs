@@ -17,6 +17,23 @@ impl Piece {
             None
         }
     }
+
+    pub fn to_char(&self) -> char {
+        let (white_piece, black_piece) = match self.piece_type {
+            PieceType::Pawn => ('♙', '♟'),
+            PieceType::Rook => ('♖', '♜'),
+            PieceType::Bishop => ('♗', '♝'),
+            PieceType::Knight => ('♘', '♞'),
+            PieceType::King => ('♔', '♚'),
+            PieceType::Queen => ('♕', '♛'),
+        };
+
+        if self.player == Player::White {
+            white_piece
+        } else {
+            black_piece
+        }
+    }
 }
 
 #[test]

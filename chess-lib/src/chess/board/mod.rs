@@ -320,20 +320,7 @@ impl Display for Board {
                 let piece = self.piece_at(7 - r, f).map_err(|_| fmt::Error)?;
 
                 let chr = if let Some(piece) = piece {
-                    let (white_piece, black_piece) = match piece.piece_type {
-                        PieceType::Pawn => ('♙', '♟'),
-                        PieceType::Rook => ('♖', '♜'),
-                        PieceType::Bishop => ('♗', '♝'),
-                        PieceType::Knight => ('♘', '♞'),
-                        PieceType::King => ('♔', '♚'),
-                        PieceType::Queen => ('♕', '♛'),
-                    };
-
-                    if piece.player == Player::White {
-                        white_piece
-                    } else {
-                        black_piece
-                    }
+                    piece.to_char()
                 } else {
                     '·'
                 };

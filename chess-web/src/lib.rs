@@ -15,7 +15,9 @@ struct Model {
 }
 
 #[derive(Clone)]
-enum Msg {}
+enum Msg {
+    NextBoard,
+}
 
 impl Default for Model {
     fn default() -> Self {
@@ -29,21 +31,67 @@ impl Default for Model {
     }
 }
 
-fn update(_msg: Msg, model: Model) -> Model {
+fn update(msg: Msg, mut model: Model) -> Model {
+    match msg {
+        Msg::NextBoard => model.board = model.board.generate_moves().nth(0).unwrap(),
+    }
+
     model
 }
 
 fn view(_state: seed::App<Msg, Model>, model: Model) -> El<Msg> {
+    // for board in model.possible_moves.iter() {
+    console::log_1(&format!("{}", model.board).into());
+    // }
 
-    for board in model.possible_moves.iter() {
-        console::log_1(&format!("{}", board).into());
-    }
-
-    let chess_style = style! {
-        "background-color" => "#000000"
+    let board_style = style! {
+        "background-color" => "#FFFFFF"
     };
 
-    div!(&chess_style,)
+    let rank_style = style! {
+        "display" => "flex";
+        "flex-direction" => "row";
+    };
+
+    let space_style = |space_id: u8| {
+        style! {
+            "width" => "100px";
+            "height" => "100px";
+            "display" => "flex";
+            "justify-content" => "center";
+            "align-items" => "center";
+            "font-size" => "60px";
+            "background-color" => {
+                if space_id % 2 == 0 {
+                    "white"
+                } else {
+                    "teal"
+                }
+            };
+        }
+    };
+
+    div!(
+        div!(
+            &board_style,
+            (0..8)
+                .map(|r| div!(
+                    &rank_style,
+                    (0..8)
+                        .map(|f| div!(
+                            space_style(r + f),
+                            if let Some(piece) = model.board.piece_at(7 - r, f).unwrap() {
+                                piece.to_char().to_string()
+                            } else {
+                                " ".to_owned()
+                            }
+                        ))
+                        .collect::<Vec<_>>()
+                ))
+                .collect::<Vec<_>>()
+        ),
+        button!(simple_ev("click", Msg::NextBoard), "next")
+    )
 }
 
 #[wasm_bindgen]
