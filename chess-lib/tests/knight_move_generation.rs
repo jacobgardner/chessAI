@@ -1,10 +1,7 @@
-extern crate lib;
+extern crate chess_lib;
 
+use chess_lib::{chess::Player, fixtures::*, test_moves::generate_moves_for_board};
 use snapshot::snapshot;
-
-use lib::chess::Player;
-use lib::fixtures::*;
-use lib::test_moves::generate_moves_for_board;
 
 #[snapshot]
 fn test_generate_white_knight_moves() -> Vec<String> {

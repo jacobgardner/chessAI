@@ -20,20 +20,11 @@ impl Display for InvalidStringReason {
     }
 }
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum BoardError {
-    #[fail(display = "invalid player id: {}", player_id)]
     InvalidPlayer { player_id: u8 },
-
-    #[fail(display = "invalid piece id: {}", piece_id)]
     InvalidPiece { piece_id: u8 },
-
-    #[fail(display = "Bit found on player mask, but no board masks")]
     MalformedBoard,
-
-    #[fail(display = "Rank/File exceeded board limits: {} {}", rank, file)]
     OutOfBounds { rank: u8, file: u8 },
-
-    #[fail(display = "Malformed string for board: {}", _0)]
     InvalidString(InvalidStringReason),
 }

@@ -1,9 +1,10 @@
-extern crate lib;
+extern crate chess_lib;
 
+use chess_lib::{
+    chess::{Player, DEFAULT_BOARD},
+    test_moves::generate_moves_for_board,
+};
 use snapshot::snapshot;
-
-use lib::chess::{Player, DEFAULT_BOARD};
-use lib::test_moves::generate_moves_for_board;
 
 #[snapshot]
 fn test_generate_white_default_moves() -> Vec<String> {

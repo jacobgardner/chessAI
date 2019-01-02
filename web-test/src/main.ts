@@ -1,4 +1,3 @@
-
 import('../../chess-web/pkg').then(module => {
-    module.greet('dfoijfo');
+    module.mount();
 });

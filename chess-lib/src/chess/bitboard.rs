@@ -148,7 +148,7 @@ impl From<RankFile> for BitBoard {
 ///    the unsetting of any bits (or spaces) in `A` that exist in `B`.
 ///
 /// ```
-/// # use lib::chess::BitBoard;
+/// # use chess_lib::chess::BitBoard;
 /// assert_eq!(
 ///     BitBoard::new(0b11001100)
 ///   - BitBoard::new(0b01100110),
@@ -173,7 +173,7 @@ impl SubAssign for BitBoard {
 ///    the setting of any bits (or spaces) in `A` or exist in `B`.
 ///
 /// ```
-/// # use lib::chess::BitBoard;
+/// # use chess_lib::chess::BitBoard;
 /// assert_eq!(
 ///     BitBoard::new(0b11001100)
 ///   | BitBoard::new(0b01100110),
