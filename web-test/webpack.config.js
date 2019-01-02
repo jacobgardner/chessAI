@@ -10,16 +10,31 @@ module.exports = {
     path: dist,
     filename: "bundle.js"
   },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-typescript"],
+            plugins: ["@babel/plugin-syntax-dynamic-import"]
+          }
+        }
+      }
+    ]
+  },
   devServer: {
-    contentBase: dist,
+    contentBase: dist
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: 'index.html'
+      template: "index.html"
     }),
 
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, '..', 'chess-web')
-    }),
+      crateDirectory: path.resolve(__dirname, "..", "chess-web")
+    })
   ]
 };
