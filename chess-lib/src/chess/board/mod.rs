@@ -21,6 +21,35 @@ pub struct Board {
     pub next_player: Player,
 }
 
+pub struct PieceIter<'a> {
+    board: &'a Board,
+    pieces_left: BitBoard,
+}
+
+impl<'a> PieceIter<'a> {
+    pub fn new(board: &'a Board) -> Self {
+        Self {
+            board,
+            pieces_left: board.all_pieces(),
+        }
+    }
+}
+
+impl<'a> Iterator for PieceIter<'a> {
+    type Item = Option<Piece>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pieces_left.is_empty() {
+            return None;
+        }
+
+        let next_piece = self.pieces_left.first_bit_position();
+        for (board_id, board) in self.board.pieces.iter().enumerate() {}
+
+        None
+    }
+}
+
 impl Default for Board {
     fn default() -> Self {
         Board {
@@ -46,10 +75,8 @@ impl Board {
         self.players[1 - (self.next_player as usize)]
     }
 
-    pub fn piece_at(&self, rank: u8, file: u8) -> Result<Option<Piece>, BoardError> {
-        if rank >= 8 || file >= 8 {
-            return Err(BoardError::OutOfBounds { rank, file });
-        }
+    pub fn piece_at(&self, rank: u8, file: u8) -> Option<Piece> {
+        debug_assert!(rank < 8 && file < 8);
 
         let mask = BitBoard::from(BitPosition::from((rank, file)));
 
@@ -59,25 +86,25 @@ impl Board {
             .enumerate()
             .find(|&(_, player_board)| !mask.intersect(*player_board).is_empty())
         {
-            let player =
-                num::FromPrimitive::from_usize(player_id).ok_or(BoardError::InvalidPlayer {
+            let player = num::FromPrimitive::from_usize(player_id)
+                .ok_or(BoardError::InvalidPlayer {
                     player_id: player_id as u8,
-                })?;
+                })
+                .unwrap();
 
             let (i, _) = self
                 .pieces
                 .iter()
                 .enumerate()
                 .find(|&(_, board)| !mask.intersect(*board).is_empty())
-                .ok_or(BoardError::MalformedBoard)?;
+                .unwrap();
 
             debug_assert!(i < PIECE_COUNT);
 
-            let piece_type = num::FromPrimitive::from_usize(i)
-                .ok_or(BoardError::InvalidPiece { piece_id: i as u8 })?;
+            let piece_type = num::FromPrimitive::from_usize(i).unwrap();
 
             // let piece_board = (0..PIECE_COUNT).find(|&i| mask & self.pieces[i] > 0).ok_or(())?;
-            Ok(Some(Piece { player, piece_type }))
+            Some(Piece { player, piece_type })
         } else {
             debug_assert!({
                 (0..PIECE_COUNT)
@@ -85,7 +112,7 @@ impl Board {
                     .is_none()
             });
 
-            Ok(None)
+            None
         }
     }
 
@@ -129,6 +156,10 @@ impl Board {
             next_player: player,
             ..Default::default()
         })
+    }
+
+    pub fn iter(&self) -> PieceIter {
+        PieceIter::new(&self)
     }
 
     pub fn generate_moves(&self) -> MoveGenerator {
@@ -317,7 +348,7 @@ impl Display for Board {
             board += &format!("0x{: <02x} {} ║ ", (7 - r) * 8, 8 - r);
 
             for f in 0..8 {
-                let piece = self.piece_at(7 - r, f).map_err(|_| fmt::Error)?;
+                let piece = self.piece_at(7 - r, f);
 
                 let chr = if let Some(piece) = piece {
                     piece.to_char()
@@ -449,7 +480,7 @@ mod tests {
         };
 
         assert_eq!(
-            board.piece_at(0, 0).unwrap(),
+            board.piece_at(0, 0),
             Some(Piece {
                 piece_type: PieceType::Pawn,
                 player: Player::Black
@@ -457,7 +488,7 @@ mod tests {
         );
 
         assert_eq!(
-            board.piece_at(1, 0).unwrap(),
+            board.piece_at(1, 0),
             Some(Piece {
                 piece_type: PieceType::Rook,
                 player: Player::White
@@ -465,7 +496,7 @@ mod tests {
         );
 
         assert_eq!(
-            board.piece_at(1, 4).unwrap(),
+            board.piece_at(1, 4),
             Some(Piece {
                 piece_type: PieceType::Knight,
                 player: Player::Black
@@ -473,7 +504,7 @@ mod tests {
         );
 
         assert_eq!(
-            board.piece_at(2, 0).unwrap(),
+            board.piece_at(2, 0),
             Some(Piece {
                 piece_type: PieceType::Bishop,
                 player: Player::White
@@ -481,7 +512,7 @@ mod tests {
         );
 
         assert_eq!(
-            board.piece_at(3, 1).unwrap(),
+            board.piece_at(3, 1),
             Some(Piece {
                 piece_type: PieceType::Queen,
                 player: Player::Black
@@ -489,15 +520,16 @@ mod tests {
         );
 
         assert_eq!(
-            board.piece_at(7, 7).unwrap(),
+            board.piece_at(7, 7),
             Some(Piece {
                 piece_type: PieceType::King,
                 player: Player::White
             })
         );
 
-        assert_eq!(board.piece_at(4, 4).unwrap(), None);
-        assert_eq!(board.piece_at(0, 5), Err(BoardError::MalformedBoard));
+        assert_eq!(board.piece_at(4, 4), None);
+        // TODO: Use panic catch test
+        // assert_eq!(board.piece_at(0, 5), Err(BoardError::MalformedBoard));
     }
 
 }
