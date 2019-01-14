@@ -36,7 +36,7 @@ impl<'a> PieceIter<'a> {
 }
 
 impl<'a> Iterator for PieceIter<'a> {
-    type Item = Option<Piece>;
+    type Item = (RankFile, Piece);
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.pieces_left.is_empty() {
@@ -44,9 +44,29 @@ impl<'a> Iterator for PieceIter<'a> {
         }
 
         let next_piece = self.pieces_left.first_bit_position();
-        for (board_id, board) in self.board.pieces.iter().enumerate() {}
+        let piece_mask = BitBoard::from(next_piece);
+        let (board_idx, _) = self
+            .board
+            .pieces
+            .iter()
+            .enumerate()
+            .find(|(_, b)| !b.intersect(piece_mask).is_empty())
+            .unwrap();
 
-        None
+        let (player_idx, _) = self.board.players.iter().enumerate().find(|(_, b)| !b.intersect(piece_mask).is_empty()).unwrap();
+
+        let piece_type: PieceType = num::FromPrimitive::from_usize(board_idx).unwrap();
+        let player: Player = num::FromPrimitive::from_usize(player_idx).unwrap();
+
+        self.pieces_left -= piece_mask;
+
+        Some((
+            RankFile::from(next_piece),
+            Piece {
+                player,
+                piece_type,
+            },
+        ))
     }
 }
 

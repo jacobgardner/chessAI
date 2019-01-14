@@ -2,8 +2,8 @@ use crate::chess::{PieceType, Player};
 
 #[derive(Debug, PartialEq)]
 pub struct Piece {
-    pub(super) piece_type: PieceType,
-    pub(super) player: Player,
+    pub piece_type: PieceType,
+    pub player: Player,
 }
 
 impl Piece {

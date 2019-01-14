@@ -11,7 +11,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 wasm-bindgen = "0.2"
-web-sys = "0.3"
 js-sys = "0.3"
 lazy_static = "1.2"
 chess = { path = "../chess-lib" }
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["console"]
