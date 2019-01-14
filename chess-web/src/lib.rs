@@ -1,7 +1,6 @@
 use wasm_bindgen::prelude::*;
 
 use js_sys::Function;
-use web_sys::console::log_1;
 
 use chess_lib::chess;
 
@@ -21,7 +20,7 @@ impl Board {
     pub fn get_pieces(&self, fun: &Function) -> Result<(), JsValue> {
         let this = JsValue::NULL;
 
-        for (idx, (rank_file, piece)) in self.board.iter().enumerate() {
+        for (rank_file, piece) in self.board.iter() {
             let web_piece = Piece { piece, rank_file };
 
             let x = JsValue::from(web_piece);
