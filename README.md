@@ -1,5 +1,4 @@
-Chess AI
-========
+# Chess AI [![Build Status](https://travis-ci.org/jacobgardner/chessAI.svg?branch=master)](https://travis-ci.org/jacobgardner/chessAI)
 
 To benchmark, run:
 
@@ -37,7 +36,7 @@ Stretch Goals:
   - [ ] How deep to search at any given time
 
 
-Possible Optimizations: 
+Possible Optimizations:
 - [ ] Using premade boards for a lot of masks.
 
     NOTE: This actually may end up slower because the frequent lookups may thrash the cache
