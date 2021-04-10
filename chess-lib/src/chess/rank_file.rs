@@ -24,11 +24,11 @@ impl From<BitPosition> for RankFile {
 }
 
 impl RankFile {
-    pub fn rank(self) -> u8 {
+    pub const fn rank(self) -> u8 {
         self as u8 / 8
     }
 
-    pub fn file(self) -> u8 {
+    pub const fn file(self) -> u8 {
         self as u8 % 8
     }
 }
