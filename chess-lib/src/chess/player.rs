@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, FromPrimitive, Copy, Clone)]
+use variant_count::VariantCount;
+
+#[derive(Debug, PartialEq, FromPrimitive, Copy, Clone, VariantCount)]
 pub enum Player {
     Black = 0,
     White = 1,

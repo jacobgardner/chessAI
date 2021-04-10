@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, FromPrimitive, Clone, Copy)]
+use variant_count::VariantCount;
+
+#[derive(Debug, PartialEq, FromPrimitive, Clone, Copy, VariantCount)]
 pub enum PieceType {
     Pawn = 0,
     Rook = 1,

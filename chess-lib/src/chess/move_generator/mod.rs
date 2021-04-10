@@ -1,7 +1,6 @@
 mod sanity_checks;
 
 use crate::chess::bitboard::{CASTLE_CHECK, KINGSIDE_CASTLE, QUEENSIDE_CASTLE};
-use crate::chess::PIECE_COUNT;
 use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player, RankFile};
 
 pub struct MoveGenerator {
@@ -16,12 +15,19 @@ pub struct MoveGenerator {
     enemy_mask: BitBoard,
     /// The bitboard representing all piece positions
     all_pieces: BitBoard,
+    /// As we iterate through the player's pieces that we're 
+    /// generating moves for, we build up this bitboard for
+    /// representing the remaining pieces left to iterate through
+    /// for that piecetype
     player_piecetype_mask: BitBoard,
 
+    /// For this piece, have we generated the move bitboards yet?
     have_piece_moves_been_generated: bool,
+    /// 
     available_moves: BitBoard,
     possible_castle: BitBoard,
 
+    /// The current piece type we're examining
     piece_index: usize,
 }
 
@@ -203,7 +209,7 @@ impl Iterator for MoveGenerator {
                 self.piece_index += 1;
                 self.have_piece_moves_been_generated = false;
 
-                if self.piece_index < PIECE_COUNT {
+                if self.piece_index < PieceType::VARIANT_COUNT {
                     self.player_piecetype_mask =
                         self.generate_player_piecetype_mask(self.piece_index);
                     // Restarting the loop because we can't be sure the next mask > 0
@@ -215,8 +221,8 @@ impl Iterator for MoveGenerator {
 
             debug_assert!(!self.player_piecetype_mask.is_empty(), "Invariant: If the piecetype mask was 0 it should've moved on or finished the iteration");
             debug_assert!(
-                self.piece_index < PIECE_COUNT,
-                "Invariant: piece_index must be less than PIECE_COUNT"
+                self.piece_index < PieceType::VARIANT_COUNT,
+                "Invariant: piece_index must be less than PieceType::VARIANT_COUNT"
             );
 
             // TODO: A lot of these can be cached

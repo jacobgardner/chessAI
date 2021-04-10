@@ -10,12 +10,10 @@ use crate::chess::errors::{BoardError, InvalidStringReason};
 use crate::chess::{
     BitBoard, BitPosition, Move, MoveGenerator, MoveType, Piece, PieceType, Player, RankFile,
 };
-use crate::chess::{PIECE_COUNT, PLAYER_COUNT};
-
 #[derive(PartialEq, Clone)]
 pub struct Board {
-    pub pieces: [BitBoard; PIECE_COUNT],
-    pub players: [BitBoard; PLAYER_COUNT],
+    pub pieces: [BitBoard; PieceType::VARIANT_COUNT],
+    pub players: [BitBoard; Player::VARIANT_COUNT],
     pub unmoved_pieces: BitBoard,
     pub prev_move: Option<Move>,
     pub next_player: Player,
@@ -73,8 +71,8 @@ impl<'a> Iterator for PieceIter<'a> {
 impl Default for Board {
     fn default() -> Self {
         Board {
-            pieces: [BitBoard::empty(); PIECE_COUNT],
-            players: [BitBoard::empty(); PLAYER_COUNT],
+            pieces: [BitBoard::empty(); PieceType::VARIANT_COUNT],
+            players: [BitBoard::empty(); Player::VARIANT_COUNT],
             prev_move: None,
             next_player: Player::White,
             unmoved_pieces: BitBoard::empty().inverse(),
@@ -119,15 +117,15 @@ impl Board {
                 .find(|&(_, board)| !mask.intersect(*board).is_empty())
                 .unwrap();
 
-            debug_assert!(i < PIECE_COUNT);
+            debug_assert!(i < PieceType::VARIANT_COUNT);
 
             let piece_type = num::FromPrimitive::from_usize(i).unwrap();
 
-            // let piece_board = (0..PIECE_COUNT).find(|&i| mask & self.pieces[i] > 0).ok_or(())?;
+            // let piece_board = (0..PieceType::VARIANT_COUNT).find(|&i| mask & self.pieces[i] > 0).ok_or(())?;
             Some(Piece { player, piece_type })
         } else {
             debug_assert!({
-                (0..PIECE_COUNT)
+                (0..PieceType::VARIANT_COUNT)
                     .find(|&i| !mask.intersect(self.pieces[i]).is_empty())
                     .is_none()
             });
@@ -137,8 +135,8 @@ impl Board {
     }
 
     pub fn from(board: &str, player: Player) -> Result<Board, BoardError> {
-        let mut pieces = [BitBoard::empty(); PIECE_COUNT];
-        let mut players = [BitBoard::empty(); PLAYER_COUNT];
+        let mut pieces = [BitBoard::empty(); PieceType::VARIANT_COUNT];
+        let mut players = [BitBoard::empty(); Player::VARIANT_COUNT];
 
         let board: String = board.split(char::is_whitespace).collect();
 
@@ -337,7 +335,7 @@ impl Board {
     }
 
     fn remove_piece(&mut self, next_position_mask: BitBoard) {
-        for i in 0..PIECE_COUNT {
+        for i in 0..PieceType::VARIANT_COUNT {
             self.pieces[i] -= next_position_mask;
         }
 
@@ -477,7 +475,7 @@ mod tests {
 
     #[test]
     fn test_piece_at() {
-        let pieces: [BitBoard; PIECE_COUNT] = [
+        let pieces: [BitBoard; PieceType::VARIANT_COUNT] = [
             BitBoard::from(1),
             BitBoard::from(1 << 8),
             BitBoard::from(1 << 12),

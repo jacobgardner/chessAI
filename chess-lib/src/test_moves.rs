@@ -9,10 +9,10 @@ pub fn generate_moves_for_board(
 
     let mut board = Board::from(board, player).unwrap();
     board.prev_move = prev_move;
-    boards.push(format!("{}", board).to_owned());
+    boards.push(format!("{}", board));
 
     for board in board.generate_moves() {
-        boards.push(format!("{}", board).to_owned());
+        boards.push(format!("{}", board));
     }
 
     boards

@@ -28,7 +28,7 @@ impl MoveGenerator {
         if cfg!(debug_assertions) {
             debug_assert!(
                 !board.players[1 - self.player as usize].intersect(capture_mask).is_empty(),
-                format!("Capture Invariant Invalidated: Capture move made on space not-occupied by opponent:\n{}\n{:?}", board, capture_mask)
+                "Capture Invariant Invalidated: Capture move made on space not-occupied by opponent:\n{}\n{:?}", board, capture_mask
             );
 
             // TODO: We'll want the same sanity check above for moving through spaces.  Should be

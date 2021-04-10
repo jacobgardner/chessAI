@@ -23,7 +23,7 @@ impl BitPosition {
         let right_index = self.right_index as i32 + (8 * y + x);
 
         debug_assert!(
-            right_index >= 0 && right_index < 64,
+            (0..64).contains(&right_index),
             "Shifted bit position outside of the board"
         );
 

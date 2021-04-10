@@ -21,10 +21,6 @@ pub use crate::chess::piece_type::PieceType;
 pub use crate::chess::player::Player;
 pub use crate::chess::rank_file::RankFile;
 
-// LOW: Write/find macros that attaches .count() method to enum
-pub const PIECE_COUNT: usize = 6;
-pub const PLAYER_COUNT: usize = 2;
-
 pub const DEFAULT_BOARD: &str = "
     rnbkqbnr
     pppppppp
