@@ -20,12 +20,19 @@ impl Piece {
 
     pub fn to_char(&self) -> char {
         let (white_piece, black_piece) = match self.piece_type {
-            PieceType::Pawn => ('♙', '♟'),
-            PieceType::Rook => ('♖', '♜'),
-            PieceType::Bishop => ('♗', '♝'),
-            PieceType::Knight => ('♘', '♞'),
-            PieceType::King => ('♔', '♚'),
-            PieceType::Queen => ('♕', '♛'),
+            PieceType::Pawn => ('p', 'P'),
+            PieceType::Rook => ('r', 'R'),
+            PieceType::Bishop => ('b', 'B'),
+            PieceType::Knight => ('n', 'N'),
+            PieceType::King => ('k', 'K'),
+            PieceType::Queen => ('q', 'Q'),           
+
+            // PieceType::Pawn => ('♙', '♟'),
+            // PieceType::Rook => ('♖', '♜'),
+            // PieceType::Bishop => ('♗', '♝'),
+            // PieceType::Knight => ('♘', '♞'),
+            // PieceType::King => ('♔', '♚'),
+            // PieceType::Queen => ('♕', '♛'),
         };
 
         if self.player == Player::White {

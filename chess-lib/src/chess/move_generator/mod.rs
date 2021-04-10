@@ -5,15 +5,20 @@ use crate::chess::PIECE_COUNT;
 use crate::chess::{BitBoard, BitPosition, Board, PieceType, Player, RankFile};
 
 pub struct MoveGenerator {
+    /// The board/turn from which all moves we are generating from
     root_board: Board,
+    /// The player whose pieces are moving this turn.
     player: Player,
 
+    /// The moving player's bitboard
     player_mask: BitBoard,
+    /// The opponent player's bitboard
     enemy_mask: BitBoard,
+    /// The bitboard representing all piece positions
     all_pieces: BitBoard,
     player_piecetype_mask: BitBoard,
 
-    is_first_move: bool,
+    have_piece_moves_been_generated: bool,
     available_moves: BitBoard,
     possible_castle: BitBoard,
 
@@ -36,7 +41,7 @@ impl MoveGenerator {
 
             player_piecetype_mask: BitBoard::empty(),
 
-            is_first_move: true,
+            have_piece_moves_been_generated: false,
             available_moves: BitBoard::empty(),
             possible_castle: BitBoard::empty(),
 
@@ -140,14 +145,14 @@ impl MoveGenerator {
         current_position: BitPosition,
         current_position_mask: BitBoard,
     ) -> Option<Board> {
-        if self.is_first_move {
+        if !self.have_piece_moves_been_generated {
             self.available_moves = self.find_available_moves_for_piece(
                 piece_type,
                 current_position,
                 current_position_mask,
             );
 
-            self.is_first_move = false;
+            self.have_piece_moves_been_generated = true;
 
             if piece_type == PieceType::Pawn {
                 if let Some(board) = self
@@ -196,7 +201,7 @@ impl Iterator for MoveGenerator {
         'outer: loop {
             if self.player_piecetype_mask.is_empty() {
                 self.piece_index += 1;
-                self.is_first_move = true;
+                self.have_piece_moves_been_generated = false;
 
                 if self.piece_index < PIECE_COUNT {
                     self.player_piecetype_mask =
@@ -238,7 +243,7 @@ impl Iterator for MoveGenerator {
                     return Some(board);
                 }
                 None => {
-                    self.is_first_move = true;
+                    self.have_piece_moves_been_generated = false;
                     self.player_piecetype_mask -= piece_mask;
                 }
             };
