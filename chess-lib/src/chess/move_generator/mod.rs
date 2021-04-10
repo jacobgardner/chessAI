@@ -122,8 +122,8 @@ impl MoveGenerator {
         }
     }
 
-    fn generate_next_castling_board(&mut self) -> Option<Board> {
-        for rook_position in self.possible_castle.by_ref() {
+    fn generate_next_castling_board(&self) -> Option<Board> {
+        for rook_position in self.possible_castle {
             let rf = RankFile::from(rook_position);
 
             let is_queenside = rf.file() == 0;

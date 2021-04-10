@@ -10,6 +10,7 @@ use crate::chess::errors::{BoardError, InvalidStringReason};
 use crate::chess::{
     BitBoard, BitPosition, Move, MoveGenerator, MoveType, Piece, PieceType, Player, RankFile,
 };
+
 #[derive(PartialEq, Clone)]
 pub struct Board {
     pub pieces: [BitBoard; PieceType::VARIANT_COUNT],
@@ -266,7 +267,7 @@ impl Board {
         board
     }
 
-    pub fn perform_castle(&mut self, is_queenside: bool) -> Board {
+    pub fn perform_castle(&self, is_queenside: bool) -> Board {
         let king_position: BitPosition = match self.next_player {
             Player::White => RankFile::E1,
             Player::Black => RankFile::E8,
