@@ -15,7 +15,7 @@ pub struct MoveGenerator {
     enemy_mask: BitBoard,
     /// The bitboard representing all piece positions
     all_pieces: BitBoard,
-    /// As we iterate through the player's pieces that we're 
+    /// As we iterate through the player's pieces that we're
     /// generating moves for, we build up this bitboard for
     /// representing the remaining pieces left to iterate through
     /// for that piecetype
@@ -23,7 +23,8 @@ pub struct MoveGenerator {
 
     /// For this piece, have we generated the move bitboards yet?
     have_piece_moves_been_generated: bool,
-    /// 
+    /// The remaining moves that we haven't iterated over yet
+    /// for the targeted piece
     available_moves: BitBoard,
     possible_castle: BitBoard,
 
@@ -59,7 +60,9 @@ impl MoveGenerator {
         gen
     }
 
+    /// Finds the bitboard for the targeted piece_type specific to the active player
     fn generate_player_piecetype_mask(&self, piece_index: usize) -> BitBoard {
+        debug_assert!(piece_index < PieceType::VARIANT_COUNT);
         self.root_board.pieces[piece_index].intersect(self.player_mask)
     }
 
@@ -93,14 +96,16 @@ impl MoveGenerator {
         moves - self.player_mask
     }
 
+    fn has_piece_moved(&self, current_position_mask: BitBoard) -> bool {
+        self.root_board
+            .unmoved_pieces
+            .intersect(current_position_mask)
+            .is_empty()
+    }
+
     fn check_for_castling(&mut self, piece_type: PieceType, current_position_mask: BitBoard) {
-        if piece_type != PieceType::King
-            || self
-                .root_board
-                .unmoved_pieces
-                .intersect(current_position_mask)
-                .is_empty()
-        {
+        // If the piece isn't a king or it has moved, then we can't castle
+        if piece_type != PieceType::King || self.has_piece_moved(current_position_mask) {
             return;
         }
 

@@ -120,6 +120,8 @@ impl Board {
         false
     }
 
+    /// Returns true if any of the player's pieces in `space_mask` can be attacked by
+    ///   any of the opponents pieces
     pub fn is_attacked(&self, player: Player, mut space_mask: BitBoard) -> bool {
         space_mask.any(|current_position| {
             self.single_check(player, current_position, current_position.into())
