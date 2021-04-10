@@ -31,7 +31,7 @@ Stretch Goals:
 - [ ] Hooking up to Chess.com API to play against
 - [ ] Setting up tournament server for other AI to play against/rank.
 - [ ] Using lookups for boards to choose best move without searching (especially at the start)
-- [ ] Uisng an evolutionary algorithm to tune parameters
+- [ ] Using a genetic algorithm to tune parameters
   - [ ] Piece Values
   - [ ] How deep to search at any given time
 
