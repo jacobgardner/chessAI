@@ -17,6 +17,14 @@ pub struct Piece {
 
 #[wasm_bindgen]
 impl Board {
+    pub fn generate_moves(&self) -> Vec<JsValue> {
+        self.board
+            .generate_moves()
+            .map(|b| Board { board: b })
+            .map(JsValue::from)
+            .collect()
+    }
+
     pub fn get_pieces(&self, fun: &Function) -> Result<(), JsValue> {
         let this = JsValue::NULL;
 
@@ -25,7 +33,8 @@ impl Board {
 
             let x = JsValue::from(web_piece);
 
-            fun.call1(&this, &x).map_err(|_| "Unable to call callback")?;
+            fun.call1(&this, &x)
+                .map_err(|_| "Unable to call callback")?;
         }
 
         Ok(())

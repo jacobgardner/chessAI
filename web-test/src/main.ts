@@ -55,8 +55,16 @@ class Piece {
 }
 
 class Board {
-  static from(board: string, isCurrentPlayerWhite = true): Board {
-    const boardRs = chess.Board.from(board, isCurrentPlayerWhite);
+  static from(
+    board: string | ChessType.Board,
+    isCurrentPlayerWhite = true
+  ): Board {
+    let boardRs: ChessType.Board;
+    if (typeof board === "string") {
+      boardRs = chess.Board.from(board, isCurrentPlayerWhite);
+    } else {
+      boardRs = board;
+    }
 
     const pieces: Piece[] = [];
 
@@ -77,10 +85,35 @@ class Board {
 
     boardRs.free();
 
-    return new Board(pieces);
+    return new Board(pieces, isCurrentPlayerWhite);
   }
 
-  private constructor(public pieces: Piece[]) {}
+  public boardString: string;
+
+  private constructor(
+    public pieces: Piece[],
+    public isCurrentPlayerWhite = true
+  ) {
+    this.boardString = "";
+
+    for (let rank = 7; rank >= 0; rank -= 1) {
+      for (let file = 0; file < 8; file += 1) {
+        const piece = this.getAt(rank, file);
+
+        if (piece) {
+          const type = piece.type;
+          this.boardString +=
+            piece.owner === Owner.White
+              ? type.toUpperCase()
+              : type.toLowerCase();
+        } else {
+          this.boardString += ".";
+        }
+      }
+
+      this.boardString += "\n";
+    }
+  }
 
   getAt(rank: number, file: number): Piece | undefined {
     const piece = this.pieces.find(
@@ -88,6 +121,15 @@ class Board {
     );
 
     return piece;
+  }
+
+  generate_boards() {
+    const boards = chess.Board.from(
+      this.boardString,
+      this.isCurrentPlayerWhite
+    ).generate_moves();
+
+    return boards.map((board) => Board.from(board, !this.isCurrentPlayerWhite));
   }
 }
 
@@ -134,9 +176,12 @@ function depictionFromBoard(board: Board): HTMLElement {
 
 build().then((api) => {
   const board = api.Board.from(DEFAULT_BOARD, true);
-
   const boardContainer = depictionFromBoard(board);
-
   document.body.appendChild(boardContainer);
   console.log(board.pieces);
+
+  for (const b of board.generate_boards()) {
+    const boardContainer = depictionFromBoard(b);
+    document.body.appendChild(boardContainer);
+  }
 });
