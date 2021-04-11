@@ -2,6 +2,31 @@
 <html>
     <head>
         <title>Chess</title>
+        <style>
+            .board {
+                display: grid;
+                grid-template-columns: repeat(8, 1fr);
+                grid-template-rows: repeat(8, 1fr);
+                border: 3px solid gray;
+                width: 500px;
+                height: 500px;
+            }
+
+            .board-space_odd {
+                background-color: #FFFFFF;
+            }
+
+            .board-space_even {
+                background-color: #AAAAAA;
+            }
+
+            .board-space {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 32px;
+            }
+        </style>
     </head>
     <body>
         <div id="main"></div>
