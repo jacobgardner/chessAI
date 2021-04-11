@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "minimax",
     "chess-lib",
     "chess-web"
 ]
