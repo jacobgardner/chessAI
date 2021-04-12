@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::fmt;
 
 #[derive(Clone, Copy, Debug)]
@@ -42,6 +43,20 @@ impl TicTacToe {
         row * self.width + column
     }
 
+    pub(crate) fn score_board(&self) -> f64 {
+        match self.get_game_state() {
+            GameState::InProgress => 0.0,
+            GameState::GameOver { winner: None } => 0.0,
+            GameState::GameOver {
+                winner: Some(Piece::X),
+            } => 100.0,
+            GameState::GameOver {
+                winner: Some(Piece::O),
+            } => -100.0,
+        }
+    }
+
+    /// This is super inefficient and gross, but I don't care
     fn get_game_state(&self) -> GameState {
         'outer: for row in 0..self.height {
             let index = self.get_index(row, 0);
@@ -140,7 +155,10 @@ impl Iterator for TicTacToeMoveGenerator {
     type Item = TicTacToe;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let GameState::GameOver { winner: Some(Piece::O) } = self.root_board.get_game_state() {
+        if let GameState::GameOver {
+            winner: Some(Piece::O),
+        } = self.root_board.get_game_state()
+        {
             return None;
         }
 

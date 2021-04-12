@@ -13,10 +13,13 @@ mod tictactoe;
 
 pub trait MinimaxNode {
     type It: Iterator<Item = Self>;
+    type Heuristic: PartialOrd;
+
     fn iter(&self) -> Self::It;
+    fn heuristic(&self) -> Self::Heuristic;
 }
 
-pub fn minimax<T: MinimaxNode + Display>(
+pub fn minimax<H: Display, T: MinimaxNode<Heuristic = H> + Display>(
     root_node: T,
     max_depth: usize,
     is_maximizing_player: bool,
@@ -38,9 +41,14 @@ mod tests {
 
     impl MinimaxNode for TicTacToe {
         type It = TicTacToeMoveGenerator;
+        type Heuristic = f64;
 
         fn iter(&self) -> Self::It {
             self.generate_moves()
+        }
+
+        fn heuristic(&self) -> Self::Heuristic {
+            self.score_board() 
         }
     }
 
