@@ -1,0 +1,48 @@
+[package]
+name = "chess"
+version = "0.1.0"
+authors = ["Jacob Gardner <jacob.v.gardner@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "chess_lib"
+path = "src/lib.rs"
+
+[features]
+strict = []
+
+[dependencies]
+num = "^0.2"
+num-derive = "^0.2"
+num-traits = "^0.2"
+uncover = "^0.1.1"
+lazy_static = "^1.2.0"
+variant_count = "1.0.0"
+
+[dev-dependencies]
+criterion = "^0.2.5"
+snapshot = { git = "https://github.com/jacobgardner/snapshot-rs.git", branch = "hjson" }
+
+[[bench]]
+name = "pawn_generation"
+harness = false
+
+[[bench]]
+name = "rook_generation"
+harness = false
+
+[[bench]]
+name = "knight_generation"
+harness = false
+
+[[bench]]
+name = "bishop_generation"
+harness = false
+
+[[bench]]
+name = "queen_generation"
+harness = false
+
+[[bench]]
+name = "king_generation"
+harness = false

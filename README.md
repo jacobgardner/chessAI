@@ -1,5 +1,4 @@
-Chess AI
-========
+# Chess AI [![Build Status](https://travis-ci.org/jacobgardner/chessAI.svg?branch=master)](https://travis-ci.org/jacobgardner/chessAI)
 
 To benchmark, run:
 
@@ -32,12 +31,12 @@ Stretch Goals:
 - [ ] Hooking up to Chess.com API to play against
 - [ ] Setting up tournament server for other AI to play against/rank.
 - [ ] Using lookups for boards to choose best move without searching (especially at the start)
-- [ ] Uisng an evolutionary algorithm to tune parameters
+- [ ] Using a genetic algorithm to tune parameters
   - [ ] Piece Values
   - [ ] How deep to search at any given time
 
 
-Possible Optimizations: 
+Possible Optimizations:
 - [ ] Using premade boards for a lot of masks.
 
     NOTE: This actually may end up slower because the frequent lookups may thrash the cache
