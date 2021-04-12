@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn tic_tac_toe() {
-        let board = TicTacToe::new();
+        let board = TicTacToe::with_size(4);
 
         let path = minimax(board, 15, true);
 
