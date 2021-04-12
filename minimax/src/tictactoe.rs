@@ -46,7 +46,7 @@ impl TicTacToe {
     pub(crate) fn score_board(&self) -> f64 {
         match self.get_game_state() {
             GameState::InProgress => 0.0,
-            GameState::GameOver { winner: None } => 0.0,
+            GameState::GameOver { winner: None } => 1.0,
             GameState::GameOver {
                 winner: Some(Piece::X),
             } => 100.0,
