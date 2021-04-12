@@ -13,7 +13,7 @@ mod tictactoe;
 
 pub trait MinimaxNode {
     type It: Iterator<Item = Self>;
-    type Heuristic: PartialOrd + Min + Max;
+    type Heuristic: PartialOrd;
 
     fn iter(&self) -> Self::It;
     fn heuristic(&self) -> Self::Heuristic;
@@ -24,11 +24,10 @@ pub struct BestPath<B, S> {
     pub score: S,
 }
 
-/// This will blow the stack if we keep this recursive for chess
-pub fn minimax<H: PartialOrd + Min + Max + Display, T: MinimaxNode<Heuristic = H> + Display>(
+pub fn minimax_path<H: PartialOrd, T: MinimaxNode<Heuristic = H>>(
     root_node: T,
-    max_depth: usize,
     is_maximizing_player: bool,
+    max_depth: usize,
 ) -> BestPath<T, H> {
     if max_depth == 0 {
         return BestPath {
@@ -37,93 +36,48 @@ pub fn minimax<H: PartialOrd + Min + Max + Display, T: MinimaxNode<Heuristic = H
         };
     }
 
-    if is_maximizing_player {
-        let mut value = H::min();
-        let mut has_children = false;
-
-        let mut best_boards: Option<Vec<T>> = None;
-
-        for node in root_node.iter() {
-            has_children = true;
-            let minimax_value = minimax(node, max_depth - 1, false);
-
-            if let Some(cmp::Ordering::Greater) = minimax_value.score.partial_cmp(&value) {
-                value = minimax_value.score;
-                best_boards = Some(minimax_value.boards);
-            }
-        }
-
-        if !has_children {
-            return BestPath {
-                score: root_node.heuristic(),
-                boards: vec![root_node],
-            };
-        }
-
-        let mut boards = best_boards.unwrap();
-        boards.push(root_node);
-
-        BestPath {
-            score: value,
-            boards,
-        }
+    let player_operation = if is_maximizing_player {
+        cmp::Ordering::Greater
     } else {
-        let mut value = H::max();
-        let mut has_children = false;
-        let mut best_boards: Option<Vec<T>> = None;
+        cmp::Ordering::Less
+    };
 
-        for node in root_node.iter() {
-            has_children = true;
-            let minimax_value = minimax(node, max_depth - 1, true);
+    let path = root_node
+        .iter()
+        .fold(None, |acc: Option<BestPath<T, H>>, node| {
+            let path: BestPath<T, H> = minimax_path(node, !is_maximizing_player, max_depth - 1);
 
-            if let Some(cmp::Ordering::Less) = minimax_value.score.partial_cmp(&value) {
-                value = minimax_value.score;
-                best_boards = Some(minimax_value.boards);
+            if let Some(value) = acc {
+                match path.score.partial_cmp(&value.score) {
+                    Some(op) if op == player_operation => Some(path),
+                    _ => Some(value),
+                }
+            } else {
+                Some(path)
             }
-        }
+        });
 
-        if !has_children {
-            return BestPath {
-                score: root_node.heuristic(),
-                boards: vec![root_node],
-            };
-        }
+    if let Some(mut path) = path {
+        // let mut boards = best_boards.unwrap();
+        // boards.push(root_node);
 
-        let mut boards = best_boards.unwrap();
-        boards.push(root_node);
+        path.boards.push(root_node);
 
+        path
+    } else {
         BestPath {
-            score: value,
-            boards,
+            score: root_node.heuristic(),
+            boards: vec![root_node],
         }
     }
 }
 
-pub trait Min {
-    fn min() -> Self;
-}
-
-pub trait Max {
-    fn max() -> Self;
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use crate::tictactoe::{TicTacToe, TicTacToeMoveGenerator};
-
-    impl Min for f64 {
-        fn min() -> Self {
-            f64::MIN
-        }
-    }
-
-    impl Max for f64 {
-        fn max() -> Self {
-            f64::MAX
-        }
-    }
 
     impl MinimaxNode for TicTacToe {
         type It = TicTacToeMoveGenerator;
@@ -140,9 +94,9 @@ mod tests {
 
     #[test]
     fn tic_tac_toe() {
-        let board = TicTacToe::with_size(4);
+        let board = TicTacToe::with_size(3);
 
-        let path = minimax(board, 15, true);
+        let path = minimax_path(board, true, 16);
 
         println!("MINIMAX Value: {}", path.score);
 
