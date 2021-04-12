@@ -72,7 +72,93 @@ pub fn minimax_path<H: PartialOrd, T: MinimaxNode<Heuristic = H>>(
     }
 }
 
+pub fn alpha_beta<H: PartialOrd + Clone, T: MinimaxNode<Heuristic = H>>(
+    root_node: T,
+    is_maximizing_player: bool,
+    max_depth: usize,
+    mut alpha: Option<H>,
+    mut beta: Option<H>,
+) -> BestPath<T, H> {
+    if max_depth == 0 {
+        return BestPath {
+            score: root_node.heuristic(),
+            boards: vec![root_node],
+        };
+    }
 
+    let player_operation = if is_maximizing_player {
+        cmp::Ordering::Greater
+    } else {
+        cmp::Ordering::Less
+    };
+
+    let mut best_path: Option<BestPath<T, H>> = None;
+
+    for node in root_node.iter() {
+        let path: BestPath<T, H> = alpha_beta(
+            node,
+            !is_maximizing_player,
+            max_depth - 1,
+            alpha.clone(),
+            beta.clone(),
+        );
+
+        best_path = if let Some(value) = best_path {
+            match path.score.partial_cmp(&value.score) {
+                Some(op) if op == player_operation => Some(path),
+                _ => Some(value),
+            }
+        } else {
+            Some(path)
+        };
+
+        let p = best_path.as_ref().unwrap();
+
+        if is_maximizing_player {
+            alpha = Some(if let Some(a) = alpha {
+                if p.score > a {
+                    p.score.clone()
+                } else {
+                    a
+                }
+            } else {
+                p.score.clone()
+            });
+        } else {
+            beta = Some(if let Some(b) = beta {
+                if p.score < b {
+                    p.score.clone()
+                } else {
+                    b
+                }
+            } else {
+                p.score.clone()
+            });
+        }
+
+        if let Some((a, b)) = alpha.as_ref().zip(beta.as_ref()) {
+            if is_maximizing_player && a >= b {
+                break;
+            } else if !is_maximizing_player && b <= a {
+                break;
+            }
+        }
+    }
+
+    if let Some(mut path) = best_path {
+        // let mut boards = best_boards.unwrap();
+        // boards.push(root_node);
+
+        path.boards.push(root_node);
+
+        path
+    } else {
+        BestPath {
+            score: root_node.heuristic(),
+            boards: vec![root_node],
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,7 +182,7 @@ mod tests {
     fn tic_tac_toe() {
         let board = TicTacToe::with_size(3);
 
-        let path = minimax_path(board, true, 16);
+        let path = alpha_beta(board, true, 16, None, None);
 
         println!("MINIMAX Value: {}", path.score);
 
